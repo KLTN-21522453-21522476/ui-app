@@ -21,7 +21,9 @@ class FileService {
   }
 
   // This would be where you'd add the API call to process the files
-  async extractDataFromInvoice(file: File): Promise<any> {
+  //async extractDataFromInvoice(file: File): Promise<any> {
+  async extractDataFromInvoice(): Promise<any> {
+
     // In a real application, this would be an API call
     // For example:
     // const formData = new FormData();

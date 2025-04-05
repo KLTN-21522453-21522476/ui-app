@@ -42,42 +42,42 @@ const InvoiceExtraction: React.FC = () => {
   };
 
   // Optional: Add a function to process files
-  const processFile = async (file: UploadedFile) => {
-    if (!file.file) return;
+  // const processFile = async (file: UploadedFile) => {
+  //   if (!file.file) return;
     
-    // Update file status to processing
-    setUploadedFiles(prevFiles => 
-      prevFiles.map(f => 
-        f.name === file.name ? { ...f, status: 'processing' } : f
-      )
-    );
+  //   // Update file status to processing
+  //   setUploadedFiles(prevFiles => 
+  //     prevFiles.map(f => 
+  //       f.name === file.name ? { ...f, status: 'processing' } : f
+  //     )
+  //   );
     
-    try {
-      const result = await fileService.extractDataFromInvoice(file.file);
+  //   try {
+  //     const result = await fileService.extractDataFromInvoice(file.file);
       
-      // Update file with results
-      setUploadedFiles(prevFiles => 
-        prevFiles.map(f => 
-          f.name === file.name ? { 
-            ...f, 
-            status: 'completed',
-            result: result.data
-          } : f
-        )
-      );
-    } catch (error) {
-      // Handle error
-      setUploadedFiles(prevFiles => 
-        prevFiles.map(f => 
-          f.name === file.name ? { 
-            ...f, 
-            status: 'error',
-            result: { error: 'Failed to process file' }
-          } : f
-        )
-      );
-    }
-  };
+  //     // Update file with results
+  //     setUploadedFiles(prevFiles => 
+  //       prevFiles.map(f => 
+  //         f.name === file.name ? { 
+  //           ...f, 
+  //           status: 'completed',
+  //           result: result.data
+  //         } : f
+  //       )
+  //     );
+  //   } catch (error) {
+  //     // Handle error
+  //     setUploadedFiles(prevFiles => 
+  //       prevFiles.map(f => 
+  //         f.name === file.name ? { 
+  //           ...f, 
+  //           status: 'error',
+  //           result: { error: 'Failed to process file' }
+  //         } : f
+  //       )
+  //     );
+  //   }
+  // };
 
   return (
     <FileUploadComponent
