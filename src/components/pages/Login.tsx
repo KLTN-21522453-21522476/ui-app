@@ -35,13 +35,10 @@ const Login: React.FC = () => {
     e.preventDefault();
     
     try {
-      // Call the login function from AuthContext
       await login(formData.email, formData.password);
-      
-      // If login is successful, redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
-      // Error handling is managed in the AuthContext
+      
     }
   };
 
