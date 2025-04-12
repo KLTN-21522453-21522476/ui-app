@@ -50,10 +50,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoading(true);
     setError(null);
     try {
-      const session = await account.createEmailPasswordSession(email, password);
-      const currentUser = await account.get();
-      setUser(currentUser);
-      return session;
+
+      const session = await fetch(import.meta.env.VITE_PROXY_ENDPOINT + '/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!session.ok) {
+        const errorData = await session.json();
+        throw new Error(errorData.message || 'Lấy session thất bại');
+      }
+
+      const sessionData: Models.Session   = await session.json();
+      const secret = sessionData.secret;
+      console.log(secret)
+
+      const user = await fetch(import.meta.env.VITE_PROXY_ENDPOINT + '/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ secret }),
+      });
+
+      if (!user.ok) {
+        const errorData = await user.json();
+        throw new Error(errorData.message || 'Lấy thông tin người dùng thất bại');
+      }
+
+      const userData:  Models.User<Models.Preferences> = await user.json()
+      setUser(userData);
+      return sessionData;
+
     } catch (err: any) {
       setError(err.message);
       throw err;
