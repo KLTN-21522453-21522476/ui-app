@@ -1,59 +1,88 @@
-import Container from 'react-bootstrap/Container';
-import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
-import { useAuth } from '../../hooks/authService';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Navbar, Nav, Container, Form, InputGroup, Dropdown } from 'react-bootstrap';
+import { FaSearch, FaEnvelope, FaBell } from 'react-icons/fa';
+import { useAuth } from '../../hooks/useAuth';
+import LoginModal from '../modal/AuthModal';
 
-function Header () {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+const Header: React.FC = () => {
+  const { user, logout } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
-    const handleLogout = async () => {
-        try {
-            await logout();
-            navigate('/login');
-        } catch (error) {
-            console.error('Lỗi khi đăng xuất:', error);
-        }
-    };
+  const handleLoginClick = () => {
+    setShowLoginModal(true);
+  };
 
-    const displayName = user ? (user.name || user.email) : 'Đăng nhập';
+  return (
+    <>
+      <Navbar bg="white" expand="lg" className="border-bottom shadow-sm py-2">
+        <Container fluid className="px-4">
+          <div className="d-flex align-items-center w-100 justify-content-between">
+            {/* Search Box - Left Side */}
+            <div className="position-relative" style={{ maxWidth: '260px', width: '100%' }}>
+              <InputGroup className="border rounded-pill bg-light overflow-hidden">
+                <div className="input-group-prepend d-flex align-items-center ps-3">
+                  <FaSearch className="text-muted" size={14} />
+                </div>
+                <Form.Control
+                  type="search"
+                  placeholder="Search ..."
+                  aria-label="Search"
+                  className="border-0 bg-light py-2 ps-2"
+                  style={{ boxShadow: 'none' }}
+                />
+              </InputGroup>
+            </div>
 
-    return (
-        <Navbar expand="lg" className="bg-body-tertiary" bg="primary" data-bs-theme="dark">
-            <Container>
-                <Navbar className="bg-body-tertiary">
-                    <Container>
-                        <Navbar.Brand href="#home">
-                            <img
-                            src="bill.png"
-                            width="50"
-                            height="50"
-                            className="d-inline-block align-top"
-                            alt="React Bootstrap logo"
-                            />
-                        </Navbar.Brand>
-                        <Navbar.Brand href="#home">Trích xuất Hoá đơn</Navbar.Brand>
-                    </Container>
-                </Navbar>
+            {/* Right Side Icons and User */}
+            <div className="d-flex align-items-center">
+              {/* Mail Icon */}
+              <Nav.Link className="me-3 position-relative">
+                <FaEnvelope className="text-muted" size={18} />
+              </Nav.Link>
 
-                <Navbar className="bg-body-tertiary" style={{color: "white" }}>
-                    <NavDropdown title={displayName}  id="collapsible-nav-dropdown">
-                        <NavDropdown.Item href="#action/3.1">Kho dữ liệu</NavDropdown.Item>
-                        <NavDropdown.Item href="#action/3.2">
-                            Nhóm
-                        </NavDropdown.Item>
-                        <NavDropdown.Item href="#action/3.3">Cài đặt</NavDropdown.Item>
-                        <NavDropdown.Divider />
-                        <NavDropdown.Item onClick={handleLogout}>
-                            Đăng xuất
-                        </NavDropdown.Item>
-                    </NavDropdown>
-                </Navbar>
+              {/* Notification Icon with Badge */}
+              <Nav.Link className="me-3 position-relative">
+                <FaBell className="text-muted" size={18} />
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success" 
+                      style={{ fontSize: '0.6rem', transform: 'translate(-50%, -30%)' }}>
+                  4
+                </span>
+              </Nav.Link>
 
+              {/* User Profile or Login Link */}
+              {user ? (
+                <Dropdown align="end">
+                  <Dropdown.Toggle as="div" className="d-flex align-items-center" style={{ cursor: 'pointer' }}>
+                    <div className="fw-medium" style={{ fontSize: '14px' }}>Hi, {user.name}</div>
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu className="dropdown-menu-end shadow-sm mt-2">
+                    <Dropdown.Item href="/profile">Tài khoản</Dropdown.Item>
+                    <Dropdown.Item href="/settings">Cài đặt</Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item onClick={logout}>Đăng xuất</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              ) : (
+                <div 
+                  onClick={handleLoginClick} 
+                  className="d-flex align-items-center" 
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="fw-medium" style={{ fontSize: '14px' }}>Đăng nhập</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </Container>
+      </Navbar>
 
-            </Container>
-        </Navbar>
-      );
-}
+      {/* Login Modal */}
+      <LoginModal 
+        show={showLoginModal} 
+        onHide={() => setShowLoginModal(false)} 
+      />
+    </>
+  );
+};
+
 export default Header;

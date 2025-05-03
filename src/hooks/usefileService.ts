@@ -1,4 +1,4 @@
-import { UploadedFile } from "../components/types/UploadeFile";
+import { UploadedFile } from "../types/UploadeFile";
 
 class FileService {
   // Process files before adding them to state

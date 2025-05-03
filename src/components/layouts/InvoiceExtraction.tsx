@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { UploadedFile } from "../types/UploadeFile";
-import fileService from "../../hooks/fileService";
-import FileList from "./FileList";
+import { UploadedFile } from "../../types/UploadeFile";
+import fileService from "../../hooks/usefileService";
+import FileList from "./file-list/FileList";
 import FileUploadComponent from "./FileUploadComponent"; // Using our new combined component
 
 const InvoiceExtraction: React.FC = () => {
