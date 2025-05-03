@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { useDropzone } from "react-dropzone";
-import { FileUploadComponentProps } from "../types/UploadeFile";
+import { FileUploadComponentProps } from "../../types/UploadeFile";
 
 const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   title,

@@ -1,5 +1,5 @@
-import Header from '../layouts/Header';
-import InvoiceExtraction from '../layouts/InvoiceExtraction';
+import Header from '../components/layouts/Header';
+import InvoiceExtraction from '../components/layouts/InvoiceExtraction';
 
 const Home: React.FC = () => {
     return (
@@ -9,8 +9,5 @@ const Home: React.FC = () => {
         </div>
     );
 }
-
-
-
 
 export default Home;

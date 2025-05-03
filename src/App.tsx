@@ -1,10 +1,27 @@
 import { BrowserRouter as Router } from 'react-router-dom';
-import AppRoutes from './components/pages/Routes';
+import AppRoutes from './pages/Routes';
+import Sidebar from './components/layouts/Sidebar';
+import styled from 'styled-components';
 
-function App () {
+const AppContainer = styled.div`
+  display: flex;
+  height: 100vh;
+`;
+
+const ContentContainer = styled.div`
+  flex-grow: 1;
+  overflow: auto;
+`;
+
+function App() {
   return (
     <Router>
-       <AppRoutes />
+      <AppContainer>
+        <Sidebar />
+        <ContentContainer>
+          <AppRoutes />
+        </ContentContainer>
+      </AppContainer>
     </Router>
   );
 }
