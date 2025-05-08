@@ -1,6 +1,7 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import AppRoutes from './pages/Routes';
 import Sidebar from './components/layouts/Sidebar';
+import Header from './components/layouts/Header';
 import styled from 'styled-components';
 
 const AppContainer = styled.div`
@@ -19,6 +20,7 @@ function App() {
       <AppContainer>
         <Sidebar />
         <ContentContainer>
+          <Header />
           <AppRoutes />
         </ContentContainer>
       </AppContainer>
