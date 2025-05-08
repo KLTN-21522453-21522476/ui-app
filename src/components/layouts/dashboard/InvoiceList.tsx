@@ -124,19 +124,19 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, isLoading }) => {
                       <td>
                         <TruncatedText 
                           text={invoice.fileName || 'Không xác định'} 
-                          maxLength={15}
+                          maxLength={10}
                         />
                       </td>
                       <td>
                         <TruncatedText 
                           text={invoice.storeName || 'Không xác định'} 
-                          maxLength={15}
+                          maxLength={10}
                         />
                       </td>
                       <td>
                         <TruncatedText 
                           text={invoice.address || 'Không xác định'} 
-                          maxLength={20}
+                          maxLength={10}
                         />
                       </td>
                       <td>{invoice.createdDate || 'Không xác định'}</td>

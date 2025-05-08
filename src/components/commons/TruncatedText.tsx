@@ -12,7 +12,7 @@ interface TruncatedTextProps {
 
 const TruncatedText: React.FC<TruncatedTextProps> = ({
   text,
-  maxLength = 20,
+  maxLength = 40,
   className = '',
   showTooltip = true,
   expandable = true
@@ -46,7 +46,7 @@ const TruncatedText: React.FC<TruncatedTextProps> = ({
   }
 
   // Truncate text
-  const truncatedText = `${text.substring(0, maxLength)}...`;
+  const truncatedText = `${text.substring(0, maxLength)}`;
   
   // Nếu có tooltip, wrap trong OverlayTrigger
   if (showTooltip) {
@@ -66,7 +66,7 @@ const TruncatedText: React.FC<TruncatedTextProps> = ({
                 setIsExpanded(true);
               }}
             >
-              [Xem thêm]
+              [...]
             </span>
           )}
         </span>

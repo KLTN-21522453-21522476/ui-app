@@ -128,7 +128,7 @@ const Sidebar: React.FC = () => {
   const menuItems: MenuItem[] = [
     { title: 'Bảng Điều Khiển', icon: <AiOutlineHome />, path: '/dashboard' },
     { title: 'Upload Hoá Đơn', icon: <AiOutlineLayout />, path: '/'},
-    { title: 'Nhóm', icon: <AiOutlineLayout />, path: '/'},
+    { title: 'Nhóm', icon: <AiOutlineLayout />, path: '/group'},
     { title: 'Sidebar Layouts', icon: <AiOutlineLayout />, expandable: true },
     // { title: 'Forms', icon: <AiOutlineForm />, expandable: true },
     // { title: 'Tables', icon: <AiOutlineTable />, expandable: true },

@@ -25,7 +25,7 @@ const Header: React.FC = () => {
                 </div>
                 <Form.Control
                   type="search"
-                  placeholder="Search ..."
+                  placeholder="Tìm kiếm"
                   aria-label="Search"
                   className="border-0 bg-light py-2 ps-2"
                   style={{ boxShadow: 'none' }}
