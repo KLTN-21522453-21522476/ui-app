@@ -3,14 +3,44 @@ import {
   UploadedFile, 
   FileWithStatus, 
   FileStatus, 
+  ExtractResponse
 } from '../types/FileList';
-import { Item, InvoiceData } from '../types/Invoice';
+import { InvoiceData } from '../types/Invoice';
+import { convertExtractionToInvoiceData } from '../types/utils';
+import { ExtractionData, Item } from '../types/ExtractionData';
 
 export const useFileStatus = (files: UploadedFile[]) => {
-  
   const [filesWithStatus, setFilesWithStatus] = useState<FileWithStatus[]>(
-    files.map(file => ({ ...file, status: 'idle' as FileStatus }))
+    files.map(file => ({ 
+      ...file, 
+      status: 'idle' as FileStatus,
+      extractedData: [] as ExtractResponse
+    }))
   );
+
+  useEffect(() => {
+    setFilesWithStatus(prevFilesWithStatus => {
+      const newFiles = files.filter(file => 
+        !prevFilesWithStatus.some(prevFile => prevFile.name === file.name)
+      );
+      
+      const updatedFiles = prevFilesWithStatus
+        .filter(prevFile => files.some(file => file.name === prevFile.name))
+        .map(prevFile => {
+          const matchingFile = files.find(file => file.name === prevFile.name);
+          return matchingFile ? { ...prevFile, ...matchingFile } : prevFile;
+        });
+      
+      return [
+        ...updatedFiles,
+        ...newFiles.map(file => ({ 
+          ...file, 
+          status: 'idle' as FileStatus,
+          extractedData: undefined
+        }))
+      ];
+    });
+  }, [files]);
 
   useEffect(() => {
     setFilesWithStatus(prevFilesWithStatus => {
@@ -33,87 +63,32 @@ export const useFileStatus = (files: UploadedFile[]) => {
   }, [files]);
 
   // Update file status
-  const updateFileStatus = (fileName: string, status: FileStatus, extractedData?: InvoiceData, errorMessage?: string) => {
-    setFilesWithStatus(prev => 
-      prev.map(file => {
-        if (file.name === fileName) {
-          const updatedFile: FileWithStatus = { 
-            ...file, 
-            status
-          };
-          
-          if (errorMessage !== undefined) {
-            updatedFile.errorMessage = errorMessage;
-          }
-          
-          if (extractedData !== undefined) {
-            // Create a new ExtractResponse array or update existing one
-            const currentExtractedData = file.extractedData || [];
-            const filteredData = currentExtractedData.filter(item => item.fileName !== fileName);
-            updatedFile.extractedData = [...filteredData, extractedData];
-          }
-          
-          return updatedFile;
-        }
-        return file;
-      })
-    );
-  };
-
-  // Update all files status
-  const updateAllFilesStatus = (status: FileStatus, errorMessage?: string) => {
-    setFilesWithStatus(prev => 
-      prev.map(file => {
-        const updatedFile: FileWithStatus = { ...file, status };
-        if (errorMessage !== undefined) {
-          updatedFile.errorMessage = errorMessage;
-        }
-        return updatedFile;
-      })
+  const updateFileStatus = (fileName: string, status: FileStatus, extractedData: ExtractResponse = [], errorMessage?: string) => {
+    setFilesWithStatus(prevFiles => 
+      prevFiles.map(file => 
+        file.name === fileName 
+          ? { ...file, status, extractedData, errorMessage } 
+          : file
+      ) as FileWithStatus[]
     );
   };
 
   // Update extracted data field
-  const updateExtractedData = (
-    fileName: string, 
-    itemIndex: number, 
-    field: keyof Item, 
-    value: string
-  ) => {
-    setFilesWithStatus(prev => 
-      prev.map(file => {
-        if (file.name === fileName && file.extractedData) {
-          // Find the invoice data for this file
-          const invoiceDataIndex = file.extractedData.findIndex(item => item.fileName === fileName);
-          
-          if (invoiceDataIndex === -1) return file;
-          
-          // Clone the extractedData array
-          const newExtractedData = [...file.extractedData];
-          
-          // Clone the invoice data
-          const invoiceData = { ...newExtractedData[invoiceDataIndex] };
-                    
-          // Clone the items array
-          const items = invoiceData.items ? [...invoiceData.items] : [];
-          
-          // Update the specific item
-          items[itemIndex] = {
-            ...items[itemIndex],
-            [field]: value
-          };
-          
-          // Reassemble the updated structure
-          invoiceData.items = items;
-          newExtractedData[invoiceDataIndex] = invoiceData;
-          
-          return {
-            ...file,
-            extractedData: newExtractedData
-          };
-        }
-        return file;
-      })
+  const updateExtractedData = (fileName: string, itemIndex: number, field: keyof Item, value: string) => {
+    setFilesWithStatus(prevFiles => 
+      prevFiles.map(file => 
+        file.name === fileName && file.extractedData
+          ? { 
+              ...file, 
+              extractedData: file.extractedData.map(data => {
+                const updatedItems = data.items.map((item, index) => 
+                  index === itemIndex ? { ...item, [field]: value } : item
+                );
+                return { ...data, items: updatedItems };
+              })
+            }
+          : file
+      ) as FileWithStatus[]
     );
   };
 
@@ -146,12 +121,15 @@ export const useFileStatus = (files: UploadedFile[]) => {
     );
   };
 
+  const updateFileStatusWithExtractResponse = (fileName: string, status: FileStatus, extractedData?: ExtractResponse, errorMessage?: string) => {
+    updateFileStatus(fileName, status, extractedData, errorMessage);
+  };
+
   return {
     filesWithStatus,
-    setFilesWithStatus,
     updateFileStatus,
-    updateAllFilesStatus,
+    updateFileStatusWithExtractResponse,
     updateExtractedData,
-    updateInvoiceData,
+    updateInvoiceData
   };
 };

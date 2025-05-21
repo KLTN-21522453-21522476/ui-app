@@ -3,17 +3,20 @@
 import React, { useState } from 'react';
 import { Card, ListGroup, Button, Alert, Toast, Form, Row, Col, Badge } from 'react-bootstrap';
 import { FileListProps } from '../../../types/FileList';
+import { useAuth } from '../../../hooks/useAuth';
 
 import { useFileStatus } from '../../../hooks/useFileStatus';
 import { useFileExtraction } from '../../../hooks/useFileExtraction';
 import { useInvoices } from '../../../hooks/useInvoices';
+import { ExtractionData } from '../../../types/ExtractionData';
 import FilePreview from './FilePreview';
 import ExtractedDataTable from './ExtractedDataTable';
 
-const FileList: React.FC<FileListProps> = ({
+const FileList: React.FC<FileListProps & { groupId: string }> = ({
   files,
   onRemoveFile,
   onClearAll,
+  groupId,
 }) => {
   const { user } = useAuth();
   const [toast, setToast] = useState<{show: boolean, message: string, type: 'success' | 'danger'}>({
@@ -30,14 +33,25 @@ const FileList: React.FC<FileListProps> = ({
     { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất, tối ưu nhất" }
   ];
 
-  const { submitInvoice, approveInvoice } = useInvoices();
+  const { submitInvoice, approveInvoice } = useInvoices(groupId);
+
+  // Wrapper for ExtractedDataTable's onApproveFile prop
+  const handleApproveFile = async (data: ExtractionData) => {
+    const invoiceId = data.id || data.fileName;
+    if (!invoiceId) {
+      console.error('No invoice ID found in the data');
+      return;
+    }
+    await approveInvoice(groupId, invoiceId);
+  };
+
 
   // Initialize file status management
   const { 
     filesWithStatus, 
     updateFileStatus, 
     updateExtractedData, 
-    updateInvoiceData,
+    updateInvoiceData
   } = useFileStatus(files);
 
   // Initialize file extraction with the updated hooks
@@ -55,7 +69,12 @@ const FileList: React.FC<FileListProps> = ({
 
   // Process a single file
   const processFile = async (fileName: string) => {
-    await extractData(fileName, selectedModel);
+    const file = filesWithStatus.find(f => f.name === fileName);
+    if (!file) return;
+
+    if (file.status === 'idle' || file.status === 'error') {
+      await extractData(fileName, selectedModel);
+    }
   };
 
   // Process all files
@@ -217,7 +236,7 @@ const FileList: React.FC<FileListProps> = ({
                     onDataChange={handleDataChange}
                     onRemoveFile={onRemoveFile}
                     onSubmitFile={submitInvoice}
-                    onApproveFile={approveInvoice}
+                    onApproveFile={handleApproveFile}
                     user={user}
                   />
                 </div>

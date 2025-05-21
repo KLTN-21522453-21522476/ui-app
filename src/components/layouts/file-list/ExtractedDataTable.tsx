@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Form, Table, Button, Row, Col, InputGroup, FormControl } from 'react-bootstrap';
 import { FileWithStatus } from '../../../types/FileList';
 import FilePreview from './FilePreview';
-import { ExtractionData } from '../../../types/ExtractionData';
+import { ExtractionData, Item } from '../../../types/ExtractionData';
+import { ExtractResponse } from '../../../types/FileList';
 import VietnameseInput from '../../../components/commons/VietnameseInput .tsx';
 import { Models } from 'appwrite';
 
 interface ExtractedDataTableProps {
   file: FileWithStatus;
-  extractResponse: ExtractionData[];
-  onDataChange: (fileName: string, index: number, field: string, value: string) => void;
+  extractResponse: ExtractResponse;
+  onDataChange: (fileName: string, index: number, field: keyof Item, value: string) => void;
   onRemoveFile: (fileName: string) => void;
   onApproveFile: (data: ExtractionData) => Promise<void>;
   onUpdateInvoiceData: (fileName: string, data: Partial<ExtractionData>) => void;
