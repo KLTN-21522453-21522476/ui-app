@@ -47,25 +47,30 @@ const ProductChart: React.FC<ProductChartProps> = ({ groupId }) => {
       }
     },
     scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: (value: number) => {
-            return value.toLocaleString() + ' VNĐ';
-          }
-        },
-        grid: {
-          display: true,
-          drawBorder: true,
-          color: 'rgba(0, 0, 0, 0.1)'
-        }
-      },
-      x: {
-        grid: {
-          display: false
-        }
-      }
+  y: {
+    beginAtZero: true,
+    ticks: {
+  callback: function (tickValue: string | number): string {
+    const value = typeof tickValue === 'number' ? tickValue : parseFloat(tickValue);
+    return value.toLocaleString() + ' VNĐ';
+  }
+},
+    grid: {
+      display: true,
+      color: 'rgba(0, 0, 0, 0.1)'
+    },
+    border: {
+      display: true // hoặc false nếu muốn ẩn đường viền trục Y
     }
+  },
+  x: {
+    grid: {},
+    border: {
+      display: false
+    }
+  }
+}
+
   };
 
   // Generate date range based on selected time period
