@@ -37,7 +37,7 @@ export const fetchInvoiceList = createAsyncThunk(
   async (groupId: string, { rejectWithValue }) => {
     try {
       const response = await invoiceApi.getInvoiceList(groupId);
-      return response.data;
+      return response.data; // The response is already the data we need
     } catch (error) {
       return rejectWithValue('Không thể tải danh sách hóa đơn');
     }
@@ -50,7 +50,7 @@ export const fetchInvoiceDetails = createAsyncThunk(
   async ({ groupId, invoiceId }: { groupId: string; invoiceId: string }, { rejectWithValue }) => {
     try {
       const response = await invoiceApi.getInvoiceDetails(groupId, invoiceId);
-      return response.data;
+      return response.data; // The response is already the data we need
     } catch (error) {
       return rejectWithValue('Không thể tải chi tiết hóa đơn');
     }
@@ -73,7 +73,7 @@ export const createInvoice = createAsyncThunk(
       await invoiceApi.createInvoice(groupId, invoiceData, imageFile);
       // Sau khi tạo thành công, fetch lại danh sách để cập nhật
       const response = await invoiceApi.getInvoiceList(groupId);
-      return response.data;
+      return response.data; // Return the full response data
     } catch (error) {
       return rejectWithValue('Không thể tạo hóa đơn mới');
     }
@@ -96,7 +96,7 @@ export const deleteInvoice = createAsyncThunk(
       const response = await invoiceApi.getInvoiceList(groupId);
       return { 
         invoiceId,
-        updatedList: response.data
+        updatedList: response.data // The response is already the data we need
       };
     } catch (error) {
       return rejectWithValue('Không thể xóa hóa đơn');
@@ -165,13 +165,13 @@ const invoiceSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchInvoiceList.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.invoiceList = {
           items: action.payload.results,
           count: action.payload.count,
           currentPage: action.payload.current_page,
           totalPages: action.payload.total_pages
         };
-        state.isLoading = false;
         state.lastFetched = Date.now();
       })
       .addCase(fetchInvoiceList.rejected, (state, action) => {

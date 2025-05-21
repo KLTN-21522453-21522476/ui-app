@@ -38,6 +38,13 @@ export interface TopProductsParams {
   limit?: number;
 }
 
+export interface InvoiceStatisticsResponse {
+  invoices: number;
+  products: number;
+  stores: number;
+  total_spent: number;
+}
+
 export const statisticsApi = {
   getMarketShare: async (params: MarketShareParams): Promise<MarketShareResponse> => {
     const response = await axios.get<MarketShareResponse>(
@@ -64,6 +71,13 @@ export const statisticsApi = {
           limit: params.limit,
         },
       }
+    );
+    return response.data;
+ },
+
+  getInvoiceStatistics: async (groupId: string): Promise<InvoiceStatisticsResponse> => {
+    const response = await axios.get<InvoiceStatisticsResponse>(
+      `${BASE_URL}/group/${groupId}/invoices/statistic`
     );
     return response.data;
   },

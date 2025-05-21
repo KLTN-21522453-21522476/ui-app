@@ -141,34 +141,6 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ invoices, groupId, time
           </Card.Body>
         </Card>
       </Col>
-      <Col sm={6} xl={3}>
-        <Card className="shadow-sm h-100">
-          <Card.Body>
-            <h6 className="text-muted mb-3">Store Market Share</h6>
-            {loading ? (
-              <div className="text-center">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              </div>
-            ) : (
-              <div className="list-group list-group-flush">
-                {marketShareData.slice(0, 4).map((store: { name: string; marketShare: number }, index: number) => (
-                  <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                    <span>{store.name}</span>
-                    <span className="badge bg-primary rounded-pill">{store.marketShare.toFixed(1)}%</span>
-                  </div>
-                ))}
-                {marketShareData.length > 4 && (
-                  <div className="list-group-item text-muted">
-                    <small>+{marketShareData.length - 4} more stores</small>
-                  </div>
-                )}
-              </div>
-            )}
-          </Card.Body>
-        </Card>
-      </Col>
     </Row>
   );
 };
