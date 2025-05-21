@@ -7,23 +7,44 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "jest"
+  },
+  "jest": {
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
+    "testEnvironment": "jsdom",
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    }
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.8.1",
+    "@types/axios": "^0.9.36",
     "appwrite": "^17.0.1",
-    "axios": "^1.8.4",
+    "axios": "^1.9.0",
     "bootstrap": "^5.3.3",
+    "chart.js": "^4.4.9",
     "date-fns": "^4.1.0",
+    "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
     "react-icons": "^5.5.0",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.4.0",
     "styled-components": "^6.1.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/jest": "^29.5.14",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^22.13.16",
     "@types/react": "^19.0.10",
@@ -33,7 +54,9 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "jest": "^29.7.0",
     "js-cookie": "^3.0.5",
+    "ts-jest": "^29.3.4",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"

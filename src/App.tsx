@@ -2,6 +2,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import AppRoutes from './pages/Routes';
 import Sidebar from './components/layouts/Sidebar';
 import styled from 'styled-components';
+import Header from './components/layouts/Header';
 
 const AppContainer = styled.div`
   display: flex;
@@ -16,12 +17,13 @@ const ContentContainer = styled.div`
 function App() {
   return (
     <Router>
-      <AppContainer>
-        <Sidebar />
-        <ContentContainer>
-          <AppRoutes />
-        </ContentContainer>
-      </AppContainer>
+        <AppContainer>
+          <Sidebar />
+          <ContentContainer>
+            <Header/>
+            <AppRoutes />
+          </ContentContainer>
+        </AppContainer>  
     </Router>
   );
 }

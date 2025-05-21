@@ -1,6 +1,6 @@
-import { InvoiceData, Item } from "./Invoice";
+import { ExtractionData, Item } from "./ExtractionData";
 
-export type ExtractResponse = InvoiceData[];
+export type ExtractResponse = ExtractionData[];
 
 export interface UploadedFile {
   file: File;
@@ -21,6 +21,7 @@ export interface FileListProps {
   files: UploadedFile[];
   onRemoveFile: (fileName: string) => void;
   onClearAll: () => void;
+  user: Models.User<Models.Preferences> | null;
 }
 
 export interface FileItemProps {
@@ -28,7 +29,7 @@ export interface FileItemProps {
   onExtract: (fileName: string) => Promise<void>;
   onRemove: (fileName: string) => void;
   onDataChange: (fileName: string, itemIndex: number, field: keyof Item, value: string) => void;
-  onUpdateInvoiceData: (fileName: string, updatedInvoiceData: Partial<InvoiceData>) => void;
+  onUpdateInvoiceData: (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => void;
   extractedDataList: ExtractResponse | null;
 }
 
@@ -42,8 +43,8 @@ export interface ExtractedDataTableProps {
   file: FileWithStatus;
   extractResponse: ExtractResponse;
   onDataChange: (fileName: string, itemIndex: number, field: keyof Item, value: string) => void;
-  onUpdateInvoiceData: (fileName: string, updatedInvoiceData: Partial<InvoiceData>) => void;
+  onUpdateInvoiceData: (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => void;
   onRemoveFile: (fileName: string) => void;
-  onSubmitFile: (invoice: InvoiceData) => void
-  onApproveFile: (invoice: InvoiceData) => void
+  onSubmitFile: (invoice: ExtractionData) => void
+  onApproveFile: (invoice: ExtractionData) => void
 }

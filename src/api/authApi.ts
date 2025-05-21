@@ -1,52 +1,95 @@
-// auth.ts
+// src/api/authApi.ts
+import axios from 'axios';
 import { Models } from 'appwrite';
 import { ID, account } from '../libs/appwrite';
 import Cookies from 'js-cookie';
+import { jwtUtils } from '../utils/jwtUtils';
+
+interface AuthResponse {
+  jwt: string;
+  error?: string;
+}
+
+interface SessionResponse extends Models.Session {
+  error?: string;
+}
 
 const SESSION_COOKIE_NAME = 'app_session';
 const SESSION_EXPIRY_DAYS = 7; 
+const LOGIN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/api/login'
+const GET_TOKEN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/api/token'
+const VALIDATE_TOKEN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/api/validate-token'
 
 export const authApi = {
-  getCurrentUser: async (secret?: string): Promise<Models.User<Models.Preferences>> => {
-    const sessionSecret = secret || Cookies.get(SESSION_COOKIE_NAME);
-    
+  getCurrentUser: async (): Promise<Models.User<Models.Preferences>> => {
+    let token = jwtUtils.getTokens();
+    let sessionSecret = sessionStorage.getItem('secret');
+    if (!sessionSecret) {
+      sessionSecret = Cookies.get(SESSION_COOKIE_NAME) ?? null;
+    }
+
     if (!sessionSecret) {
       throw new Error('Không tìm thấy phiên đăng nhập');
     }
 
-    const userResponse = await fetch(import.meta.env.VITE_PROXY_ENDPOINT + '/user', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ secret: sessionSecret }),
-    });
+    // If token exists but expired
+    if (!token || jwtUtils.isTokenExpired(token.jwt)) {
+      const response = await axios.post<AuthResponse>(GET_TOKEN_URL, {
+        secret: sessionSecret
+      });
 
-    if (!userResponse.ok) {
-      Cookies.remove(SESSION_COOKIE_NAME);
-      const errorData = await userResponse.json();
-      throw new Error(errorData.error || 'Lấy thông tin người dùng thất bại');
+      if (response.data.error) {
+        throw new Error(response.data.error || 'Failed to refresh token');
+      }
+
+      jwtUtils.setTokens(response.data.jwt);
     }
 
-    const userData: Models.User<Models.Preferences> = await userResponse.json();
-    return userData;
+    try {
+      const response = await axios.get<Models.User<Models.Preferences>>(VALIDATE_TOKEN_URL, {
+        headers: {
+          'Authorization': `Bearer ${jwtUtils.getTokens()?.jwt}`
+        },
+      });
+
+
+
+      return response.data;
+    } catch (error) {
+      Cookies.remove(SESSION_COOKIE_NAME);
+      jwtUtils.clearTokens();
+      throw new Error('Lấy thông tin người dùng thất bại');
+    }
   },
 
   login: async (email: string, password: string, rememberMe: boolean = false): Promise<Models.Session> => {
-    const session = await fetch(import.meta.env.VITE_PROXY_ENDPOINT + '/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
+    // Get session
+    const response = await axios.post<SessionResponse>(LOGIN_URL, {
+      email: email,
+      password: password,
     });
 
-    if (!session.ok) {
-      const errorData = await session.json();
-      throw new Error(errorData.error || 'Lấy session thất bại');
+    if (response.data.error) {
+      throw new Error(response.data.error || 'Đăng nhập thất bại');
     }
 
-    const sessionData: Models.Session = await session.json();
+    const sessionData: SessionResponse = response.data;
+    
+    // Get JWT using session secret
+    try {
+      const jwtResponse = await axios.post<AuthResponse>(GET_TOKEN_URL, {
+        secret: sessionData.secret
+      });
+
+      if (jwtResponse.data.error) {
+        throw new Error(jwtResponse.data.error || 'Failed to get token');
+      }
+
+      jwtUtils.setTokens(jwtResponse.data.jwt, rememberMe);
+    } catch (error) {
+      console.error('Failed to get JWT token:', error);
+      throw error;
+    }
     
     if (rememberMe) {
       Cookies.set(SESSION_COOKIE_NAME, sessionData.secret, { 
@@ -54,6 +97,9 @@ export const authApi = {
         secure: window.location.protocol === 'https:',
         sameSite: 'strict'
       });
+    }
+    else {
+      sessionStorage.setItem('secret', JSON.stringify(sessionData.secret));
     }
     
     return sessionData;
@@ -67,24 +113,39 @@ export const authApi = {
 
   logout: async (session_id: string): Promise<void> => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_PROXY_ENDPOINT}/logout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ session_id }),
-      });
+      const response = await axios.delete(`${import.meta.env.VITE_PROXY_ENDPOINT}/logout`, {
+        data: { session_id }
+      } as any);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Logout failed');
+      if (response.status !== 200) {
+        throw new Error('Logout failed');
       }
     } finally {
+      // Clear both session cookie and JWT
       Cookies.remove(SESSION_COOKIE_NAME);
+      jwtUtils.clearTokens();
     }
   },
 
   hasSessionCookie: (): boolean => {
-    return !!Cookies.get(SESSION_COOKIE_NAME);
+    return !!Cookies.get(SESSION_COOKIE_NAME) || !!jwtUtils.getTokens();
   },
+  
+  refreshJWT: async (secret: string): Promise<string | null> => {
+    try {
+      const response = await axios.post<AuthResponse>(GET_TOKEN_URL, {
+        secret: secret
+      });
+
+      if (response.data.error) {
+        throw new Error(response.data.error || 'Failed to refresh token');
+      }
+
+      jwtUtils.setTokens(response.data.jwt);
+      return response.data.jwt;
+    } catch (error) {
+      console.error('Failed to refresh JWT token:', error);
+      return null;
+    }
+  }
 };

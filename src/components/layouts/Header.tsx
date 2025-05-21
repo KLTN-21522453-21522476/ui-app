@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Navbar, Nav, Container, Form, InputGroup, Dropdown } from 'react-bootstrap';
 import { FaSearch, FaEnvelope, FaBell } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
-import LoginModal from '../modal/AuthModal';
+import AuthModal from '../modal/AuthModal';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -77,7 +77,7 @@ const Header: React.FC = () => {
       </Navbar>
 
       {/* Login Modal */}
-      <LoginModal 
+      <AuthModal 
         show={showLoginModal} 
         onHide={() => setShowLoginModal(false)} 
       />

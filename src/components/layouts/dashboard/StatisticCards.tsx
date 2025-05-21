@@ -1,12 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Row, Col, Card } from 'react-bootstrap';
-import { InvoiceData } from '../../../types/Invoice';
+import { MarketShareResponse } from '../../../api/statisticsApi';
+import { statisticsApi } from '../../../api/statisticsApi';
+import { ExtractionData } from '../../../types/ExtractionData';
 
 interface StatisticCardsProps {
-  invoices: InvoiceData[];
+  invoices: ExtractionData[];
+  groupId: string;
+  timeRange: '7days' | '30days' | '90days' | 'year';
 }
 
-const StatisticCards: React.FC<StatisticCardsProps> = ({ invoices }) => {
+const StatisticCards: React.FC<StatisticCardsProps> = ({ invoices, groupId, timeRange }) => {
   const stats = useMemo(() => {
     const totalInvoices = invoices.length;
     
@@ -28,6 +32,57 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ invoices }) => {
       totalAmount
     };
   }, [invoices]);
+
+  const [marketShareData, setMarketShareData] = useState<MarketShareResponse['data']>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Function to generate date range based on the time range selection
+  const getDateRange = () => {
+    const today = new Date();
+    let startDate = new Date();
+    
+    switch (timeRange) {
+      case '7days':
+        startDate.setDate(today.getDate() - 7);
+        break;
+      case '30days':
+        startDate.setDate(today.getDate() - 30);
+        break;
+      case '90days':
+        startDate.setDate(today.getDate() - 90);
+        break;
+      case 'year':
+        startDate.setFullYear(today.getFullYear() - 1);
+        break;
+    }
+    
+    return {
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: today.toISOString().split('T')[0]
+    };
+  };
+
+  useEffect(() => {
+    const fetchMarketShare = async () => {
+      setLoading(true);
+      try {
+        const dateRange = getDateRange();
+        const response = await statisticsApi.getMarketShare({
+          group_id: groupId,
+          min_percentage: 1, // Show stores with at least 1% market share
+          start_date: dateRange.start_date,
+          end_date: dateRange.end_date
+        });
+        setMarketShareData(response.data);
+      } catch (error) {
+        console.error('Error fetching market share:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMarketShare();
+  }, [groupId, timeRange]);
 
   return (
     <Row className="mb-4 g-3">
@@ -83,6 +138,34 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ invoices }) => {
               <h6 className="text-muted mb-1">Total Spent</h6>
               <h3 className="mb-0">{stats.totalAmount.toLocaleString('vi-VN')} VNĐ</h3>
             </div>
+          </Card.Body>
+        </Card>
+      </Col>
+      <Col sm={6} xl={3}>
+        <Card className="shadow-sm h-100">
+          <Card.Body>
+            <h6 className="text-muted mb-3">Store Market Share</h6>
+            {loading ? (
+              <div className="text-center">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            ) : (
+              <div className="list-group list-group-flush">
+                {marketShareData.slice(0, 4).map((store: { name: string; marketShare: number }, index: number) => (
+                  <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{store.name}</span>
+                    <span className="badge bg-primary rounded-pill">{store.marketShare.toFixed(1)}%</span>
+                  </div>
+                ))}
+                {marketShareData.length > 4 && (
+                  <div className="list-group-item text-muted">
+                    <small>+{marketShareData.length - 4} more stores</small>
+                  </div>
+                )}
+              </div>
+            )}
           </Card.Body>
         </Card>
       </Col>

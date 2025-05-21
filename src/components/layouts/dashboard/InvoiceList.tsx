@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Card, Table, Form, InputGroup, Button, Badge, Spinner, Collapse } from 'react-bootstrap';
-import { InvoiceData } from '../../../types/Invoice';
+import { ExtractionData } from '../../../types/ExtractionData';
 import TruncatedText from '../../commons/TruncatedText';
 
 interface InvoiceListProps {
-  invoices: InvoiceData[];
+  invoices: ExtractionData[];
   isLoading: boolean;
 }
 

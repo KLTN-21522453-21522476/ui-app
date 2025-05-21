@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { FileWithStatus } from '../types/FileList';
-import { InvoiceData, Item } from '../types/Invoice';
+import { ExtractionData, Item } from '../types/ExtractionData';
 import { extractFile } from '../api/extractionApi';
 
 export const useFileExtraction = (
   filesWithStatus: FileWithStatus[],
-  updateFileStatus: (fileName: string, status: 'idle' | 'loading' | 'success' | 'error', extractedData?: InvoiceData, errorMessage?: string) => void,
+  updateFileStatus: (fileName: string, status: 'idle' | 'loading' | 'success' | 'error', extractedData?: ExtractionData, errorMessage?: string) => void,
   updateExtractedData: (fileName: string, itemIndex: number, field: keyof Item, value: string) => void,
-  updateInvoiceData: (fileName: string, updatedInvoiceData: Partial<InvoiceData>) => void,
+  updateInvoiceData: (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => void,
 ) => {
-  const [extractedDataList, setExtractedDataList] = useState<InvoiceData[] | null>(null);
+  const [extractedDataList, setExtractedDataList] = useState<ExtractionData[] | null>(null);
 
   // Extract data from a file
   const extractData = async (fileName: string, selectedModel: string): Promise<void> => {
@@ -43,7 +43,7 @@ export const useFileExtraction = (
       };
 
       // Make sure the fileName matches
-      const invoiceData: InvoiceData = {
+      const invoiceData: ExtractionData = {
         ...extractedData,
         fileName: fileName // Ensure fileName is set correctly
       };
@@ -100,7 +100,7 @@ export const useFileExtraction = (
   };
 
   // Handle invoice data updates
-  const handleInvoiceDataUpdate = (fileName: string, updatedInvoiceData: Partial<InvoiceData>) => {
+  const handleInvoiceDataUpdate = (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => {
     updateInvoiceData(fileName, updatedInvoiceData);
     
     // Update the extracted data list state

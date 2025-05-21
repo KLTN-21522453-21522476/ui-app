@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
-import { InvoiceData } from '../../../types/Invoice';
+import { ExtractionData } from '../../../types/ExtractionData';
 import { Table } from 'react-bootstrap';
 
 interface StoreChartProps {
-  invoices: InvoiceData[];
+  invoices: ExtractionData[];
 }
 
 const StoreChart: React.FC<StoreChartProps> = ({ invoices }) => {

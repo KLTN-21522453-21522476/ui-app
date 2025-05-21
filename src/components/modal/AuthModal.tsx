@@ -28,12 +28,14 @@ interface AuthModalProps {
   show: boolean;
   onHide: () => void;
   initialMode?: AuthMode;
+  onSuccess?: () => void; 
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ 
   show, 
   onHide, 
-  initialMode = 'login' 
+  initialMode = 'login',
+  onSuccess 
 }) => {
   const { login, register, loading, error } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
@@ -59,6 +61,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
     password?: string;
     confirmPassword?: string;
   }>({});
+
+
+
 
   // Handle login form changes
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,13 +121,16 @@ const AuthModal: React.FC<AuthModalProps> = ({
     e.preventDefault();
     
     try {
-      await login(loginForm.email, loginForm.password, loginForm.rememberMe);
+      await login(loginForm.email, loginForm.password, loginForm.rememberMe)
+      if (onSuccess) {
+        onSuccess(); // Call the success callback if provided
+      };
       onHide(); // Close modal after successful login
     } catch (err) {
       // Error is handled in AuthContext
     }
   };
-
+  
   // Handle register form submission
   const handleRegisterSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -230,7 +238,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
               </Form.Group>
 
-                            <Form.Group className="mb-4">
+              <Form.Group className="mb-4">
                 <Form.Check
                   type="checkbox"
                   name="rememberMe"

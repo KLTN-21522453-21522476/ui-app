@@ -1,23 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { useContext } from 'react';
-import { AuthContext } from '../../../contexts/AuthContext';
 import { Form, Table, Button, Row, Col, InputGroup, FormControl } from 'react-bootstrap';
-import { ExtractedDataTableProps } from '../../../types/FileList';
+import { FileWithStatus } from '../../../types/FileList';
 import FilePreview from './FilePreview';
-import { InvoiceData } from '../../../types/Invoice';
-import VietnameseInput from '../../commons/VietnameseInput '
+import { ExtractionData } from '../../../types/ExtractionData';
+import VietnameseInput from '../../../components/commons/VietnameseInput .tsx';
+import { Models } from 'appwrite';
+
+interface ExtractedDataTableProps {
+  file: FileWithStatus;
+  extractResponse: ExtractionData[];
+  onDataChange: (fileName: string, index: number, field: string, value: string) => void;
+  onRemoveFile: (fileName: string) => void;
+  onApproveFile: (data: ExtractionData) => Promise<void>;
+  onUpdateInvoiceData: (fileName: string, data: Partial<ExtractionData>) => void;
+  onSubmitFile: (data: ExtractionData) => Promise<void>;
+  user: Models.User<Models.Preferences> | null;
+}
 
 const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   file,
   extractResponse,
-  onUpdateInvoiceData,
   onDataChange,
   onRemoveFile,
-  onSubmitFile,
   onApproveFile,
+  onUpdateInvoiceData,
+  onSubmitFile,
+  user,
 }) => {
-  const authContext = useContext(AuthContext);
-  const [matchedInvoiceData, setMatchedInvoiceData] = useState<InvoiceData | null>(null);
+  const [matchedInvoiceData, setMatchedInvoiceData] = useState<ExtractionData | null>(null);
 
 
   useEffect(() => {
@@ -54,22 +64,26 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   const handleFieldChange = (field: string, value: string) => {
     if (matchedInvoiceData) {
       setTimeout(() => {
-        onUpdateInvoiceData(file.name, { [field]: value });
+        onUpdateInvoiceData(file.name, { [field]: value } as Partial<ExtractionData>);
       }, 0);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    handleFieldChange(name, value);
+  };
+
   const handleSubmit = async () => {
-    if (matchedInvoiceData && authContext?.user?.$id) {
+    if (matchedInvoiceData && user?.$id) {
       const invoiceToSubmit = {
         ...matchedInvoiceData,
-        submittedBy: authContext.user.$id,
+        submittedBy: user.$id,
       };
-      try{
+      try {
         await onSubmitFile(invoiceToSubmit);
         alert('Submit thành công');
-      }
-      catch (error){
+      } catch (error) {
         alert('Có lỗi xảy ra: ' + error);
       }
     } else {
@@ -78,10 +92,10 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   };
 
   const handleApprove = async () => {
-    if (matchedInvoiceData && authContext?.user?.$id) {
+    if (matchedInvoiceData && user?.$id) {
       const invoiceToApprove = {
         ...matchedInvoiceData,
-        approvedBy: authContext.user.$id,
+        approvedBy: user.$id,
       };
       try{
         await onApproveFile(invoiceToApprove);
@@ -122,8 +136,9 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
             <Form.Label><strong>Tên hoá đơn</strong></Form.Label>
             <VietnameseInput 
               type="text" 
+              name="fileName"
               value={matchedInvoiceData.fileName || ''} 
-              onChange={(e) => handleFieldChange('fileName', e.target.value)}
+              onChange={handleInputChange}
             />
           </Form.Group>
 
@@ -132,8 +147,9 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
             <InputGroup>
               <VietnameseInput 
                 type="text" 
+                name="id"
                 value={matchedInvoiceData.id || ''} 
-                onChange={(e) => handleFieldChange('id', e.target.value)}
+                onChange={handleInputChange}
                 maxLength={25}
               />
               <Button 
@@ -149,8 +165,9 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
             <Form.Label><strong>Tên cửa hàng</strong></Form.Label>
             <VietnameseInput 
               type="text" 
+              name="storeName"
               value={matchedInvoiceData.storeName || ''} 
-              onChange={(e) => handleFieldChange('storeName', e.target.value)}
+              onChange={handleInputChange}
             />
           </Form.Group>
 
@@ -158,8 +175,9 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
             <Form.Label><strong>Địa chỉ</strong></Form.Label>
             <VietnameseInput 
               type="text" 
+              name="address"
               value={matchedInvoiceData.address || ''} 
-              onChange={(e) => handleFieldChange('address', e.target.value)}
+              onChange={handleInputChange}
             />
           </Form.Group>
 
@@ -167,8 +185,9 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
             <Form.Label><strong>Ngày tạo</strong></Form.Label>
             <VietnameseInput 
               type="text" 
+              name="createdDate"
               value={formatDateForInput(matchedInvoiceData.createdDate)} 
-              onChange={(e) => handleFieldChange('createdDate', e.target.value)}
+              onChange={handleInputChange}
             />
           </Form.Group>
         </Col>
@@ -194,6 +213,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
               <td>
                 <VietnameseInput 
                   type="text" 
+                  name="item"
                   value={item.item || ''} 
                   onChange={(e) => onDataChange(file.name, index, 'item', e.target.value)}
                 />
@@ -242,7 +262,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           variant="success" 
           className="me-3" 
           onClick={handleApprove}
-          disabled={!authContext?.user?.$id}
+          disabled={!user?.$id}
         >
           Approve hoá đơn
         </Button>
@@ -250,7 +270,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           variant="success" 
           className="me-3" 
           onClick={handleSubmit}
-          disabled={!authContext?.user?.$id}
+          disabled={!user?.$id}
         >
           Submit hoá đơn
         </Button>

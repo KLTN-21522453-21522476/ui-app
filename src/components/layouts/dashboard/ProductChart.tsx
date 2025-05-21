@@ -1,160 +1,242 @@
-import React, { useMemo } from 'react';
-import { InvoiceData } from '../../../types/Invoice';
+import React, { useMemo, useEffect, useState } from 'react';
+import { TopProductsResponse, TopProductsParams } from '../../../api/statisticsApi';
+import { statisticsApi } from '../../../api/statisticsApi';
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend, ChartData, ChartOptions } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { Button, ButtonGroup, Dropdown, Card } from 'react-bootstrap';
+
+// Register Chart.js components
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 interface ProductChartProps {
-  invoices: InvoiceData[];
+  groupId: string;
 }
 
-const ProductChart: React.FC<ProductChartProps> = ({ invoices }) => {
-  const chartData = useMemo(() => {
-    // Group invoices by month
-    const monthlyData: Record<string, { products: number; amount: number }> = {};
-    
-    invoices.forEach(invoice => {
-      // Ensure createdDate is valid
-      if (!invoice.createdDate) return;
-      
-      try {
-        const date = new Date(invoice.createdDate);
-        if (isNaN(date.getTime())) return; // Skip invalid dates
-        
-        const monthYear = `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
-        
-        if (!monthlyData[monthYear]) {
-          monthlyData[monthYear] = { products: 0, amount: 0 };
+type TimeRange = '7days' | '30days' | '90days' | 'year';
+
+const ProductChart: React.FC<ProductChartProps> = ({ groupId }) => {
+  const [topProductsData, setTopProductsData] = useState<TopProductsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<TimeRange>('30days');
+  
+  // Chart options
+  const chartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          font: {
+            size: 12
+          }
         }
-        
-        // Count products
-        if (invoice.items && Array.isArray(invoice.items)) {
-          monthlyData[monthYear].products += invoice.items.length;
+      },
+      tooltip: {
+        enabled: true,
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          label: (context: any) => {
+            const label = context.dataset.label || '';
+            const value = context.parsed.y;
+            return `${label}: ${value.toLocaleString()} VNĐ`;
+          }
         }
-        
-        // Add total amount
-        if (typeof invoice.totalAmount === 'number') {
-          monthlyData[monthYear].amount += invoice.totalAmount;
-        }
-      } catch (error) {
-        console.error("Error processing invoice date:", error);
       }
-    });
-    
-    // Sort months chronologically
-    const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
-      const [monthA, yearA] = a.split(' ');
-      const [monthB, yearB] = b.split(' ');
-      
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      
-      if (yearA !== yearB) {
-        return parseInt(yearA) - parseInt(yearB);
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value: number) => {
+            return value.toLocaleString() + ' VNĐ';
+          }
+        },
+        grid: {
+          display: true,
+          drawBorder: true,
+          color: 'rgba(0, 0, 0, 0.1)'
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        }
       }
-      
-      return monthNames.indexOf(monthA) - monthNames.indexOf(monthB);
-    });
+    }
+  };
+
+  // Generate date range based on selected time period
+  const getDateRange = (range: TimeRange): { startDate: string, endDate: string } => {
+    const today = new Date();
+    let startDate = new Date();
+    
+    switch (range) {
+      case '7days':
+        startDate.setDate(today.getDate() - 7);
+        break;
+      case '30days':
+        startDate.setDate(today.getDate() - 30);
+        break;
+      case '90days':
+        startDate.setDate(today.getDate() - 90);
+        break;
+      case 'year':
+        startDate.setFullYear(today.getFullYear() - 1);
+        break;
+    }
     
     return {
-      labels: sortedMonths,
-      products: sortedMonths.map(month => monthlyData[month].products),
-      amounts: sortedMonths.map(month => monthlyData[month].amount),
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: today.toISOString().split('T')[0]
     };
-  }, [invoices]);
+  };
 
-  // Calculate max values for scaling (with fallbacks to prevent zero division)
-  const maxProducts = Math.max(...chartData.products, 1);
-  const maxAmount = Math.max(...chartData.amounts, 1);
+  // Fetch data when timeRange or groupId changes
+  useEffect(() => {
+    const fetchTopProducts = async () => {
+      setLoading(true);
+      try {
+        const { startDate, endDate } = getDateRange(timeRange);
+        
+        const response = await statisticsApi.getTopProducts({
+          group_id: groupId,
+          start_date: startDate,
+          end_date: endDate,
+          limit: 5
+        });
+        setTopProductsData(response);
+      } catch (error) {
+        console.error('Error fetching top products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Check if we have data to display
-  const hasData = chartData.labels.length > 0;
+    fetchTopProducts();
+  }, [groupId, timeRange]);
+
+  // Create chart data from the API response
+  const chartData = useMemo(() => {
+    if (!topProductsData) return null;
+
+    // Get the last dataset (latest time period)
+    const latestDataset = topProductsData.datasets[topProductsData.datasets.length - 1];
+    
+    // Create chart data structure with better colors
+    return {
+      labels: topProductsData.labels,
+      datasets: [
+        {
+          label: 'Số lượng',
+          data: latestDataset.data,
+          backgroundColor: [
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(75, 192, 192, 0.7)',
+            'rgba(255, 206, 86, 0.7)',
+            'rgba(153, 102, 255, 0.7)',
+            'rgba(255, 99, 132, 0.7)'
+          ],
+          borderColor: [
+            'rgba(54, 162, 235, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 99, 132, 1)'
+          ],
+          borderWidth: 1,
+          hoverBorderWidth: 3,
+          hoverBorderColor: 'rgba(0, 0, 0, 0.5)'
+        }
+      ]
+    };
+  }, [topProductsData]);
+
+  // Get time range display text
+  const getTimeRangeText = (range: TimeRange): string => {
+    switch (range) {
+      case '7days':
+        return '7 ngày qua';
+      case '30days':
+        return '30 ngày qua';
+      case '90days':
+        return '90 ngày qua';
+      case 'year':
+        return '1 năm qua';
+      default:
+        return '30 ngày qua';
+    }
+  };
 
   return (
-    <div className="chart-container" style={{ height: '350px', position: 'relative' }}>
-      <div className="text-center mb-3">
-        <span className="me-3"><span className="badge bg-primary">■</span> Sản phẩm</span>
-        <span><span className="badge bg-info">■</span> Tổng tiền (VNĐ)</span>
-      </div>
-      
-      {!hasData ? (
-        <div className="d-flex justify-content-center align-items-center h-75">
-          <p className="text-muted">Không có dữ liệu để hiển thị</p>
+    <Card className="mb-4 shadow-sm">
+      <Card.Body>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="mb-0">Top 5 Sản phẩm bán chạy</h5>
+          <ButtonGroup>
+            <Button 
+              variant={timeRange === '7days' ? 'primary' : 'outline-primary'} 
+              size="sm"
+              onClick={() => setTimeRange('7days')}
+            >
+              7 ngày
+            </Button>
+            <Button 
+              variant={timeRange === '30days' ? 'primary' : 'outline-primary'} 
+              size="sm"
+              onClick={() => setTimeRange('30days')}
+            >
+              30 ngày
+            </Button>
+            <Button 
+              variant={timeRange === '90days' ? 'primary' : 'outline-primary'} 
+              size="sm"
+              onClick={() => setTimeRange('90days')}
+            >
+              90 ngày
+            </Button>
+            <Button 
+              variant={timeRange === 'year' ? 'primary' : 'outline-primary'} 
+              size="sm"
+              onClick={() => setTimeRange('year')}
+            >
+              1 năm
+            </Button>
+          </ButtonGroup>
         </div>
-      ) : (
-        <div className="d-flex h-100">
-          {/* Y-axis labels (Products) */}
-          <div className="d-flex flex-column justify-content-between pe-2" style={{ width: '50px' }}>
-            <div className="text-end small text-muted">{maxProducts}</div>
-            <div className="text-end small text-muted">{Math.floor(maxProducts * 0.75)}</div>
-            <div className="text-end small text-muted">{Math.floor(maxProducts * 0.5)}</div>
-            <div className="text-end small text-muted">{Math.floor(maxProducts * 0.25)}</div>
-            <div className="text-end small text-muted">0</div>
+        
+        {topProductsData && (
+          <div className="text-muted small mb-3">
+            {topProductsData.timeRange.start_date} đến {topProductsData.timeRange.end_date}
           </div>
-          
-          {/* Chart area */}
-          <div className="flex-grow-1">
-            <div className="h-100 d-flex align-items-end position-relative">
-              {/* Horizontal grid lines */}
-              <div className="position-absolute w-100 h-100">
-                <div className="border-top position-absolute w-100" style={{ top: '0%' }}></div>
-                <div className="border-top position-absolute w-100" style={{ top: '25%' }}></div>
-                <div className="border-top position-absolute w-100" style={{ top: '50%' }}></div>
-                <div className="border-top position-absolute w-100" style={{ top: '75%' }}></div>
-                <div className="border-top position-absolute w-100" style={{ top: '100%' }}></div>
-              </div>
-              
-              {/* Bars */}
-              <div className="d-flex justify-content-around align-items-end w-100 h-100">
-                {chartData.labels.map((month, index) => (
-                  <div key={month} className="d-flex flex-column align-items-center" style={{ width: `${100 / chartData.labels.length}%` }}>
-                    <div className="d-flex w-100 justify-content-center" style={{ height: '85%' }}>
-                      {/* Products bar */}
-                      <div 
-                        className="bg-primary me-1" 
-                        style={{ 
-                          width: '30%', 
-                          height: `${(chartData.products[index] / maxProducts) * 100}%`,
-                          transition: 'height 0.5s',
-                          minHeight: chartData.products[index] > 0 ? '5px' : '0'
-                        }}
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={`${chartData.products[index]} sản phẩm`}
-                      ></div>
-                      
-                      {/* Amount bar */}
-                      <div 
-                        className="bg-info" 
-                        style={{ 
-                          width: '30%', 
-                          height: `${(chartData.amounts[index] / maxAmount) * 100}%`,
-                          transition: 'height 0.5s',
-                          minHeight: chartData.amounts[index] > 0 ? '5px' : '0'
-                        }}
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={`${chartData.amounts[index].toLocaleString()} VNĐ`}
-                      ></div>
-                    </div>
-                    
-                    {/* X-axis label */}
-                    <div className="text-muted small mt-2" style={{ fontSize: '0.7rem' }}>
-                      {month}
-                    </div>
-                  </div>
-                ))}
-              </div>
+        )}
+        
+        {loading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
             </div>
           </div>
-          
-          {/* Right Y-axis (Amount) */}
-          <div className="d-flex flex-column justify-content-between ps-2" style={{ width: '80px' }}>
-            <div className="text-start small text-muted">{maxAmount.toLocaleString()} VNĐ</div>
-            <div className="text-start small text-muted">{Math.floor(maxAmount * 0.75).toLocaleString()} VNĐ</div>
-            <div className="text-start small text-muted">{Math.floor(maxAmount * 0.5).toLocaleString()} VNĐ</div>
-            <div className="text-start small text-muted">{Math.floor(maxAmount * 0.25).toLocaleString()} VNĐ</div>
-            <div className="text-start small text-muted">0 VNĐ</div>
-          </div>
-        </div>
-      )}
-    </div>
+        ) : (
+          <>
+            {!chartData || !topProductsData ? (
+              <div className="text-center py-5">
+                <p>Không có dữ liệu trong khoảng thời gian này</p>
+              </div>
+            ) : (
+              <div style={{ height: '300px' }}>
+                <Bar 
+                  data={chartData} 
+                  options={chartOptions} 
+                />
+              </div>
+            )}
+          </>
+        )}
+      </Card.Body>
+    </Card>
   );
 };
 
