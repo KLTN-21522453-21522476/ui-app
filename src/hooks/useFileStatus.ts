@@ -6,8 +6,7 @@ import {
   ExtractResponse
 } from '../types/FileList';
 import { InvoiceData } from '../types/Invoice';
-import { convertExtractionToInvoiceData } from '../types/utils';
-import { ExtractionData, Item } from '../types/ExtractionData';
+import {  Item } from '../types/ExtractionData';
 
 export const useFileStatus = (files: UploadedFile[]) => {
   const [filesWithStatus, setFilesWithStatus] = useState<FileWithStatus[]>(

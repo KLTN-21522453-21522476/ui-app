@@ -11,6 +11,12 @@ export interface InvoiceListData {
   total_pages: number
 }
 
+export interface CreateInvoiceResponse {
+  data: InvoiceDetails;
+  success: boolean;
+  message: string
+}
+
 export interface InvoiceListResponse {
   data: InvoiceListData;
   success: boolean;
@@ -19,6 +25,12 @@ export interface InvoiceListResponse {
 export interface InvoiceDetailsResponse {
   data: InvoiceDetails;
   success: boolean;
+}
+
+export interface ApproveInvoiceResponse {
+  data: InvoiceDetails;
+  success: boolean;
+  message: string
 }
 
 import { GROUP_ENDPOINT } from '../constants/api';
@@ -75,7 +87,7 @@ const createInvoice = async (
   groupId: string,
   invoiceData: InvoiceData,
   imageFile: File
-): Promise<void> => {
+): Promise<InvoiceDetails> => {
   try {
     const token = jwtUtils.getTokens();
     const formData = new FormData();
@@ -94,6 +106,10 @@ const createInvoice = async (
       const error = await response.text();
       throw new Error(`Failed to create invoice: ${error}`);
     }
+
+    const data: CreateInvoiceResponse = await response.json();
+    return data.data 
+
   } catch (error) {
     console.error('Error creating invoice:', error);
     throw error;
@@ -127,7 +143,7 @@ const deleteInvoice = async (
 const approveInvoice = async (
   groupId: string,
   invoiceId: string
-): Promise<void> => {
+): Promise<InvoiceDetails> => {
   try {
     const token = jwtUtils.getTokens();
     const response = await fetch(approveInvoiceEndpoint(groupId, invoiceId), {
@@ -142,6 +158,10 @@ const approveInvoice = async (
       const errorData = await response.json();
       throw new Error(errorData.message || `Failed to approve invoice: ${response.status}`);
     }
+
+    const data: CreateInvoiceResponse = await response.json();
+    return data.data
+
   } catch (error) {
     console.error('Error approving invoice:', error);
     throw error;

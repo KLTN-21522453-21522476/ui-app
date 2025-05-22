@@ -3,12 +3,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import invoiceReducer from './slices/invoiceSlice';
 import groupReducer from './slices/groupSlice';
 import authReducer from './slices/authSlice';
+import fileUploadReducer from './slices/fileUploadSlice';
 
 export const store = configureStore({
   reducer: {
     invoices: invoiceReducer,
     groups: groupReducer,
     auth: authReducer,
+    fileUpload: fileUploadReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -1,0 +1,146 @@
+import React from 'react';
+import { Card, Badge, Dropdown } from 'react-bootstrap';
+import { FaEllipsisH, FaUserShield, FaUserEdit, FaUser, FaTrash, FaCrown, FaCog } from 'react-icons/fa';
+import { Members } from '../../../types/GroupDetails';
+
+interface MemberCardProps {
+  member: Members;
+  isAdmin: boolean;
+  onRoleChange?: (userId: string, newRole: string) => void;
+  onDelete?: (userId: string) => void;
+}
+
+const MemberCard: React.FC<MemberCardProps> = ({ 
+  member, 
+  isAdmin, 
+  onRoleChange, 
+  onDelete 
+}) => {
+  // Function to get user display name
+  const getDisplayName = (): string => {
+    return member.name || member.email?.split('@')[0] || `User ${member.user_id.slice(0, 4)}`;
+  };
+
+  // Function to get initials from name or email
+  const getInitials = (): string => {
+    const name = getDisplayName();
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Function to get random color for avatar
+  const getAvatarColor = (id: string): string => {
+    const colors = ['#3498db', '#9b59b6', '#e74c3c', '#2ecc71', '#f39c12', '#1abc9c'];
+    const colorIndex = id.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % colors.length;
+    return colors[colorIndex];
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string): string => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const displayName = getDisplayName();
+  const initials = getInitials();
+  const avatarColor = getAvatarColor(member.user_id);
+  const addedDate = formatDate(member.added_date);
+  
+  // Get the highest role (assuming 'admin' is highest, then 'editor', then 'viewer')
+  const highestRole = member.roles?.includes('admin') ? 'admin' : 
+                      member.roles?.includes('editor') ? 'editor' : 'viewer';
+  
+  // Role display names and colors
+  const roleInfo = {
+    admin: { name: 'Admin', color: 'primary', icon: <FaUserShield className="me-1" /> },
+    editor: { name: 'Editor', color: 'info', icon: <FaUserEdit className="me-1" /> },
+    viewer: { name: 'Viewer', color: 'secondary', icon: <FaUser className="me-1" /> }
+  };
+  
+  const currentRole = roleInfo[highestRole] || roleInfo.viewer;
+  const isUserAdmin = highestRole === 'admin';
+
+  return (
+    <Card className="shadow-sm h-100">
+      <Card.Body className="d-flex flex-column">
+        <div className="d-flex justify-content-between align-items-start mb-3">
+          <div className="d-flex align-items-center">
+            <div 
+              className="rounded-circle d-flex align-items-center justify-content-center me-3" 
+              style={{
+                width: '48px', 
+                height: '48px', 
+                backgroundColor: `${getAvatarColor(member.user_id)}20`,
+                color: getAvatarColor(member.user_id),
+                fontSize: '1.25rem',
+                fontWeight: 'bold'
+              }}
+            >
+              {initials}
+            </div>
+            <div>
+              <h6 className="mb-0">{displayName}</h6>
+              <small className="text-muted">{member.email || 'No email'}</small>
+            </div>
+          </div>
+          
+          {isAdmin && (
+            <Dropdown>
+              <Dropdown.Toggle 
+                variant="link" 
+                className="text-muted p-0"
+                id={`member-dropdown-${member.user_id}`}
+              >
+                <FaEllipsisH />
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item 
+                  onClick={() => onRoleChange?.(member.user_id, isUserAdmin ? 'viewer' : 'admin')}
+                >
+                  {isUserAdmin ? (
+                    <><FaUser className="me-2" /> Make Regular User</>
+                  ) : (
+                    <><FaCog className="me-2" /> Make Admin</>
+                  )}
+                </Dropdown.Item>
+                <Dropdown.Divider />
+                <Dropdown.Item 
+                  className="text-danger"
+                  onClick={() => onDelete?.(member.user_id)}
+                >
+                  <FaTrash className="me-2" /> Remove
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
+        </div>
+        
+        <div className="mt-auto">
+          <div className="d-flex flex-wrap gap-1">
+            {member.roles?.map(role => (
+              <Badge 
+                key={role} 
+                bg={role === 'admin' ? 'primary' : 'secondary'}
+                className="d-flex align-items-center"
+              >
+                {role === 'admin' && <FaCrown className="me-1" />}
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </Card.Body>
+    </Card>
+  );
+};
+
+export default MemberCard;

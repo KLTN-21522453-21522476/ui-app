@@ -1,39 +1,37 @@
 import React, { useMemo } from 'react';
-import { ExtractionData } from '../../../types/ExtractionData';
 import { Table } from 'react-bootstrap';
+import { MarketShareResponse } from '../../../api/statisticsApi';
 
 interface StoreChartProps {
-  invoices: ExtractionData[];
+  data: MarketShareResponse;
 }
 
-const StoreChart: React.FC<StoreChartProps> = ({ invoices }) => {
+const StoreChart: React.FC<StoreChartProps> = ({ data }) => {
   const storeData = useMemo(() => {
-    // Group by store
-    const storeAmounts: Record<string, number> = {};
+    if (!data || !data.data || data.data.length === 0) {
+      return {
+        stores: [],
+        total: 0
+      };
+    }
+
+    // Calculate total for percentage calculation
+    const totalPercentage = data.data.reduce((sum, store) => sum + store.marketShare, 0);
     
-    invoices.forEach(invoice => {
-      if (!storeAmounts[invoice.storeName]) {
-        storeAmounts[invoice.storeName] = 0;
-      }
-      // Add the totalAmount to the corresponding store
-      storeAmounts[invoice.storeName] += invoice.totalAmount;
-    });
-    
-    // Calculate total
-    const total = Object.values(storeAmounts).reduce((sum, amount) => sum + amount, 0);
-    
-    // Sort by amount and calculate percentages
-    const storeStats = Object.entries(storeAmounts).map(([name, amount]) => ({
-      name,
-      amount,
-      percentage: total > 0 ? (amount / total) * 100 : 0
-    })).sort((a, b) => b.amount - a.amount);
+    // Sort by market share and format the data
+    const storeStats = [...data.data]
+      .map(store => ({
+        name: store.name,
+        percentage: store.marketShare,
+        amount: (store.marketShare / 100) * totalPercentage // This is just a relative value
+      }))
+      .sort((a, b) => b.percentage - a.percentage);
     
     return {
       stores: storeStats,
-      total
+      total: totalPercentage
     };
-  }, [invoices]);
+  }, [data]);
 
   // Colors for the chart
   const colors = [

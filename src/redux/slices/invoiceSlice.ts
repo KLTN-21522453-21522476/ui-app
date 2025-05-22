@@ -1,6 +1,6 @@
 // src/redux/slices/invoiceSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as invoiceApi from '../../api/invoiceApi';
+import invoiceApi from '../../api/invoiceApi';
 import { InvoiceData } from '../../types/Invoice';
 import { InvoiceList } from '../../types/InvoiceList';
 import { InvoiceDetails } from '../../types/InvoiceDetails';

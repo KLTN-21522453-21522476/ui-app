@@ -3,22 +3,17 @@
 import React, { useState } from 'react';
 import { Card, ListGroup, Button, Alert, Toast, Form, Row, Col, Badge } from 'react-bootstrap';
 import { FileListProps } from '../../../types/FileList';
-import { useAuth } from '../../../hooks/useAuth';
-
 import { useFileStatus } from '../../../hooks/useFileStatus';
 import { useFileExtraction } from '../../../hooks/useFileExtraction';
 import { useInvoices } from '../../../hooks/useInvoices';
-import { ExtractionData } from '../../../types/ExtractionData';
 import FilePreview from './FilePreview';
 import ExtractedDataTable from './ExtractedDataTable';
 
-const FileList: React.FC<FileListProps & { groupId: string }> = ({
+const FileList: React.FC<FileListProps> = ({
   files,
   onRemoveFile,
   onClearAll,
-  groupId,
 }) => {
-  const { user } = useAuth();
   const [toast, setToast] = useState<{show: boolean, message: string, type: 'success' | 'danger'}>({
     show: false,
     message: '',
@@ -33,25 +28,14 @@ const FileList: React.FC<FileListProps & { groupId: string }> = ({
     { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất, tối ưu nhất" }
   ];
 
-  const { submitInvoice, approveInvoice } = useInvoices(groupId);
-
-  // Wrapper for ExtractedDataTable's onApproveFile prop
-  const handleApproveFile = async (data: ExtractionData) => {
-    const invoiceId = data.id || data.fileName;
-    if (!invoiceId) {
-      console.error('No invoice ID found in the data');
-      return;
-    }
-    await approveInvoice(groupId, invoiceId);
-  };
-
+  const { createInvoice, approveInvoice } = useInvoices();
 
   // Initialize file status management
   const { 
     filesWithStatus, 
     updateFileStatus, 
     updateExtractedData, 
-    updateInvoiceData
+    updateInvoiceData,
   } = useFileStatus(files);
 
   // Initialize file extraction with the updated hooks
@@ -69,12 +53,7 @@ const FileList: React.FC<FileListProps & { groupId: string }> = ({
 
   // Process a single file
   const processFile = async (fileName: string) => {
-    const file = filesWithStatus.find(f => f.name === fileName);
-    if (!file) return;
-
-    if (file.status === 'idle' || file.status === 'error') {
-      await extractData(fileName, selectedModel);
-    }
+    await extractData(fileName, selectedModel);
   };
 
   // Process all files
@@ -135,9 +114,11 @@ const FileList: React.FC<FileListProps & { groupId: string }> = ({
   return (
     <>
       <Card className="mt-4 p-3 shadow-sm">
+        
         <Card.Header className="bg-primary text-white">
           <h5 className="mb-0">Cấu hình trích xuất</h5>
         </Card.Header>
+        
         <Card.Body>
           <Row>
             <Col md={6}>
@@ -170,80 +151,81 @@ const FileList: React.FC<FileListProps & { groupId: string }> = ({
             </Col>
           </Row>
         </Card.Body>
+
         <ListGroup variant="flush">
           {filesWithStatus.map((file) => (
-            <ListGroup.Item
-              key={file.name}
-              className="d-flex flex-column"
-            >
-              {file.status !== 'success' && !file.extractedData ? (
-                // Show this section only when status is not success
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div className="d-flex align-items-center">
-                    <FilePreview file={file} />
-                    <div className="ms-3">
-                      <h5 className="mb-1">{file.name}</h5>
-                      <p className="text-muted mb-0">{file.size}</p>
-                      {file.status === 'error' && (
-                        <Alert variant="danger" className="mt-2 mb-0 py-1 px-2">
-                          <small>{file.errorMessage || 'Lỗi xử lý tệp'}</small>
-                        </Alert>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    {file.status === 'loading' ? (
-                      <Button variant="primary" disabled>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Đang xử lý...
-                      </Button>
-                    ) : (
-                      <>
-                        <Button 
-                          variant="primary" 
-                          className="me-2"
-                          onClick={() => processFile(file.name)}
-                        >
-                          {file.status === 'error' ? 'Thử lại' : 'Xử lý'}
-                        </Button>
-                        <Button 
-                          variant="outline-danger"
-                          onClick={() => onRemoveFile(file.name)}
-                        >
-                          Xóa
-                        </Button>
-                      </>
+          <ListGroup.Item
+            key={file.name}
+            className="d-flex flex-column"
+          >
+            {file.status !== 'success' && !file.extractedData ? (
+              // Show this section only when status is not success
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex align-items-center">
+                  <FilePreview file={file} />
+                  <div className="ms-3">
+                    <h5 className="mb-1">{file.name}</h5>
+                    <p className="text-muted mb-0">{file.size}</p>
+                    {file.status === 'error' && (
+                      <Alert variant="danger" className="mt-2 mb-0 py-1 px-2">
+                        <small>{file.errorMessage || 'Lỗi xử lý tệp'}</small>
+                      </Alert>
                     )}
                   </div>
                 </div>
-              ) : (
-                // Show this section when status is success
                 <div>
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div className="d-flex align-items-center">
-                      <div className="ms-3">
-                        <h5 className="mb-1">{file.name}</h5>
-                        <p className="text-muted mb-0">{file.size} kB</p>
-                      </div>
+                  {file.status === 'loading' ? (
+                    <Button variant="primary" disabled>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Đang xử lý...
+                    </Button>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="primary" 
+                        className="me-2"
+                        onClick={() => processFile(file.name)}
+                      >
+                        {file.status === 'error' ? 'Thử lại' : 'Xử lý'}
+                      </Button>
+                      <Button 
+                        variant="outline-danger"
+                        onClick={() => onRemoveFile(file.name)}
+                      >
+                        Xóa
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              // Show this section when status is success
+              <div>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div className="d-flex align-items-center">
+                    <div className="ms-3">
+                      <h5 className="mb-1">{file.name}</h5>
+                      <p className="text-muted mb-0">{file.size} kB</p>
                     </div>
                   </div>
-                  
-                  {/* Extracted data table */}
-                  <ExtractedDataTable 
-                    file={file}
-                    extractResponse={extractedDataList || []}
-                    onUpdateInvoiceData={handleInvoiceDataUpdate}
-                    onDataChange={handleDataChange}
-                    onRemoveFile={onRemoveFile}
-                    onSubmitFile={submitInvoice}
-                    onApproveFile={handleApproveFile}
-                    user={user}
-                  />
                 </div>
-              )}
-            </ListGroup.Item>
+                
+                {/* Extracted data table */}
+                <ExtractedDataTable 
+                  file={file}
+                  extractResponse={extractedDataList || []}
+                  onUpdateInvoiceData={handleInvoiceDataUpdate}
+                  onDataChange={handleDataChange}
+                  onRemoveFile={onRemoveFile}
+                  onSubmitFile={createInvoice}
+                  onApproveFile={approveInvoice}
+                />
+              </div>
+            )}
+          </ListGroup.Item>
           ))}
         </ListGroup>
+        
         {filesWithStatus.length > 0 && (
           <div className="d-flex justify-content-between mt-3">
             <div>
@@ -273,6 +255,7 @@ const FileList: React.FC<FileListProps & { groupId: string }> = ({
           </div>
         )}
       </Card>
+
       {/* Toast notification */}
       <Toast 
         show={toast.show} 

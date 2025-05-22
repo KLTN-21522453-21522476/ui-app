@@ -1,10 +1,13 @@
 export interface Item {
+  id?: string;
+  invoice_id?: string;
   item: string;
   price: number;
   quantity: number;
 }
 
 export interface InvoiceData {
+  id?: string;
   invoice_number: string;
   group_id: string;
   model: string;

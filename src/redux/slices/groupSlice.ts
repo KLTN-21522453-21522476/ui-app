@@ -7,6 +7,7 @@ import { GroupDetails } from '../../types/GroupDetails';
 interface GroupState {
   groupList: GroupList[];
   groupDetails: Record<string, GroupDetails>;
+  selectedGroupId: string | null; // 👈 thêm dòng này
   isLoading: boolean;
   error: string | null;
   totalCount: number;
@@ -15,9 +16,11 @@ interface GroupState {
   lastGroupListFetched: number | null;
 }
 
+
 const initialState: GroupState = {
   groupList: [],
   groupDetails: {},
+  selectedGroupId: null,
   isLoading: false,
   error: null,
   totalCount: 0,
@@ -102,6 +105,9 @@ const groupSlice = createSlice({
       state.groupList = [];
       state.totalGroupListCount = 0;
     },
+    setSelectedGroupId: (state, action) => {
+      state.selectedGroupId = action.payload;
+    },
     clearGroupDetails: (state, action) => {
       if (action.payload) {
         const { [action.payload]: _, ...rest } = state.groupDetails;
@@ -182,5 +188,5 @@ const groupSlice = createSlice({
   },
 });
 
-export const { clearGroupList, clearGroupDetails } = groupSlice.actions;
+export const { clearGroupList, clearGroupDetails, setSelectedGroupId } = groupSlice.actions;
 export default groupSlice.reducer;

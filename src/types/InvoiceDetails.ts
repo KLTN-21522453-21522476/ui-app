@@ -1,5 +1,10 @@
-import { Item } from "./Item";
-
+export interface Item {
+    id: string;            
+    item: string;           
+    price: number;         
+    quantity: number;    
+}
+  
 export interface InvoiceDetails {
     address: string;
     approved_by: string;
