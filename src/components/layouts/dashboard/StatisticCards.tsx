@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Spinner } from 'react-bootstrap';
 import { statisticsApi } from '../../../api/statisticsApi';
+import AnimatedNumber from './AnimatedNumber';
 
 interface StatisticCardsProps {
   groupId?: string;
@@ -93,7 +94,9 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ groupId, data }) => {
             </div>
             <div>
               <h6 className="text-muted mb-1">Invoices</h6>
-              <h3 className="mb-0">{formatNumber(stats.totalInvoices)}</h3>
+              <h3 className="mb-0">
+                <AnimatedNumber value={stats.totalInvoices} duration={900} />
+              </h3>
             </div>
           </Card.Body>
         </Card>
@@ -107,7 +110,9 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ groupId, data }) => {
             </div>
             <div>
               <h6 className="text-muted mb-1">Stores</h6>
-              <h3 className="mb-0">{formatNumber(stats.uniqueStores)}</h3>
+              <h3 className="mb-0">
+                <AnimatedNumber value={stats.uniqueStores} duration={900} />
+              </h3>
             </div>
           </Card.Body>
         </Card>
@@ -121,7 +126,9 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ groupId, data }) => {
             </div>
             <div>
               <h6 className="text-muted mb-1">Products</h6>
-              <h3 className="mb-0">{formatNumber(stats.totalProducts)}</h3>
+              <h3 className="mb-0">
+                <AnimatedNumber value={stats.totalProducts} duration={900} />
+              </h3>
             </div>
           </Card.Body>
         </Card>
@@ -135,7 +142,9 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ groupId, data }) => {
             </div>
             <div>
               <h6 className="text-muted mb-1">Total Spent</h6>
-              <h3 className="mb-0">${formatNumber(stats.totalAmount)}</h3>
+              <h3 className="mb-0">
+                <AnimatedNumber value={stats.totalAmount} duration={1200} decimals={2} prefix="$" />
+              </h3>
             </div>
           </Card.Body>
         </Card>

@@ -194,8 +194,8 @@ export const mockStatisticData = {
 export const mockStoreChartData = {
   data: [
       { marketShare: 40, name: "Bách Hoá Xanh" },
-      { marketShare: 35, name: "Co.opmart" },
-      { marketShare: 25, name: "VinMart" }
+      { marketShare: 68, name: "Co.opmart" },
+      { marketShare: 2, name: "VinMart" }
   ],
   message: "Success"
 };

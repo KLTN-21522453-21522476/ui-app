@@ -1,6 +1,6 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import AppRoutes from './pages/Routes';
-import Sidebar from './components/layouts/Sidebar';
+import SidebarContainer from './components/layouts/SidebarContainer';
 import styled from 'styled-components';
 import Header from './components/layouts/Header';
 
@@ -18,7 +18,7 @@ function App() {
   return (
     <Router>
         <AppContainer>
-          <Sidebar />
+          <SidebarContainer />
           <ContentContainer>
             <Header/>
             <AppRoutes />

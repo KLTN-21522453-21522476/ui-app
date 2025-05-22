@@ -260,23 +260,7 @@ const Dashboard: React.FC = () => {
             </Card.Header>
             <Card.Body className="p-0">
               <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                <InvoiceList 
-                  invoices={invoices.map(invoice => ({
-                    model: '',
-                    address: '',
-                    fileName: invoice.invoice_number || '',
-                    storeName: invoice.store_name || '',
-                    createdDate: invoice.created_date || '',
-                    id: invoice.id || '',
-                    status: invoice.status || 'pending',
-                    approvedBy: '',
-                    submittedBy: '',
-                    updateAt: invoice.created_date || '',
-                    items: [],
-                    totalAmount: invoice.total_amount || 0
-                  } as ExtractionData))}
-                  isLoading={isLoading} 
-                />
+                <InvoiceList />
               </div>
             </Card.Body>
           </Card>

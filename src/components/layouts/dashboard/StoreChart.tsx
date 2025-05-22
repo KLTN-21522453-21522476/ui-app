@@ -1,6 +1,10 @@
 import React, { useMemo } from 'react';
 import { Table } from 'react-bootstrap';
 import { MarketShareResponse } from '../../../api/statisticsApi';
+import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface StoreChartProps {
   data: MarketShareResponse;
@@ -44,70 +48,42 @@ const StoreChart: React.FC<StoreChartProps> = ({ data }) => {
         <p className="text-center">No store data available</p>
       ) : (
         <>
-          {/* Simple pie chart visualization */}
           <div className="d-flex justify-content-center mb-3">
-            <div style={{ width: '200px', height: '200px', position: 'relative' }}>
-              {storeData.stores.map((store, index) => {
-                // Calculate the slice
-                const startAngle = storeData.stores
-                  .slice(0, index)
-                  .reduce((sum, s) => sum + s.percentage, 0) * 3.6; // 3.6 = 360/100
-                
-                const endAngle = startAngle + store.percentage * 3.6;
-                
-                // Convert to radians for calculations
-                const startRad = (startAngle - 90) * Math.PI / 180;
-                const endRad = (endAngle - 90) * Math.PI / 180;
-                
-                // Calculate path
-                const x1 = 100 + 80 * Math.cos(startRad);
-                const y1 = 100 + 80 * Math.sin(startRad);
-                const x2 = 100 + 80 * Math.cos(endRad);
-                const y2 = 100 + 80 * Math.sin(endRad);
-                
-                const largeArcFlag = store.percentage > 50 ? 1 : 0;
-                
-                const pathData = [
-                  `M 100 100`,
-                  `L ${x1} ${y1}`,
-                  `A 80 80 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                  `Z`
-                ].join(' ');
-                
-                return (
-                  <div 
-                    key={store.name}
-                    className="position-absolute"
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
-                      top: 0,
-                      left: 0
-                    }}
-                  >
-                    <svg width="100%" height="100%" viewBox="0 0 200 200">
-                      <path 
-                        d={pathData} 
-                        fill={colors[index % colors.length]} 
-                        stroke="#fff" 
-                        strokeWidth="1"
-                      />
-                    </svg>
-                  </div>
-                );
-              })}
-              
-              {/* Center circle for donut chart effect */}
-              <div 
-                className="position-absolute bg-white rounded-circle" 
-                style={{ 
-                  width: '100px', 
-                  height: '100px', 
-                  top: '50px', 
-                  left: '50px',
-                  boxShadow: 'inset 0 0 5px rgba(0,0,0,0.1)'
+            <div style={{ width: '240px', height: '240px' }}>
+              <Pie
+                data={{
+                  labels: storeData.stores.map(store => store.name),
+                  datasets: [
+                    {
+                      data: storeData.stores.map(store => store.percentage),
+                      backgroundColor: colors,
+                      borderColor: '#fff',
+                      borderWidth: 2,
+                    },
+                  ],
                 }}
-              ></div>
+                options={{
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) {
+                          const label = context.label || '';
+                          const value = context.parsed || 0;
+                          return `${label}: ${value.toFixed(1)}%`;
+                        }
+                      }
+                    }
+                  },
+                  cutout: '60%',
+                  responsive: true,
+                  maintainAspectRatio: false,
+                }}
+                width={240}
+                height={240}
+              />
             </div>
           </div>
           
