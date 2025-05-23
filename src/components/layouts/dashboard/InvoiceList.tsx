@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, InputAdornment, TextField, Box, Typography, Skeleton } from '@mui/material';
+import { Card, InputAdornment, TextField, Box, Typography, Skeleton, MenuItem } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import InvoiceCard from './InvoiceCard';
 import { Badge } from 'react-bootstrap';
@@ -17,6 +17,7 @@ interface Invoice {
 const InvoiceList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedInvoiceIds, setExpandedInvoiceIds] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'status'>('date_desc');
 
   const invoices = mockInvoices[0]?.results || [];
 
@@ -26,6 +27,23 @@ const InvoiceList: React.FC = () => {
     invoice.store_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     invoice.created_date_formatted.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const sortedInvoices = [...filteredInvoices].sort((a, b) => {
+    switch (sortBy) {
+      case 'date_asc':
+        return new Date(a.created_date_formatted.split(' ')[0].split('/').reverse().join('-')).getTime() - new Date(b.created_date_formatted.split(' ')[0].split('/').reverse().join('-')).getTime();
+      case 'date_desc':
+        return new Date(b.created_date_formatted.split(' ')[0].split('/').reverse().join('-')).getTime() - new Date(a.created_date_formatted.split(' ')[0].split('/').reverse().join('-')).getTime();
+      case 'amount_asc':
+        return a.total_amount - b.total_amount;
+      case 'amount_desc':
+        return b.total_amount - a.total_amount;
+      case 'status':
+        return a.status.localeCompare(b.status);
+      default:
+        return 0;
+    }
+  });
 
   const toggleInvoiceExpand = (id: string) => {
     setExpandedInvoiceIds(prev =>
@@ -37,24 +55,40 @@ const InvoiceList: React.FC = () => {
     <Card sx={{ boxShadow: 2, mb: 2 }}>
       <Box px={2} py={2} display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="h6">Hoá đơn gần đây</Typography>
-        <TextField
-          placeholder="Search invoices..."
-          size="small"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ width: 280 }}
-        />
+        <Box display="flex" alignItems="center" gap={2}>
+          <TextField
+            select
+            label="Sắp xếp"
+            size="small"
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value as any)}
+            sx={{ minWidth: 150 }}
+          >
+            <MenuItem value="date_desc">Ngày mới nhất</MenuItem>
+            <MenuItem value="date_asc">Ngày cũ nhất</MenuItem>
+            <MenuItem value="amount_desc">Tổng tiền cao nhất</MenuItem>
+            <MenuItem value="amount_asc">Tổng tiền thấp nhất</MenuItem>
+            <MenuItem value="status">Trạng thái</MenuItem>
+          </TextField>
+          <TextField
+            placeholder="Search invoices..."
+            size="small"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: 280 }}
+          />
+        </Box>
       </Box>
       <Box px={2} pb={2}>
-        {filteredInvoices.length > 0 ? (
-          filteredInvoices.map((invoice: Invoice) => (
+        {sortedInvoices.length > 0 ? (
+          sortedInvoices.map((invoice: Invoice) => (
             <InvoiceCard
               key={invoice.id}
               invoice={invoice}

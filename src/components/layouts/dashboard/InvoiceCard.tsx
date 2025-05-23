@@ -13,6 +13,7 @@ import {
   Skeleton,
   Dialog
 } from '@mui/material';
+import { formatDateForDisplay } from '../../../utils/dateUtils';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -180,7 +181,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
             {invoice.invoice_number}
           </Typography>
           <Typography width={160}>{invoice.store_name}</Typography>
-          <Typography width={120}>{invoice.created_date_formatted}</Typography>
+          <Typography width={120}>{formatDateForDisplay(invoice.created_date_formatted)}</Typography>
           <Typography width={120} fontWeight={600} color="primary">
             {invoice.total_amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
           </Typography>
@@ -256,7 +257,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
       <strong>Cửa Hàng:</strong> {invoiceDetail.store_name}
     </Typography>
     <Typography variant="body2" gutterBottom>
-      <strong>Ngày tạo:</strong> {invoiceDetail.created_date_formatted}
+      <strong>Ngày tạo:</strong> {formatDateForDisplay(invoiceDetail.created_date_formatted)}
     </Typography>
     <Typography variant="body2" gutterBottom>
       <strong>Trạng thái:</strong> {invoiceDetail.status}
