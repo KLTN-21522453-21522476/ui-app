@@ -5,6 +5,9 @@ import { GroupCard } from '../components/layouts/group/GroupCard';
 import { useSelector } from 'react-redux';
 import { GroupFilters } from '../components/layouts/group/GroupFilters';
 import { mockGroupList } from '../mock/mockData';
+import Button from 'react-bootstrap/Button';
+import { GroupModals } from '../components/layouts/group/GroupModals';
+import { useGroupActions } from '../hooks/useGroupActions';
 
 const GroupPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,6 +15,20 @@ const GroupPage: React.FC = () => {
 
   // Redux selector for selectedGroupId
   const selectedGroupId = useSelector((state: any) => state.groups.selectedGroupId);
+
+  // Group modal and handlers
+  const {
+    modalState,
+    openDeleteModal,
+    openCreateModal,
+    openRenameModal,
+    closeAllModals,
+    handleDeleteGroup,
+    handleCreateGroup,
+    handleRenameGroup,
+    updateCreateGroupName,
+    updateRenameGroupName
+  } = useGroupActions();
 
   React.useEffect(() => {
     if (selectedGroupId) {
@@ -46,9 +63,13 @@ const GroupPage: React.FC = () => {
   
 
   return (
+    <>
     <Container fluid className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="mb-0">Nhóm</h2>
+        <Button variant="primary" onClick={openCreateModal}>
+          + Tạo nhóm mới
+        </Button>
       </div>
 
       <GroupFilters 
@@ -69,8 +90,8 @@ const GroupPage: React.FC = () => {
               <GroupCard 
                 groupId={group.id}
                 isAdmin={true}
-                onRename={() => {}}
-                onDelete={() => {}}
+                onRename={(group) => openRenameModal(group)}
+                onDelete={(group) => openDeleteModal(group)}
                 selectedGroupId={selectedGroupId}
               />
             </Col>
@@ -78,6 +99,16 @@ const GroupPage: React.FC = () => {
         </Row>
       )}
     </Container>
+    <GroupModals
+      modalState={modalState}
+      onClose={closeAllModals}
+      onDelete={handleDeleteGroup}
+      onCreate={handleCreateGroup}
+      onRename={handleRenameGroup}
+      onUpdateCreateName={updateCreateGroupName}
+      onUpdateRenameName={updateRenameGroupName}
+    />
+    </>
   );
 };
 

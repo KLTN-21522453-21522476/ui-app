@@ -168,70 +168,43 @@ export const mockInvoiceDetail = [
   
 
 export const mockGroupList = [
-    {
-        created_by: "1",
-        created_date: "Wed, 14 May 2025 09:31:44 GMT",
-        description: "Nhóm quản lý chiến dịch quảng cáo Q1",
-        id: "68246300fc282c1bedead0cd",
-        invoice_count: 3,
-        name: "Marketing Team Q1",
-        updated_by: "1",
-        updated_date: "Wed, 14 May 2025 09:31:44 GMT",
-        user_roles: ["admin", "editor"]
-    },
-    {
-        created_by: "2",
-        created_date: "Thu, 15 May 2025 10:15:22 GMT",
-        description: "Nhóm phân tích dữ liệu thị trường",
-        id: "68246303fc282c1bedead0d0",
-        invoice_count: 5,
-        name: "Data Analytics Team",
-        updated_by: "2",
-        updated_date: "Thu, 15 May 2025 10:15:22 GMT",
-        user_roles: ["admin"]
-    },
-    {
-        created_by: "3",
-        created_date: "Fri, 16 May 2025 14:22:11 GMT",
-        description: "Nhóm phát triển nội dung",
-        id: "68246304fc282c1bedead0d3",
-        invoice_count: 2,
-        name: "Content Development",
-        updated_by: "3",
-        updated_date: "Fri, 16 May 2025 14:22:11 GMT",
-        user_roles: ["editor", "viewer"]
-    },
-    {
-        created_by: "1",
-        created_date: "Sat, 17 May 2025 08:45:33 GMT",
-        description: "Nhóm chiến dịch quảng cáo Q2",
-        id: "68246306fc282c1bedead0d6",
-        invoice_count: 4,
-        name: "Marketing Team Q2",
-        updated_by: "1",
-        updated_date: "Sat, 17 May 2025 08:45:33 GMT",
-        user_roles: ["admin", "editor"]
-    },
-    {
-        created_by: "4",
-        created_date: "Sun, 18 May 2025 11:10:55 GMT",
-        description: "Nhóm quản lý sự kiện",
-        id: "68246307fc282c1bedead0d9",
-        invoice_count: 1,
-        name: "Event Management",
-        updated_by: "4",
-        updated_date: "Sun, 18 May 2025 11:10:55 GMT",
-        user_roles: ["admin"]
-    },
-    {
-        created_by: "2",
-        created_date: "Mon, 19 May 2025 09:20:00 GMT",
-        description: "Nhóm nghiên cứu thị trường",
-        id: "68246308fc282c1bedead0dc",
-        invoice_count: 0,
-        name: "Market Research",
-        updated_by: "2",
-        updated_date: "Mon, 19 May 2025 09:20:00 GMT",
-        user_roles: ["viewer"]
-    }
+  {
+      "created_by": "1",
+      "created_date": "Wed, 14 May 2025 09:31:47 GMT",
+      "description": "",
+      "id": "68246303fc282c1bedead0d0",
+      "invoice_count": 3,
+      "name": "Marketing Team",
+      "updated_by": "1",
+      "updated_date": "Wed, 14 May 2025 09:31:47 GMT",
+      "user_roles": [
+          "admin"
+      ]
+  },
+  {
+      "created_by": "1",
+      "created_date": "Wed, 14 May 2025 09:31:48 GMT",
+      "description": "",
+      "id": "68246304fc282c1bedead0d3",
+      "invoice_count": 0,
+      "name": "Marketing Team",
+      "updated_by": "1",
+      "updated_date": "Wed, 14 May 2025 09:31:48 GMT",
+      "user_roles": [
+          "admin"
+      ]
+  },
+  {
+      "created_by": "1",
+      "created_date": "Wed, 14 May 2025 09:31:50 GMT",
+      "description": "",
+      "id": "68246306fc282c1bedead0d6",
+      "invoice_count": 1,
+      "name": "Marketing Team",
+      "updated_by": "1",
+      "updated_date": "Wed, 14 May 2025 09:31:50 GMT",
+      "user_roles": [
+          "admin"
+      ]
+  }
 ];

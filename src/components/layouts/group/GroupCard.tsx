@@ -15,6 +15,7 @@ import { mockGroupList } from '../../../mock/mockData';
 import { GroupDetails } from '../../../types/GroupDetails';
 import { useDispatch } from 'react-redux';
 import { setSelectedGroupId } from '../../../redux/slices/groupSlice';
+import { useNavigate } from 'react-router-dom';
 
 interface GroupCardProps {
   groupId: string;
@@ -36,6 +37,7 @@ export const GroupCard: React.FC<GroupCardProps> = ({
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   if (!group) return null;
 
@@ -49,6 +51,7 @@ export const GroupCard: React.FC<GroupCardProps> = ({
 
   const handleCardClick = () => {
     dispatch(setSelectedGroupId(group.id));
+    navigate('/dashboard');
   };
 
   const isSelected = selectedGroupId === group.id;
@@ -74,7 +77,14 @@ export const GroupCard: React.FC<GroupCardProps> = ({
               Ngày tạo: {group.created_date ? new Date(group.created_date).toLocaleDateString() : 'Không rõ'}
             </Typography>
           </Stack>
-          <IconButton aria-label="more" onClick={handleMenuOpen} size="small">
+          <IconButton
+            aria-label="more"
+            onClick={e => {
+              e.stopPropagation();
+              handleMenuOpen(e);
+            }}
+            size="small"
+          >
             <MoreVertIcon />
           </IconButton>
           <Menu
@@ -84,8 +94,25 @@ export const GroupCard: React.FC<GroupCardProps> = ({
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
-            <MenuItem onClick={handleMenuClose}>Đổi tên</MenuItem>
-            <MenuItem onClick={handleMenuClose} sx={{ color: 'error.main' }}>Xoá</MenuItem>
+            <MenuItem
+              onClick={e => {
+                e.stopPropagation();
+                handleMenuClose();
+                onRename(group);
+              }}
+            >
+              Đổi tên
+            </MenuItem>
+            <MenuItem
+              onClick={e => {
+                e.stopPropagation();
+                handleMenuClose();
+                onDelete(group);
+              }}
+              sx={{ color: 'error.main' }}
+            >
+              Xoá
+            </MenuItem>
           </Menu>
         </Stack>
         <Divider sx={{ my: 2 }} />
