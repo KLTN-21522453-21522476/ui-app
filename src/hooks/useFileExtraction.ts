@@ -48,9 +48,14 @@ export const useFileExtraction = (
       }
 
       updateFileStatus(fileName, 'success', [formattedData]);
-      setExtractedDataList(prev => prev ? [...prev, formattedData] : [formattedData]);
+      setExtractedDataList(prev => {
+        const newList = prev ? [...prev, formattedData] : [formattedData];
+        console.log('[extractData] extractedDataList after update:', newList);
+        return newList;
+      });
+      console.log('[extractData] Formatted extraction data:', formattedData);
     } catch (error) {
-      console.error('Extraction error:', error);
+      console.error('[extractData] Extraction error:', error);
       updateFileStatus(fileName, 'error', undefined, error instanceof Error ? error.message : 'Unknown error occurred');
     }
   };

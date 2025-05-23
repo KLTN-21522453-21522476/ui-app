@@ -7,8 +7,6 @@ import ProductChart from '../components/layouts/dashboard/ProductChart';
 import StoreChart from '../components/layouts/dashboard/StoreChart';
 import StatisticCards from '../components/layouts/dashboard/StatisticCards';
 import MembersSection from '../components/layouts/dashboard/MembersSection';
-import GroupSidebar from '../components/layouts/GroupSidebar';
-import GroupActionsSidebar from '../components/layouts/GroupActionsSidebar';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { fetchInvoiceList } from '../redux/slices/invoiceSlice';
 import { fetchGroupDetailsData } from '../redux/slices/groupSlice';

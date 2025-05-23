@@ -8,7 +8,7 @@ import './SidebarCommon.css';
 const SidebarContainer: React.FC = () => {
   // State: which sidebar is expanded, and if a group is selected
   const [groupExpanded, setGroupExpanded] = useState(true);
-const [menuExpanded, setMenuExpanded] = useState(true);
+const [menuExpanded, setMenuExpanded] = useState(false);
 const navigate = useNavigate();
 
 const handleExpandGroup = () => setGroupExpanded(true);

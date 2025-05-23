@@ -13,7 +13,7 @@ export const useFileStatus = (files: UploadedFile[]) => {
     files.map(file => ({ 
       ...file, 
       status: 'idle' as FileStatus,
-      extractedData: [] as ExtractResponse
+      extractedData: undefined
     }))
   );
 
@@ -41,36 +41,29 @@ export const useFileStatus = (files: UploadedFile[]) => {
     });
   }, [files]);
 
-  useEffect(() => {
-    setFilesWithStatus(prevFilesWithStatus => {
-      const newFiles = files.filter(file => 
-        !prevFilesWithStatus.some(prevFile => prevFile.name === file.name)
-      );
-      
-      const updatedFiles = prevFilesWithStatus
-        .filter(prevFile => files.some(file => file.name === prevFile.name))
-        .map(prevFile => {
-          const matchingFile = files.find(file => file.name === prevFile.name);
-          return matchingFile ? { ...prevFile, ...matchingFile } : prevFile;
-        });
-      
-      return [
-        ...updatedFiles,
-        ...newFiles.map(file => ({ ...file, status: 'idle' as FileStatus }))
-      ];
-    });
-  }, [files]);
-
   // Update file status
-  const updateFileStatus = (fileName: string, status: FileStatus, extractedData: ExtractResponse = [], errorMessage?: string) => {
-    setFilesWithStatus(prevFiles => 
-      prevFiles.map(file => 
-        file.name === fileName 
-          ? { ...file, status, extractedData, errorMessage } 
+  const updateFileStatus = (
+    fileName: string,
+    status: FileStatus,
+    extractedData?: ExtractResponse,
+    errorMessage?: string
+  ) => {
+    setFilesWithStatus(prevFiles =>
+      prevFiles.map(file =>
+        file.name === fileName
+          ? {
+              ...file,
+              status,
+              errorMessage,
+              // Set extractedData if status is 'success', otherwise undefined
+              extractedData: status === 'success' ? extractedData : undefined
+            }
           : file
       ) as FileWithStatus[]
     );
   };
+
+
 
   // Update extracted data field
   const updateExtractedData = (fileName: string, itemIndex: number, field: keyof Item, value: string) => {
@@ -121,7 +114,13 @@ export const useFileStatus = (files: UploadedFile[]) => {
   };
 
   const updateFileStatusWithExtractResponse = (fileName: string, status: FileStatus, extractedData?: ExtractResponse, errorMessage?: string) => {
-    updateFileStatus(fileName, status, extractedData, errorMessage);
+    setFilesWithStatus(prevFiles => 
+      prevFiles.map(file => 
+        file.name === fileName 
+          ? { ...file, status, extractedData, errorMessage } 
+          : file
+      ) as FileWithStatus[]
+    );
   };
 
   return {
