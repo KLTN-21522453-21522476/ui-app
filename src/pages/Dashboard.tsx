@@ -182,15 +182,15 @@ const Dashboard: React.FC = () => {
       <StatisticCards data={mockStatisticData} />
 
       <Row className="mb-4">
-        <Col lg={8}>
-          {/* Remove the card wrapper since ProductChart now already has its own card wrapper */}
-          <ProductChart />
-        </Col>
-        <Col lg={4}>
+        <Col lg={8} className="h-200">
           <Card className="shadow-sm h-100">
-            <Card.Header className="bg-white">
-              <h5 className="mb-0">Biểu đồ các cửa hàng</h5>
-            </Card.Header>
+            <Card.Body>
+              <ProductChart />
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={4} className="h-200">
+          <Card className="shadow-sm h-100">
             <Card.Body>
               <StoreChart data={mockStoreChartData} />
             </Card.Body>

@@ -83,10 +83,9 @@ const ProductChart: React.FC = () => {
   const hasData = data.labels && data.labels.length > 0 && data.datasets[0].data.length > 0;
 
   return (
-    <Card className="mb-4 shadow-sm">
-      <Card.Body>
-        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-          <h5 className="mb-0">Top 5 Best-Selling Products</h5>
+    <div className="h-100 d-flex flex-column">
+      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <h5 className="mb-0">Top 5 sản phẩm bán chạy</h5>
           <ButtonGroup>
             {timeRangeOptions.map(option => (
               <Button
@@ -103,7 +102,7 @@ const ProductChart: React.FC = () => {
         <div className="mb-2 text-muted small">
           Date range: {data.timeRange.start_date} – {data.timeRange.end_date}
         </div>
-        <div style={{ minHeight: 300 }}>
+        <div style={{ flex: 1, minHeight: 240 }}>
           {loading ? (
             <div className="d-flex justify-content-center align-items-center" style={{ height: 250 }}>
               <Spinner animation="border" variant="primary" />
@@ -116,8 +115,7 @@ const ProductChart: React.FC = () => {
             </Alert>
           )}
         </div>
-      </Card.Body>
-    </Card>
+    </div>
   );
 };
 

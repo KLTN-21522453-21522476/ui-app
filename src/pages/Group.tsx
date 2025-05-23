@@ -1,12 +1,23 @@
 // src/pages/Group.tsx
 import React, { useState, useMemo } from 'react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
+import { GroupCard } from '../components/layouts/group/GroupCard';
+import { useSelector } from 'react-redux';
 import { GroupFilters } from '../components/layouts/group/GroupFilters';
 import { mockGroupList } from '../mock/mockData';
 
 const GroupPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('Ngày tạo');
+
+  // Redux selector for selectedGroupId
+  const selectedGroupId = useSelector((state: any) => state.groups.selectedGroupId);
+
+  React.useEffect(() => {
+    if (selectedGroupId) {
+      console.log('Selected Group ID:', selectedGroupId);
+    }
+  }, [selectedGroupId]);
 
   // Filter và sort groups
   const processedGroups = useMemo(() => {
@@ -55,14 +66,13 @@ const GroupPage: React.FC = () => {
         <Row xs={1} md={2} lg={3} className="g-4">
           {processedGroups.map((group) => (
             <Col key={group.id}>
-              <Card className="h-100 shadow-sm">
-                <Card.Body>
-                  <Card.Title>{group.name}</Card.Title>
-                  <Card.Subtitle className="mb-2 text-muted">Ngày tạo: {new Date(group.created_date).toLocaleDateString()}</Card.Subtitle>
-                  <Card.Text>{group.description}</Card.Text>
-                  <div className="fw-bold">Số lượng hoá đơn: {group.invoice_count}</div>
-                </Card.Body>
-              </Card>
+              <GroupCard 
+                groupId={group.id}
+                isAdmin={true}
+                onRename={() => {}}
+                onDelete={() => {}}
+                selectedGroupId={selectedGroupId}
+              />
             </Col>
           ))}
         </Row>

@@ -10,6 +10,8 @@ interface StoreChartProps {
   data: MarketShareResponse;
 }
 
+import { Card } from 'react-bootstrap';
+
 const StoreChart: React.FC<StoreChartProps> = ({ data }) => {
   const storeData = useMemo(() => {
     if (!data || !data.data || data.data.length === 0) {
@@ -44,6 +46,9 @@ const StoreChart: React.FC<StoreChartProps> = ({ data }) => {
 
   return (
     <div className="store-chart">
+      <Card.Header className="bg-white">
+        <h5 className="mb-0">Biểu đồ các cửa hàng</h5>
+      </Card.Header>
       {storeData.stores.length === 0 ? (
         <p className="text-center">No store data available</p>
       ) : (

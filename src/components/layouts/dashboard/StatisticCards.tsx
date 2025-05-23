@@ -93,7 +93,7 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ groupId, data }) => {
               <span className="fs-4 text-primary">📄</span>
             </div>
             <div>
-              <h6 className="text-muted mb-1">Invoices</h6>
+              <h6 className="text-muted mb-1">Hóa đơn</h6>
               <h3 className="mb-0">
                 <AnimatedNumber value={stats.totalInvoices} duration={900} />
               </h3>
@@ -109,7 +109,7 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ groupId, data }) => {
               <span className="fs-4 text-success">🏪</span>
             </div>
             <div>
-              <h6 className="text-muted mb-1">Stores</h6>
+              <h6 className="text-muted mb-1">Cửa hàng</h6>
               <h3 className="mb-0">
                 <AnimatedNumber value={stats.uniqueStores} duration={900} />
               </h3>
@@ -125,7 +125,7 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ groupId, data }) => {
               <span className="fs-4 text-warning">🛒</span>
             </div>
             <div>
-              <h6 className="text-muted mb-1">Products</h6>
+              <h6 className="text-muted mb-1">Sản phẩm</h6>
               <h3 className="mb-0">
                 <AnimatedNumber value={stats.totalProducts} duration={900} />
               </h3>
@@ -141,9 +141,10 @@ const StatisticCards: React.FC<StatisticCardsProps> = ({ groupId, data }) => {
               <span className="fs-4 text-info">💰</span>
             </div>
             <div>
-              <h6 className="text-muted mb-1">Total Spent</h6>
+              <h6 className="text-muted mb-1">Tổng tiền</h6>
               <h3 className="mb-0">
-                <AnimatedNumber value={stats.totalAmount} duration={1200} decimals={2} prefix="$" />
+                <AnimatedNumber value={stats.totalAmount} duration={1200} />
+                <div style={{ fontSize: '0.8rem', color: '#6c757d' }}>VNĐ</div>
               </h3>
             </div>
           </Card.Body>

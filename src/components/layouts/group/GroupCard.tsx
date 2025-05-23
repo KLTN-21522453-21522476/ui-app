@@ -1,179 +1,100 @@
-// src/components/group/GroupCard.tsx
-import React, { useEffect } from 'react';
-import { Card, Dropdown } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { FaEllipsisV, FaUser, FaTrash, FaEdit } from 'react-icons/fa';
-import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
-import { fetchGroupDetailsData } from '../../../redux/slices/groupSlice';
+// src/components/layouts/group/GroupCard.tsx
+import React from 'react';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Stack from '@mui/material/Stack';
+import Divider from '@mui/material/Divider';
+import Chip from '@mui/material/Chip';
+import { mockGroupList } from '../../../mock/mockData';
 import { GroupDetails } from '../../../types/GroupDetails';
+import { useDispatch } from 'react-redux';
+import { setSelectedGroupId } from '../../../redux/slices/groupSlice';
 
 interface GroupCardProps {
   groupId: string;
   isAdmin: boolean;
   onRename: (group: GroupDetails) => void;
   onDelete: (group: GroupDetails) => void;
+  selectedGroupId?: string | null;
 }
 
-export const GroupCard: React.FC<GroupCardProps> = ({ 
-  groupId, 
-  isAdmin, 
-  onRename, 
-  onDelete 
+export const GroupCard: React.FC<GroupCardProps> = ({
+  groupId,
+  isAdmin,
+  onRename,
+  onDelete,
+  selectedGroupId
 }) => {
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  // Find group data from mockGroupList
+  const group = mockGroupList.find((g: { id: string }) => g.id === groupId);
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const dispatch = useDispatch();
 
-  const groupDetails = useAppSelector((state) => state.groups.groupDetails[groupId]);
-  const isLoading = useAppSelector((state) => state.groups.isLoading);
-  const error = useAppSelector((state) => state.groups.error);
+  if (!group) return null;
 
-  // Fetch group details khi component được mount
-  useEffect(() => {
-    if (!groupDetails) {
-      dispatch(fetchGroupDetailsData(groupId));
-    }
-  }, [dispatch, groupId, groupDetails]);
-
-  const handleCardClick = () => {
-    navigate(`/groups/${groupId}`);
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
   };
 
-  if (isLoading && !groupDetails) {
-    return (
-      <Card className="h-100 group-card">
-        <Card.Body>
-          <div className="text-center py-4">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </Card.Body>
-      </Card>
-    );
-  }
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
-  if (error && !groupDetails) {
-    return (
-      <Card className="h-100 group-card bg-light">
-        <Card.Body>
-          <div className="text-center py-4 text-danger">
-            <p>Không thể tải thông tin nhóm</p>
-          </div>
-        </Card.Body>
-      </Card>
-    );
-  }
+  const handleCardClick = () => {
+    dispatch(setSelectedGroupId(group.id));
+  };
 
-  if (!groupDetails) {
-    return null;
-  }
+  const isSelected = selectedGroupId === group.id;
 
   return (
-    <Card 
-      className="h-100 group-card" 
-      style={{ 
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        cursor: 'pointer'
-      }}
-      onMouseOver={(e) => {
-        e.currentTarget.style.transform = 'translateY(-5px)';
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '';
+    <Card
+      sx={{
+        height: '100%',
+        boxShadow: isSelected ? 6 : 3,
+        borderRadius: 2,
+        border: isSelected ? '2px solid #1976d2' : '2px solid transparent',
+        cursor: 'pointer',
+        transition: 'box-shadow 0.2s, border 0.2s',
+        backgroundColor: isSelected ? 'rgba(25, 118, 210, 0.07)' : 'background.paper',
       }}
       onClick={handleCardClick}
     >
-      <Card.Body>
-        <div className="d-flex justify-content-between align-items-start">
-          <div>
-            <Card.Title className="mb-0 d-flex align-items-center">
-              <span className="me-1">@</span> {groupDetails.name}
-            </Card.Title>
-          </div>
-          <div onClick={(e) => e.stopPropagation()}>
-            <Dropdown>
-              <Dropdown.Toggle 
-                as="button"
-                className="p-0 text-dark border-0 bg-transparent"
-                id={`dropdown-${groupId}`}
-              >
-                <FaEllipsisV />
-              </Dropdown.Toggle>
-
-              <Dropdown.Menu align="end">
-                {isAdmin && (
-                  <Dropdown.Item 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onRename(groupDetails);
-                    }}
-                    className="d-flex align-items-center py-2"
-                  >
-                    <FaEdit className="me-3 text-primary" />
-                    <span>Đổi tên</span>
-                  </Dropdown.Item>
-                )}
-                <Dropdown.Item 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onDelete(groupDetails);
-                  }}
-                  className="d-flex align-items-center py-2 text-danger" 
-                >
-                  <FaTrash className="me-3" />
-                  <span>Xoá</span>
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          </div>
-        </div>
-        <div className="mt-2 small text-muted">
-          {groupDetails.created_date ? 
-            `Created on ${new Date(groupDetails.created_date).toLocaleDateString()}` : 
-            'Recently created'}
-        </div>
-        <div className="d-flex mt-2">
-          <div className="small text-muted me-3">
-            {groupDetails.invoice_count} Hoá đơn • {groupDetails.members.length} Thành viên
-          </div>
-        </div>
-        <div className="mt-3">
-          <div className="d-flex">
-            {groupDetails.members.slice(0, 3).map((member, index) => (
-              <div 
-                key={member.user_id} 
-                className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
-                style={{ 
-                  width: '30px', 
-                  height: '30px', 
-                  marginLeft: index > 0 ? '-10px' : '0',
-                  position: 'relative',
-                  zIndex: 3 - index
-                }}
-              >
-                <FaUser size={12} />
-              </div>
-            ))}
-            {groupDetails.members.length > 3 && (
-              <div 
-                className="rounded-circle bg-light d-flex align-items-center justify-content-center"
-                style={{ 
-                  width: '30px', 
-                  height: '30px', 
-                  marginLeft: '-10px',
-                  border: '1px solid #dee2e6'
-                }}
-              >
-                <small>+{groupDetails.members.length - 3}</small>
-              </div>
-            )}
-          </div>
-        </div>
-      </Card.Body>
+      <CardContent>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+          <Stack spacing={0.5}>
+            <Typography variant="h6" fontWeight={700} gutterBottom>{group.name}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Ngày tạo: {group.created_date ? new Date(group.created_date).toLocaleDateString() : 'Không rõ'}
+            </Typography>
+          </Stack>
+          <IconButton aria-label="more" onClick={handleMenuOpen} size="small">
+            <MoreVertIcon />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleMenuClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem onClick={handleMenuClose}>Đổi tên</MenuItem>
+            <MenuItem onClick={handleMenuClose} sx={{ color: 'error.main' }}>Xoá</MenuItem>
+          </Menu>
+        </Stack>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="body1" gutterBottom>{group.description}</Typography>
+        <Stack direction="row" spacing={2} mb={1} alignItems="center">
+          <Chip label={`Số lượng hoá đơn: ${group.invoice_count}`} color="primary" variant="outlined" />
+          <Chip label={`Vai trò: ${group.user_roles?.join(', ') || 'Không rõ'}`} color="secondary" variant="outlined" />
+        </Stack>
+      </CardContent>
     </Card>
   );
 };
