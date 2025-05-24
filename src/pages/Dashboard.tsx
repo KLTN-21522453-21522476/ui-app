@@ -233,11 +233,11 @@ const Dashboard: React.FC = () => {
       <Row className="g-4">
         {/* Members Section - Left Side */}
         <Col lg={5} xl={4}>
-        <Card className="shadow-sm h-100" style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          overflow: 'hidden',
-          height: '100%' 
+          <Card className="shadow-sm h-100" style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            overflow: 'hidden',
+            height: '100%' 
         }}>
             {isGroupLoading ? (
               <div className="d-flex justify-content-center py-5">

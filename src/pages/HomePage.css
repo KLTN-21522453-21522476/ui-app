@@ -1,0 +1,123 @@
+/* HomePage.css */
+.home-page {
+    min-height: 100vh;
+    position: relative;
+    background-image: url('/path-to-your-foliage-image.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color: #0a0a0a !important; /* Darker than Bootstrap's bg-dark */
+    overflow: hidden;
+  }
+  
+  /* Logo styling */
+  .logo h1 {
+    font-weight: 500;
+    font-size: 1.8rem;
+  }
+  
+  /* Menu button */
+  .menu-button {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+  }
+  
+  .menu-icon {
+    font-size: 1.5rem;
+  }
+  
+  /* Main content area */
+  .main-content {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+  }
+  
+  .welcome-text {
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+  
+  .headline {
+    font-size: 2.8rem;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+  
+  /* Button styling overrides */
+  .btn-outline-light {
+    border-width: 1px;
+    border-radius: 0;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  /* Social icons sidebar */
+  .social-icons {
+    position: fixed;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .social-icon-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5rem 0;
+    color: white !important;
+    transition: all 0.3s ease;
+  }
+  
+  .social-icon-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Scroll indicator */
+  .scroll-indicator {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .arrow-down {
+    font-size: 0.9rem;
+  }
+  
+  /* Custom utility class */
+  .min-vh-75 {
+    min-height: 75vh;
+  }
+  
+  /* Media queries for responsive design */
+  @media (max-width: 768px) {
+    .headline {
+      font-size: 2rem;
+    }
+    
+    .social-icons {
+      display: none;
+    }
+    
+    .scroll-indicator {
+      right: 1rem;
+      bottom: 1rem;
+    }
+  }
+  
