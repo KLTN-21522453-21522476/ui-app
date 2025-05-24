@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Container, Row, Col, Button, Nav } from 'react-bootstrap';
 import { Facebook, Twitter, Linkedin, Instagram, Envelope } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import AuthModal from '../components/modal/AuthModal';
 import './HomePage.css';
 const HomePage: React.FC = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState<'login' | 'register'>('login');
+
+  const handleOpenModal = (mode: 'login' | 'register') => {
+    setModalMode(mode);
+    setShowModal(true);
+  };
+  
   return (
     <div className="home-page bg-dark text-white">
       {/* Main Content */}
@@ -19,7 +28,7 @@ const HomePage: React.FC = () => {
               VÀ LẬP RA KẾ HOẠCH KINH DOANH HIỆU QUẢ.
             </h2>
             <div className="d-flex flex-wrap gap-3">
-              <Button variant="outline-light" className="text-uppercase px-4 py-3">
+              <Button variant="outline-light" className="text-uppercase px-4 py-3" onClick={() => handleOpenModal('login')}>
                 Bắt đầu ngay
               </Button>
               <Button variant="outline-light" className="text-uppercase px-4 py-3">
@@ -49,6 +58,11 @@ const HomePage: React.FC = () => {
         </Nav.Link>
       </Nav>
 
+      <AuthModal 
+        show={showModal} 
+        onHide={() => setShowModal(false)} 
+        initialMode={modalMode}
+      />
     </div>
   );
 }

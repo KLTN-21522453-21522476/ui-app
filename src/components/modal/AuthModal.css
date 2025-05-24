@@ -1,0 +1,82 @@
+/* AuthModal.css */
+.auth-modal {
+    border-radius: 16px !important;
+    background-color: #1a1a1a !important; /* Slightly lighter than pure black */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+  
+  .auth-modal .modal-content {
+    background-color: #1a1a1a !important;
+    border: 1px solid #333;
+  }
+  
+  .auth-modal .form-control {
+    border-radius: 8px;
+    background-color: #252525 !important; /* Lighter background for form controls */
+    border-color: #444;
+  }
+  
+  .auth-modal .form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+    border-color: #198754;
+    background-color: #252525 !important;
+  }
+  
+  .auth-modal .form-control::placeholder {
+    color: #888;
+  }
+  
+  .auth-modal .btn-success {
+    background-color: #198754;
+    border-color: #198754;
+    border-radius: 8px;
+  }
+  
+  .auth-modal .btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+  }
+  
+  .auth-modal .btn-outline-light {
+    border-radius: 50%;
+    transition: all 0.2s;
+    border-color: #444;
+  }
+  
+  .auth-modal .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  .auth-modal a {
+    transition: color 0.2s;
+    color: #20c997 !important; /* Brighter green for links */
+  }
+  
+  .auth-modal a:hover {
+    color: #2ee3b0 !important; /* Even brighter on hover */
+  }
+  
+  .auth-modal .form-check-input {
+    background-color: #252525;
+    border-color: #444;
+  }
+  
+  .auth-modal .form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+  }
+  
+  .auth-modal .text-secondary {
+    color: #adb5bd !important; /* Lighter gray for better visibility */
+  }
+  
+  .auth-modal .border-secondary {
+    border-color: #444 !important; /* Darker border for better definition */
+  }
+  
+  /* Add a subtle gradient to make the modal pop */
+  .auth-modal .modal-content {
+    background-image: linear-gradient(145deg, #1a1a1a, #212121) !important;
+  }
+  

@@ -1,12 +1,10 @@
 // components/modal/AuthModal.tsx
 import React, { useState, FormEvent } from 'react';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
-import { FaGoogle, FaFacebook } from 'react-icons/fa';
+import { FaGoogle, FaFacebook, FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
-import CustomButton from '../commons/Button';
 import Loader from '../commons/Loader';
-import Logo from '../commons/Logo';
-//import SocialLogin from '../layouts/SocialLogin';
+import './AuthModal.css';
 
 type AuthMode = 'login' | 'register';
 
@@ -61,9 +59,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
     password?: string;
     confirmPassword?: string;
   }>({});
-
-
-
 
   // Handle login form changes
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,12 +163,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
       onHide={onHide} 
       centered
       size={mode === 'login' ? 'sm' : 'lg'}
-      contentClassName="rounded-4 border-0"
+      contentClassName="auth-modal bg-dark text-white border-0"
+      backdropClassName="bg-dark bg-opacity-75"
     >
       <Modal.Header className="border-0 pb-0">
         <button 
           type="button" 
-          className="btn-close" 
+          className="btn-close btn-close-white" 
           aria-label="Close" 
           onClick={onHide}
         ></button>
@@ -183,37 +179,36 @@ const AuthModal: React.FC<AuthModalProps> = ({
         {mode === 'login' ? (
           // LOGIN MODE
           <>
-            <div className="text-center mb-4">
-              <h5 className="fw-normal">Đăng nhập với</h5>
-              
+            <div className="text-center mb-5">
+              <h3 className="fw-light m-0">Đăng nhập</h3>
               <div className="d-flex justify-content-center gap-3 mt-3">
                 <Button 
-                  variant="outline-secondary" 
+                  variant="outline-light" 
                   className="rounded-circle p-2" 
-                  style={{ width: '40px', height: '40px' }}
+                  style={{ width: '45px', height: '45px' }}
                 >
                   <FaGoogle />
                 </Button>
                 <Button 
-                  variant="outline-secondary" 
+                  variant="outline-light" 
                   className="rounded-circle p-2" 
-                  style={{ width: '40px', height: '40px' }}
+                  style={{ width: '45px', height: '45px' }}
                 >
                   <FaFacebook />
                 </Button>
               </div>
               
-              <div className="d-flex align-items-center my-3">
-                <div className="flex-grow-1 border-bottom"></div>
-                <span className="mx-2 text-muted">hoặc</span>
-                <div className="flex-grow-1 border-bottom"></div>
+              <div className="d-flex align-items-center my-4">
+                <div className="flex-grow-1 border-bottom border-secondary"></div>
+                <span className="mx-3 text-secondary">Hoặc đăng nhập với email</span>
+                <div className="flex-grow-1 border-bottom border-secondary"></div>
               </div>
             </div>
             
             <Form onSubmit={handleLoginSubmit}>
-              {error && <Alert variant="danger">{error}</Alert>}
+              {error && <Alert variant="danger" className="bg-dark text-danger border-danger">{error}</Alert>}
               
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-4">
                 <Form.Control
                   type="email"
                   name="email"
@@ -221,7 +216,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   onChange={handleLoginChange}
                   placeholder="Email"
                   required
-                  className="py-2"
+                  className="py-3 bg-dark text-white"
                 />
               </Form.Group>
 
@@ -233,182 +228,195 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   onChange={handleLoginChange}
                   placeholder="Mật khẩu"
                   required
-                  className="py-2"
+                  className="py-3 bg-dark text-white"
                 />
-
+                
               </Form.Group>
 
-              <Form.Group className="mb-4">
+              <div className="d-flex justify-content-between mb-4">
                 <Form.Check
                   type="checkbox"
                   name="rememberMe"
                   checked={loginForm.rememberMe}
                   onChange={handleLoginChange}
-                  label="Ghi nhớ đăng nhập"
+                  label="Ghi nhớ"
+                  className="text-secondary"
                 />
-              </Form.Group>
+              </div>
 
               <div className="d-grid">
                 <Button 
                   type="submit" 
-                  variant="primary" 
+                  variant="success" 
                   disabled={loading}
-                  className="py-2 text-uppercase fw-bold"
+                  className="py-3 text-uppercase fw-bold"
                 >
                   {loading ? <Loader size="sm" /> : 'Đăng nhập'}
                 </Button>
               </div>
               
-              <div className="text-center mt-3 mb-2">
+              <div className="text-center mt-4 mb-2">
+                <span className="text-secondary">Bạn chưa có tài khoản? </span>
                 <a 
                   href="/register" 
-                  className="text-decoration-none"
+                  className="text-decoration-none text-success"
                   onClick={(e) => {
                     e.preventDefault();
                     toggleMode();
-                    
                   }}
                 >
-                  Chưa có tài khoản? Đăng ký
+                  Đăng ký
                 </a>
+                <br />
+                <a href="#forgot" className="text-decoration-none text-secondary">Quên mật khẩu?</a>
               </div>
+              
             </Form>
           </>
         ) : (
           // REGISTER MODE
           <>
-            <div className="text-center mb-3">
-              <Logo />
-              <h4 className="fw-normal mt-2">Đăng ký tài khoản</h4>
-              
-              <div className="d-flex align-items-center my-3">
-                <div className="flex-grow-1 border-bottom"></div>
-                <span className="mx-2 text-muted">hoặc đăng ký với</span>
-                <div className="flex-grow-1 border-bottom"></div>
-              </div>
-              
-              <div className="d-flex justify-content-center gap-3 mt-2 mb-4">
-                <Button 
-                  variant="outline-secondary" 
-                  className="rounded-circle p-2" 
-                  style={{ width: '40px', height: '40px' }}
-                >
-                  <FaGoogle />
-                </Button>
-                <Button 
-                  variant="outline-secondary" 
-                  className="rounded-circle p-2" 
-                  style={{ width: '40px', height: '40px' }}
-                >
-                  <FaFacebook />
-                </Button>
-              </div>
+            <div className="d-flex align-items-center mb-4">
+              <Button 
+                variant="link" 
+                className="text-white p-0 me-3"
+                onClick={toggleMode}
+              >
+                <FaArrowLeft />
+              </Button>
+              <h3 className="fw-light m-0">Tạo tài khoản</h3>
             </div>
             
             <Form onSubmit={handleRegisterSubmit}>
-              {error && <Alert variant="danger">{error}</Alert>}
+              {error && <Alert variant="danger" className="bg-dark text-danger border-danger">{error}</Alert>}
               
-              <Form.Group className="mb-3">
-                <Form.Label>Họ và tên</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="fullName"
-                  value={registerForm.fullName}
-                  onChange={handleRegisterChange}
-                  placeholder="Nhập họ và tên của bạn"
-                  required
-                />
-              </Form.Group>
+              <div className="row">
+                <div className="col-md-6">
+                  <Form.Group className="mb-4">
+                    <Form.Label className="text-secondary">Tên đầy đủ</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="fullName"
+                      value={registerForm.fullName}
+                      onChange={handleRegisterChange}
+                      placeholder="Nhập tên đầy đủ"
+                      required
+                      className="py-3 bg-dark text-white"
+                    />
+                  </Form.Group>
+                </div>
+                
+                <div className="col-md-6">
+                  <Form.Group className="mb-4">
+                    <Form.Label className="text-secondary">Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      value={registerForm.email}
+                      onChange={handleRegisterChange}
+                      placeholder="Nhập email"
+                      required
+                      className="py-3 bg-dark text-white"
+                    />
+                  </Form.Group>
+                </div>
+              </div>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  name="email"
-                  value={registerForm.email}
-                  onChange={handleRegisterChange}
-                  placeholder="Nhập email của bạn"
-                  required
-                />
-                <Form.Text className="text-muted">
-                  Email này sẽ được sử dụng để đăng nhập và nhận thông báo.
-                </Form.Text>
-              </Form.Group>
+              <div className="row">
+                <div className="col-md-6">
+                  <Form.Group className="mb-4">
+                    <Form.Label className="text-secondary">Mật khẩu</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      value={registerForm.password}
+                      onChange={handleRegisterChange}
+                      placeholder="Nhập mật khẩu"
+                      isInvalid={!!validationErrors.password}
+                      required
+                      className="py-3 bg-dark text-white"
+                    />
+                    <Form.Control.Feedback type="invalid" className="text-danger">
+                      {validationErrors.password}
+                    </Form.Control.Feedback>
+                    <Form.Text className="text-secondary small">
+                      Ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số
+                    </Form.Text>
+                  </Form.Group>
+                </div>
+                
+                <div className="col-md-6">
+                  <Form.Group className="mb-4">
+                    <Form.Label className="text-secondary">Xác nhận mật khẩu</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="confirmPassword"
+                      value={registerForm.confirmPassword}
+                      onChange={handleRegisterChange}
+                      placeholder="Xác nhận mật khẩu"
+                      isInvalid={!!validationErrors.confirmPassword}
+                      required
+                      className="py-3 bg-dark text-white"
+                    />
+                    <Form.Control.Feedback type="invalid" className="text-danger">
+                      {validationErrors.confirmPassword}
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                </div>
+              </div>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Mật khẩu</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="password"
-                  value={registerForm.password}
-                  onChange={handleRegisterChange}
-                  placeholder="Tạo mật khẩu mới"
-                  isInvalid={!!validationErrors.password}
-                  required
-                />
-                <Form.Control.Feedback type="invalid">
-                  {validationErrors.password}
-                </Form.Control.Feedback>
-                <Form.Text className="text-muted">
-                  Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số.
-                </Form.Text>
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Xác nhận mật khẩu</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="confirmPassword"
-                  value={registerForm.confirmPassword}
-                  onChange={handleRegisterChange}
-                  placeholder="Nhập lại mật khẩu"
-                  isInvalid={!!validationErrors.confirmPassword}
-                  required
-                />
-                <Form.Control.Feedback type="invalid">
-                  {validationErrors.confirmPassword}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-4">
                 <Form.Check
                   type="checkbox"
                   name="agreeTerms"
                   checked={registerForm.agreeTerms}
                   onChange={handleRegisterChange}
+                  className="text-secondary"
                   label={
                     <span>
-                      Tôi đồng ý với <a href="/terms" target="_blank">Điều khoản sử dụng</a> và <a href="/privacy" target="_blank">Chính sách bảo mật</a>
+                     Tôi đồng ý với <a href="/terms" className="text-success">Điều khoản</a> và <a href="/privacy" className="text-success">Quyền riêng tư</a>
                     </span>
                   }
                   required
-                  feedback="Bạn phải đồng ý với điều khoản để tiếp tục."
+                  feedback="You must agree to the terms to continue."
                   feedbackType="invalid"
                 />
               </Form.Group>
 
-              <div className="d-grid gap-2 mt-4">
-                <CustomButton 
+              <div className="d-grid mt-4">
+                <Button 
                   type="submit" 
-                  variant="primary" 
+                  variant="success" 
                   disabled={loading || !registerForm.agreeTerms}
-                  className="py-2 text-uppercase fw-bold"
+                  className="py-3 text-uppercase fw-bold"
                 >
-                  {loading ? <Loader size="sm" /> : 'ĐĂNG KÝ'}
-                </CustomButton>
+                  {loading ? <Loader size="sm" /> : 'Tạo tài khoản'}
+                </Button>
               </div>
               
-              <div className="text-center mt-3 mb-2">
-                <a 
-                  href="#login" 
-                  className="text-decoration-none"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toggleMode();
-                  }}
-                >
-                  Đã có tài khoản? Đăng nhập ngay!
-                </a>
+              <div className="text-center mt-4 mb-2">
+                <div className="d-flex align-items-center my-4">
+                  <div className="flex-grow-1 border-bottom border-secondary"></div>
+                  <span className="mx-3 text-secondary">hoặc đăng ký với</span>
+                  <div className="flex-grow-1 border-bottom border-secondary"></div>
+                </div>
+                
+                <div className="d-flex justify-content-center gap-3">
+                  <Button 
+                    variant="outline-light" 
+                    className="rounded-circle p-2" 
+                    style={{ width: '45px', height: '45px' }}
+                  >
+                    <FaGoogle />
+                  </Button>
+                  <Button 
+                    variant="outline-light" 
+                    className="rounded-circle p-2" 
+                    style={{ width: '45px', height: '45px' }}
+                  >
+                    <FaFacebook />
+                  </Button>
+                </div>
               </div>
             </Form>
           </>

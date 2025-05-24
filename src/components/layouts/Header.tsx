@@ -22,14 +22,7 @@ const Header: React.FC = () => {
           className="me-2"
           onClick={() => handleOpenModal('login')}
         >
-          Đăng nhập
-        </Button>
-        <Button 
-          variant="outline-light" 
-          className="me-2"
-          onClick={() => handleOpenModal('register')}
-        >
-          Đăng ký
+          Bắt đầu ngay
         </Button>
       </div>
       <AuthModal 
