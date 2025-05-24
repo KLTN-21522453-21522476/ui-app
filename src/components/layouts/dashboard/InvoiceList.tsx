@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Card, InputAdornment, TextField, Box, Typography, Skeleton, MenuItem } from '@mui/material';
+import { InputAdornment, TextField, Box, Typography, MenuItem } from '@mui/material';
+import PaginationControls from './PaginationControls';
 import SearchIcon from '@mui/icons-material/Search';
 import InvoiceCard from './InvoiceCard';
-import { Badge } from 'react-bootstrap';
+
 import { mockInvoices, mockInvoiceDetail } from '../../../mock/mockData';
 
 interface Invoice {
@@ -14,10 +15,17 @@ interface Invoice {
   status: string;
 }
 
-const InvoiceList: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+interface InvoiceListProps {
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
+  sortBy: 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'status';
+  setSortBy: (value: 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'status') => void;
+}
+
+const InvoiceList: React.FC<InvoiceListProps> = ({ searchTerm, setSearchTerm, sortBy, setSortBy }) => {
   const [expandedInvoiceIds, setExpandedInvoiceIds] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'status'>('date_desc');
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const invoices = mockInvoices[0]?.results || [];
 
@@ -45,15 +53,47 @@ const InvoiceList: React.FC = () => {
     }
   });
 
+  // Pagination logic
+  const pageCount = Math.ceil(sortedInvoices.length / rowsPerPage);
+  const paginatedInvoices = sortedInvoices.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
+
+  const handleRowsPerPageChange = (value: number) => {
+    setRowsPerPage(value);
+    setPage(1); // Reset to first page when rows per page changes
+  };
+
+
   const toggleInvoiceExpand = (id: string) => {
-    setExpandedInvoiceIds(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    setExpandedInvoiceIds(
+      prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
 
   return (
-    <Card sx={{ boxShadow: 2, mb: 2 }}>
-      <Box px={2} py={2} display="flex" justifyContent="space-between" alignItems="center">
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      height: '100%',
+      width: '100%'
+    }}>
+      {/* Title and filter controls */}
+      <Box 
+        px={2} 
+        py={2} 
+        display="flex" 
+        justifyContent="space-between" 
+        alignItems="center"
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 3,
+          backgroundColor: 'white',
+        }}
+      >
         <Typography variant="h6">Hoá đơn gần đây</Typography>
         <Box display="flex" alignItems="center" gap={2}>
           <TextField
@@ -86,29 +126,103 @@ const InvoiceList: React.FC = () => {
           />
         </Box>
       </Box>
-      <Box px={2} pb={2}>
-        {sortedInvoices.length > 0 ? (
-          sortedInvoices.map((invoice: Invoice) => (
-            <InvoiceCard
-              key={invoice.id}
-              invoice={invoice}
-              expanded={expandedInvoiceIds.includes(invoice.id)}
-              onExpand={toggleInvoiceExpand}
-              onApprove={id => {}}
-              onReject={id => {}}
-              onDelete={id => {}}
-            />
-          ))
-        ) : (
-          <Box py={4} textAlign="center">
-            <Typography variant="body2" color="text.secondary">
-              Không có sản phẩm nào
-            </Typography>
+      
+      {/* Main content area with fixed height and scrolling */}
+      <Box sx={{ 
+        flexGrow: 1,
+        display: 'flex', 
+        flexDirection: 'column',
+        height: 0, 
+        minHeight: 0, 
+        overflow: 'hidden' 
+      }}>
+        {/* Sticky column header row */}
+        <Box
+          display="flex"
+          px={2}
+          py={1}
+          bgcolor="#f5f5f5"
+          borderRadius={1}
+          fontWeight={600}
+          alignItems="center"
+          mb={1}
+          sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 2,
+            backgroundColor: '#f5f5f5',
+          }}
+        >
+          <Box minWidth={50}></Box>
+          <Box flex={2} minWidth={120} display="flex" justifyContent="center">
+            <Typography variant="subtitle2" align="center">Số Hoá Đơn</Typography>
           </Box>
-        )}
+          <Box flex={2} minWidth={120} display="flex" justifyContent="center">
+            <Typography variant="subtitle2" align="center">Cửa Hàng</Typography>
+          </Box>
+          <Box flex={2} minWidth={120} display="flex" justifyContent="center">
+            <Typography variant="subtitle2" align="center">Ngày Tạo</Typography>
+          </Box>
+          <Box flex={2} minWidth={120} display="flex" justifyContent="center">
+            <Typography variant="subtitle2" align="center">Tổng Tiền</Typography>
+          </Box>
+          <Box flex={1} minWidth={100} display="flex" justifyContent="center">
+            <Typography variant="subtitle2" align="center">Trạng Thái</Typography>
+          </Box>
+        </Box>
+        
+        {/* Invoice List - With fixed height and scrolling */}
+        <Box sx={{ 
+          flexGrow: 1, 
+          overflowY: 'auto',
+          px: 1 
+        }}>
+          {paginatedInvoices.length > 0 ? (
+            paginatedInvoices.map((invoice: Invoice) => (
+              <InvoiceCard
+                key={invoice.id}
+                invoice={invoice}
+                expanded={expandedInvoiceIds.includes(invoice.id)}
+                onExpand={toggleInvoiceExpand}
+                onApprove={id => {}}
+                onReject={id => {}}
+                onDelete={id => {}}
+              />
+            ))
+          ) : (
+            <Typography variant="body2" color="text.secondary" align="center" mt={4}>
+              Không tìm thấy hoá đơn nào.
+            </Typography>
+          )}
+        </Box>
       </Box>
-    </Card>
+      
+      {/* Pagination Controls */}
+      <Box
+        display="flex"
+        px={2}
+        py={1}
+        borderRadius={1}
+        fontWeight={600}
+        justifyContent="left" 
+        sx={{
+          position: 'sticky',
+          bottom: 0, 
+          zIndex: 2,
+          boxShadow: '0 -2px 5px rgba(0,0,0,0.1)', 
+        }}
+      >
+        <PaginationControls
+          page={page}
+          rowsPerPage={rowsPerPage}
+          pageCount={pageCount}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
+      </Box>
+    </Box>
   );
+
 };
 
 export default InvoiceList;

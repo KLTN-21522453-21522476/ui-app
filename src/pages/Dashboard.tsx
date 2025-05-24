@@ -3,6 +3,8 @@ import { Container, Row, Col, Card, Button, ButtonGroup, Spinner, Modal } from '
 import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaSearch } from 'react-icons/fa';
 import InvoiceList from '../components/layouts/dashboard/InvoiceList';
+import { Box, Typography, TextField, MenuItem, InputAdornment } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import ProductChart from '../components/layouts/dashboard/ProductChart';
 import StoreChart from '../components/layouts/dashboard/StoreChart';
 import StatisticCards from '../components/layouts/dashboard/StatisticCards';
@@ -23,6 +25,8 @@ interface Group {
   name: string;
 }
 
+import PaginationControls from '../components/layouts/dashboard/PaginationControls';
+
 const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
@@ -41,6 +45,7 @@ const Dashboard: React.FC = () => {
   // Dashboard state
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'status'>('date_desc');
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<{
     id: string;
@@ -95,9 +100,13 @@ const Dashboard: React.FC = () => {
     fetchGroupDetails();
   }, [selectedGroupId, dispatch]);
 
+  // Pagination state for InvoiceList
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
   // isAdmin function at the top level
   const isAdmin = (): boolean => {
-    if (!user || !selectedGroup) return false;
+    if (!user || !selectedGroup) return true;
     const currentUserMember = selectedGroup.members.find((member: { user_id: string; roles: string[] }) => member.user_id === user.$id);
     return currentUserMember?.roles?.includes('admin') || false;
   };
@@ -121,6 +130,30 @@ const Dashboard: React.FC = () => {
   const handleAddInvoice = () => {
     navigate('/upload-invoice');
   };
+
+  // Pagination handlers for InvoiceList
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
+  // Add a handler for InvoiceList with the correct signature
+  const handleInvoiceListPageChange = (page: number) => {
+    setPage(page);
+  };
+  const handleRowsPerPageChange = (value: number) => {
+    setRowsPerPage(value);
+    setPage(1);
+  };
+
+  // Use invoices from Redux selector
+  const filteredInvoices = invoices.filter(invoice => {
+    const term = searchTerm.trim().toLowerCase();
+    return (
+      !term ||
+      (invoice.invoice_number && invoice.invoice_number.toLowerCase().includes(term)) ||
+      (invoice.store_name && invoice.store_name.toLowerCase().includes(term))
+    );
+  });
+
 
   // Handle adding a new member
   const handleAddMember = (email: string, role: string) => {
@@ -203,18 +236,6 @@ const Dashboard: React.FC = () => {
         {/* Members Section - Left Side */}
         <Col lg={5} xl={4}>
           <Card className="shadow-sm h-100">
-            <Card.Header className="bg-white d-flex justify-content-between align-items-center py-3">
-              <h5 className="mb-0">Team Members</h5>
-              {isAdmin() && (
-                <Button 
-                  variant="primary" 
-                  size="sm"
-                  onClick={() => setShowAddMemberModal(true)}
-                >
-                  <FaPlus className="me-1" /> Add Member
-                </Button>
-              )}
-            </Card.Header>
             <Card.Body className="p-0">
               {isGroupLoading ? (
                 <div className="d-flex justify-content-center py-5">
@@ -222,24 +243,10 @@ const Dashboard: React.FC = () => {
                 </div>
               ) : selectedGroup ? (
                 <div className="p-3">
-                  <div className="mb-3">
-                    <div className="position-relative">
-                      <FaSearch className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
-                      <input
-                        type="text"
-                        className="form-control ps-5"
-                        placeholder="Search members..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                    <MembersSection 
+                  <MembersSection 
                       groupId={selectedGroup.id} 
                       isAdmin={isAdmin()} 
                     />
-                  </div>
                 </div>
               ) : (
                 <div className="text-center py-5">
@@ -249,18 +256,20 @@ const Dashboard: React.FC = () => {
             </Card.Body>
           </Card>
         </Col>
-        
+                
         {/* Invoices Section - Right Side */}
         <Col lg={7} xl={8}>
-          <Card className="shadow-sm h-100">
-            <Card.Header className="bg-white py-3">
-              <h5 className="mb-0">Recent Invoices</h5>
-            </Card.Header>
-            <Card.Body className="p-0">
-              <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                <InvoiceList />
-              </div>
-            </Card.Body>
+          <Card className="shadow-sm h-100" style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            overflow: 'hidden' 
+          }}>
+            <InvoiceList
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+            />
           </Card>
         </Col>
       </Row>
@@ -307,3 +316,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+

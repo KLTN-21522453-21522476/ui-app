@@ -38,6 +38,7 @@ export interface InvoiceCardProps {
   onReject: (id: string) => void;
   onDelete: (id: string) => void;
   loading?: boolean;
+  showHeader?: boolean;
 }
 
 const ExpandIndicator = styled(Box)(({ theme }) => ({
@@ -101,10 +102,24 @@ const getActionButtons = (
     case 'rejected':
       return (
         <Stack direction="row" spacing={1}>
-          <Button size="small" color="success" startIcon={<CheckCircleIcon />} onClick={() => onApprove(id)}>
+          <Button
+            size="small"
+            color="success"
+            variant="outlined"
+            startIcon={<CheckCircleIcon />}
+            onClick={() => onApprove(id)}
+            sx={{ fontWeight: 700, borderColor: 'success.main', color: 'success.main' }}
+          >
             Duyệt
           </Button>
-          <Button size="small" color="inherit" startIcon={<DeleteIcon />} onClick={() => onDelete(id)}>
+          <Button
+            size="small"
+            color="inherit"
+            variant="outlined"
+            startIcon={<DeleteIcon />}
+            onClick={() => onDelete(id)}
+            sx={{ fontWeight: 700, borderColor: 'grey.500', color: 'grey.800' }}
+          >
             Xóa
           </Button>
         </Stack>
@@ -112,13 +127,34 @@ const getActionButtons = (
     default:
       return (
         <Stack direction="row" spacing={1}>
-          <Button size="small" color="success" startIcon={<CheckCircleIcon />} onClick={() => onApprove(id)}>
+          <Button
+            size="small"
+            color="success"
+            variant="outlined"
+            startIcon={<CheckCircleIcon />}
+            onClick={() => onApprove(id)}
+            sx={{ fontWeight: 700, borderColor: 'success.main', color: 'success.main' }}
+          >
             Duyệt
           </Button>
-          <Button size="small" color="error" startIcon={<CancelIcon />} onClick={() => onReject(id)}>
+          <Button
+            size="small"
+            color="error"
+            variant="outlined"
+            startIcon={<CancelIcon />}
+            onClick={() => onReject(id)}
+            sx={{ fontWeight: 700, borderColor: 'error.main', color: 'error.main' }}
+          >
             Từ chối
           </Button>
-          <Button size="small" color="inherit" startIcon={<DeleteIcon />} onClick={() => onDelete(id)}>
+          <Button
+            size="small"
+            color="inherit"
+            variant="outlined"
+            startIcon={<DeleteIcon />}
+            onClick={() => onDelete(id)}
+            sx={{ fontWeight: 700, borderColor: 'grey.500', color: 'grey.800' }}
+          >
             Xóa
           </Button>
         </Stack>
@@ -133,7 +169,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
   onApprove,
   onReject,
   onDelete,
-  loading = false
+  loading = false,
 }) => {
   // Find the detail that matches this invoice
   const invoiceDetail = mockInvoiceDetail.find(detail => detail.id === invoice.id) || invoice;
@@ -160,34 +196,48 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
   }
 
   return (
-    <Card
+    <Box
       sx={{
-        mb: 2,
+        mb: 1,
         boxShadow: expanded ? 6 : 1,
+        borderRadius: 2,
         transition: 'box-shadow 0.3s',
         cursor: 'pointer',
+        background: '#fff',
         '&:hover': {
           boxShadow: 8,
         },
+        ...(expanded && {
+          maxHeight: '80vh',
+          overflow: 'auto',
+        }),
       }}
       onClick={() => onExpand(invoice.id)}
     >
+
       <Box display="flex" alignItems="center" px={2} py={1}>
         <ExpandIndicator mr={2}>
           {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </ExpandIndicator>
-        <Box flex={1} display="flex" alignItems="center" gap={2}>
-          <Typography variant="subtitle1" width={120} fontWeight={600}>
+        <Box flex={2} minWidth={165} display="flex" justifyContent="center">
+          <Typography variant="subtitle1" width={120} fontWeight={600} align="center">
             {invoice.invoice_number}
           </Typography>
-          <Typography width={160}>{invoice.store_name}</Typography>
-          <Typography width={120}>{formatDateForDisplay(invoice.created_date_formatted)}</Typography>
-          <Typography width={120} fontWeight={600} color="primary">
+        </Box>
+        <Box flex={2} minWidth={120} display="flex" justifyContent="center">
+          <Typography width={160} align="center">{invoice.store_name}</Typography>
+        </Box>
+        <Box flex={2} minWidth={120} display="flex" justifyContent="center">
+          <Typography width={120} align="center">{formatDateForDisplay(invoice.created_date_formatted)}</Typography>
+        </Box>
+        <Box flex={2} minWidth={120} display="flex" justifyContent="center">
+          <Typography width={120} fontWeight={600} color="primary" align="center">
             {invoice.total_amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
           </Typography>
+        </Box>
+        <Box flex={1} minWidth={100} display="flex" justifyContent="center">
           <Chip label={invoice.status} color={statusColor(invoice.status)} size="small" />
         </Box>
-
       </Box>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <Divider sx={{ my: 1 }} />
@@ -290,7 +340,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
 </Box>
         </Box>
       </Collapse>
-    </Card>
+    </Box>
   );
 };
 

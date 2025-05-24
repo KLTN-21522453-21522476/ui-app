@@ -1,5 +1,8 @@
 import React from 'react';
-import { Card, Badge, Dropdown } from 'react-bootstrap';
+import { Card, Badge } from 'react-bootstrap';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import { FaEllipsisH, FaUserShield, FaUserEdit, FaUser, FaTrash, FaCrown, FaCog } from 'react-icons/fa';
 import { Members } from '../../../types/GroupDetails';
 
@@ -16,6 +19,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
   onRoleChange, 
   onDelete 
 }) => {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   // Function to get user display name
   const getDisplayName = (): string => {
     return member.name || member.email?.split('@')[0] || `User ${member.user_id.slice(0, 4)}`;
@@ -94,33 +98,49 @@ const MemberCard: React.FC<MemberCardProps> = ({
           </div>
           
           {isAdmin && (
-            <Dropdown>
-              <Dropdown.Toggle 
-                variant="link" 
-                className="text-muted p-0"
-                id={`member-dropdown-${member.user_id}`}
+            <>
+              <IconButton
+                aria-label="more"
+                id={`member-menu-button-${member.user_id}`}
+                aria-controls={`member-menu-${member.user_id}`}
+                aria-haspopup="true"
+                onClick={e => setAnchorEl(e.currentTarget)}
+                size="small"
+                sx={{ color: 'text.secondary' }}
               >
                 <FaEllipsisH />
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item 
-                  onClick={() => onRoleChange?.(member.user_id, isUserAdmin ? 'viewer' : 'admin')}
+              </IconButton>
+              <Menu
+                id={`member-menu-${member.user_id}`}
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              >
+                <MenuItem
+                  onClick={() => {
+                    onRoleChange?.(member.user_id, isUserAdmin ? 'viewer' : 'admin');
+                    setAnchorEl(null);
+                  }}
                 >
                   {isUserAdmin ? (
                     <><FaUser className="me-2" /> Make Regular User</>
                   ) : (
                     <><FaCog className="me-2" /> Make Admin</>
                   )}
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item 
-                  className="text-danger"
-                  onClick={() => onDelete?.(member.user_id)}
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    onDelete?.(member.user_id);
+                    setAnchorEl(null);
+                  }}
+                  sx={{ color: 'error.main' }}
                 >
                   <FaTrash className="me-2" /> Remove
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+                </MenuItem>
+              </Menu>
+            </>
           )}
         </div>
         

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Modal, Form, Spinner, Alert } from 'react-bootstrap';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import { Card, Modal, Form, Spinner, Alert, Button } from 'react-bootstrap';
+import { FaSearch } from 'react-icons/fa';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import MemberCard from './MemberCard';
 import { Members } from '../../../types/GroupDetails';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
@@ -13,7 +17,6 @@ interface MembersSectionProps {
 }
 
 const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => {
-
   const [members, setMembers] = useState<Members[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
@@ -21,6 +24,7 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
   const [newMemberRole, setNewMemberRole] = useState('viewer');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
 
   // Fetch group members when component mounts or groupId changes
   useEffect(() => {
@@ -110,14 +114,35 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
               />
             </div>
             {isAdmin && (
-              <Button 
-                variant="primary" 
-                size="sm"
-                onClick={() => setShowAddMemberModal(true)}
-              >
-                <FaPlus className="me-1" /> Add Member
-              </Button>
-            )}
+  <>
+    <IconButton
+      aria-label="more"
+      aria-controls="add-member-menu"
+      aria-haspopup="true"
+      onClick={(event) => setMenuAnchorEl(event.currentTarget)}
+      size="small"
+    >
+      <MoreVertIcon />
+    </IconButton>
+    <Menu
+      id="add-member-menu"
+      anchorEl={menuAnchorEl}
+      open={Boolean(menuAnchorEl)}
+      onClose={() => setMenuAnchorEl(null)}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+    >
+      <MenuItem
+        onClick={() => {
+          setShowAddMemberModal(true);
+          setMenuAnchorEl(null);
+        }}
+      >
+        Thêm thành viên
+      </MenuItem>
+    </Menu>
+  </>
+)}
           </div>
         </Card.Header>
         <Card.Body>
