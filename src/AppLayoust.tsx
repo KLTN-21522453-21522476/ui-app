@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import AppRoutes from './pages/Routes';
-import SidebarContainer from './components/layouts/SidebarContainer';
+import SidebarContainer from './components/layouts/sidebar/SidebarContainer';
 import styled from 'styled-components';
 import Header from './components/layouts/Header';
 
