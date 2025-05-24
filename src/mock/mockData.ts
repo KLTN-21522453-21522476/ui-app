@@ -7,44 +7,203 @@ export const mockGroupDetails = {
   id: "68246300fc282c1bedead0cd",
   invoice_count: 3,
   members: [
-      {
-          added_by: "1",
-          added_date: "Wed, 14 May 2025 09:31:44 GMT",
-          email: "phihoangdiep2506@gmail.com",
-          name: "Admin",
-          roles: ["admin"],
-          user_id: "1"
-      },
-      {
-          added_by: "1",
-          added_date: "Sat, 17 May 2025 07:43:15 GMT",
-          email: "thanhan7801@gmail.com",
-          name: "Test User",
-          roles: ["editor"],
-          user_id: "67ecf846000b208996fe"
-      },
-      {
-          added_by: "2",
-          added_date: "Thu, 15 May 2025 10:15:22 GMT",
-          email: "nguyen.van.a@gmail.com",
-          name: "Nguyen Van A",
-          roles: ["viewer"],
-          user_id: "67ecf847000b208996ff"
-      },
-      {
-          added_by: "3",
-          added_date: "Fri, 16 May 2025 14:22:11 GMT",
-          email: "tran.thi.b@gmail.com",
-          name: "Tran Thi B",
-          roles: ["editor"],
-          user_id: "67ecf848000b208996fg"
-      }
+    {
+      added_by: "1",
+      added_date: "Wed, 14 May 2025 09:31:44 GMT",
+      email: "phihoangdiep2506@gmail.com",
+      name: "Admin",
+      roles: ["admin"],
+      user_id: "1"
+    },
+    {
+      added_by: "1",
+      added_date: "Sat, 17 May 2025 07:43:15 GMT",
+      email: "thanhan7801@gmail.com",
+      name: "Test User",
+      roles: ["editor"],
+      user_id: "67ecf846000b208996fe"
+    },
+    {
+      added_by: "2",
+      added_date: "Thu, 15 May 2025 10:15:22 GMT",
+      email: "nguyen.van.a@gmail.com",
+      name: "Nguyen Van A",
+      roles: ["viewer"],
+      user_id: "67ecf847000b208996ff"
+    },
+    {
+      added_by: "3",
+      added_date: "Fri, 16 May 2025 14:22:11 GMT",
+      email: "tran.thi.b@gmail.com",
+      name: "Tran Thi B",
+      roles: ["editor"],
+      user_id: "67ecf848000b208996fg"
+    },
+    {
+      added_by: "1",
+      added_date: "Sun, 18 May 2025 08:00:00 GMT",
+      email: "le.van.c@gmail.com",
+      name: "Le Van C",
+      roles: ["editor"],
+      user_id: "67ecf849000b208996fh"
+    },
+    {
+      added_by: "67ecf846000b208996fe",
+      added_date: "Sun, 18 May 2025 09:30:00 GMT",
+      email: "pham.thi.d@gmail.com",
+      name: "Pham Thi D",
+      roles: ["viewer"],
+      user_id: "67ecf84a000b208996fi"
+    },
+    {
+      added_by: "67ecf847000b208996ff",
+      added_date: "Mon, 19 May 2025 10:45:00 GMT",
+      email: "hoang.van.e@gmail.com",
+      name: "Hoang Van E",
+      roles: ["admin"],
+      user_id: "67ecf84b000b208996fj"
+    },
+    {
+      added_by: "67ecf848000b208996fg",
+      added_date: "Mon, 19 May 2025 12:15:00 GMT",
+      email: "vu.thi.f@gmail.com",
+      name: "Vu Thi F",
+      roles: ["editor"],
+      user_id: "67ecf84c000b208996fk"
+    },
+    {
+      added_by: "1",
+      added_date: "Tue, 20 May 2025 08:30:00 GMT",
+      email: "dang.van.g@gmail.com",
+      name: "Dang Van G",
+      roles: ["viewer"],
+      user_id: "67ecf84d000b208996fl"
+    },
+    {
+      added_by: "67ecf846000b208996fe",
+      added_date: "Tue, 20 May 2025 10:00:00 GMT",
+      email: "bui.thi.h@gmail.com",
+      name: "Bui Thi H",
+      roles: ["editor"],
+      user_id: "67ecf84e000b208996fm"
+    },
+    {
+      added_by: "67ecf847000b208996ff",
+      added_date: "Wed, 21 May 2025 09:15:00 GMT",
+      email: "tran.van.i@gmail.com",
+      name: "Tran Van I",
+      roles: ["admin"],
+      user_id: "67ecf84f000b208996fn"
+    },
+    {
+      added_by: "67ecf848000b208996fg",
+      added_date: "Wed, 21 May 2025 11:45:00 GMT",
+      email: "nguyen.thi.j@gmail.com",
+      name: "Nguyen Thi J",
+      roles: ["viewer"],
+      user_id: "67ecf850000b208996fo"
+    },
+    {
+      added_by: "1",
+      added_date: "Thu, 22 May 2025 07:30:00 GMT",
+      email: "le.thi.k@gmail.com",
+      name: "Le Thi K",
+      roles: ["editor"],
+      user_id: "67ecf851000b208996fp"
+    },
+    {
+      added_by: "67ecf846000b208996fe",
+      added_date: "Thu, 22 May 2025 09:00:00 GMT",
+      email: "pham.van.l@gmail.com",
+      name: "Pham Van L",
+      roles: ["admin"],
+      user_id: "67ecf852000b208996fq"
+    },
+    {
+      added_by: "67ecf847000b208996ff",
+      added_date: "Fri, 23 May 2025 08:15:00 GMT",
+      email: "hoang.thi.m@gmail.com",
+      name: "Hoang Thi M",
+      roles: ["viewer"],
+      user_id: "67ecf853000b208996fr"
+    },
+    {
+      added_by: "67ecf848000b208996fg",
+      added_date: "Fri, 23 May 2025 10:30:00 GMT",
+      email: "vu.van.n@gmail.com",
+      name: "Vu Van N",
+      roles: ["editor"],
+      user_id: "67ecf854000b208996fs"
+    },
+    {
+      added_by: "1",
+      added_date: "Fri, 23 May 2025 12:00:00 GMT",
+      email: "dang.thi.o@gmail.com",
+      name: "Dang Thi O",
+      roles: ["admin"],
+      user_id: "67ecf855000b208996ft"
+    },
+    {
+      added_by: "67ecf846000b208996fe",
+      added_date: "Sat, 24 May 2025 06:00:00 GMT",
+      email: "bui.van.p@gmail.com",
+      name: "Bui Van P",
+      roles: ["viewer"],
+      user_id: "67ecf856000b208996fu"
+    },
+    {
+      added_by: "67ecf847000b208996ff",
+      added_date: "Sat, 24 May 2025 07:30:00 GMT",
+      email: "tran.thi.q@gmail.com",
+      name: "Tran Thi Q",
+      roles: ["editor"],
+      user_id: "67ecf857000b208996fv"
+    },
+    {
+      added_by: "67ecf848000b208996fg",
+      added_date: "Sat, 24 May 2025 08:45:00 GMT",
+      email: "nguyen.van.r@gmail.com",
+      name: "Nguyen Van R",
+      roles: ["admin"],
+      user_id: "67ecf858000b208996fw"
+    },
+    {
+      added_by: "1",
+      added_date: "Sat, 24 May 2025 09:15:00 GMT",
+      email: "le.van.s@gmail.com",
+      name: "Le Van S",
+      roles: ["viewer"],
+      user_id: "67ecf859000b208996fx"
+    },
+    {
+      added_by: "67ecf846000b208996fe",
+      added_date: "Sat, 24 May 2025 10:30:00 GMT",
+      email: "pham.thi.t@gmail.com",
+      name: "Pham Thi T",
+      roles: ["editor"],
+      user_id: "67ecf85a000b208996fy"
+    },
+    {
+      added_by: "67ecf847000b208996ff",
+      added_date: "Sat, 24 May 2025 11:45:00 GMT",
+      email: "hoang.van.u@gmail.com",
+      name: "Hoang Van U",
+      roles: ["admin"],
+      user_id: "67ecf85b000b208996fz"
+    },
+    {
+      added_by: "67ecf848000b208996fg",
+      added_date: "Sat, 24 May 2025 12:30:00 GMT",
+      email: "vu.thi.v@gmail.com",
+      name: "Vu Thi V",
+      roles: ["viewer"],
+      user_id: "67ecf85c000b208996g0"
+    }
   ],
   name: "Marketing Team Q1",
   updated_by: "1",
-  updated_date: "Wed, 14 May 2025 09:31:44 GMT"
+  updated_date: "Sat, 24 May 2025 06:01:00 GMT"
 };
-
 
 
 export const mockStatisticData = {

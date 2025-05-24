@@ -25,8 +25,6 @@ interface Group {
   name: string;
 }
 
-import PaginationControls from '../components/layouts/dashboard/PaginationControls';
-
 const Dashboard: React.FC = () => {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
@@ -235,27 +233,29 @@ const Dashboard: React.FC = () => {
       <Row className="g-4">
         {/* Members Section - Left Side */}
         <Col lg={5} xl={4}>
-          <Card className="shadow-sm h-100">
-            <Card.Body className="p-0">
-              {isGroupLoading ? (
-                <div className="d-flex justify-content-center py-5">
-                  <Spinner animation="border" variant="primary" />
-                </div>
-              ) : selectedGroup ? (
-                <div className="p-3">
-                  <MembersSection 
-                      groupId={selectedGroup.id} 
-                      isAdmin={isAdmin()} 
-                    />
-                </div>
-              ) : (
-                <div className="text-center py-5">
-                  <p className="text-muted mb-0">Failed to load group data</p>
-                </div>
-              )}
-            </Card.Body>
+        <Card className="shadow-sm h-100" style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          overflow: 'hidden',
+          height: '100%' 
+        }}>
+            {isGroupLoading ? (
+              <div className="d-flex justify-content-center py-5">
+                <Spinner animation="border" variant="primary" />
+              </div>
+            ) : selectedGroup ? (
+              <MembersSection 
+                groupId={selectedGroup.id} 
+                isAdmin={isAdmin()} 
+              />
+            ) : (
+              <div className="text-center py-5">
+                <p className="text-muted mb-0">Failed to load group data</p>
+              </div>
+            )}
           </Card>
         </Col>
+
                 
         {/* Invoices Section - Right Side */}
         <Col lg={7} xl={8}>

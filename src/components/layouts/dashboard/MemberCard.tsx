@@ -20,6 +20,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
   onDelete 
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  
   // Function to get user display name
   const getDisplayName = (): string => {
     return member.name || member.email?.split('@')[0] || `User ${member.user_id.slice(0, 4)}`;
@@ -74,17 +75,29 @@ const MemberCard: React.FC<MemberCardProps> = ({
   const isUserAdmin = highestRole === 'admin';
 
   return (
-    <Card className="shadow-sm h-100">
-      <Card.Body className="d-flex flex-column">
-        <div className="d-flex justify-content-between align-items-start mb-3">
+    <Card 
+      className="shadow-sm border-0 h-100"
+      style={{
+        marginBottom: '0.5rem', 
+        borderRadius: '0.5rem', 
+        transition: 'box-shadow 0.3s',
+        cursor: 'pointer',
+        background: '#fff',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = '0px 8px 24px rgba(0,0,0,0.12)';
+      }}
+    >
+      <Card.Body className="d-flex flex-column p-3">
+        <div className="d-flex justify-content-between align-items-start">
           <div className="d-flex align-items-center">
             <div 
               className="rounded-circle d-flex align-items-center justify-content-center me-3" 
               style={{
                 width: '48px', 
                 height: '48px', 
-                backgroundColor: `${getAvatarColor(member.user_id)}20`,
-                color: getAvatarColor(member.user_id),
+                backgroundColor: `${avatarColor}20`,
+                color: avatarColor,
                 fontSize: '1.25rem',
                 fontWeight: 'bold'
               }}
@@ -92,8 +105,13 @@ const MemberCard: React.FC<MemberCardProps> = ({
               {initials}
             </div>
             <div>
-              <h6 className="mb-0">{displayName}</h6>
+              <h6 className="mb-0 fw-semibold">{displayName}</h6>
               <small className="text-muted">{member.email || 'No email'}</small>
+              
+              {/* Added date info */}
+              <div className="text-muted mt-1" style={{ fontSize: '0.75rem' }}>
+                Added: {addedDate}
+              </div>
             </div>
           </div>
           
@@ -144,15 +162,16 @@ const MemberCard: React.FC<MemberCardProps> = ({
           )}
         </div>
         
-        <div className="mt-auto">
-          <div className="d-flex flex-wrap gap-1">
+        <div className="mt-3">
+          <div className="d-flex flex-wrap gap-2">
             {member.roles?.map(role => (
               <Badge 
                 key={role} 
-                bg={role === 'admin' ? 'primary' : 'secondary'}
-                className="d-flex align-items-center"
+                bg={roleInfo[role as keyof typeof roleInfo]?.color || 'secondary'}
+                className="d-flex align-items-center py-2 px-3"
+                style={{ fontSize: '0.75rem' }}
               >
-                {role === 'admin' && <FaCrown className="me-1" />}
+                {roleInfo[role as keyof typeof roleInfo]?.icon}
                 {role.charAt(0).toUpperCase() + role.slice(1)}
               </Badge>
             ))}
