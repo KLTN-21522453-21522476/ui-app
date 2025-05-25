@@ -1,10 +1,11 @@
 // src/pages/Group.tsx
 import React, { useState, useMemo } from 'react';
-import { Container, Row, Col, Card } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
+import { useGroups } from '../hooks/useGroups';
 import { GroupCard } from '../components/layouts/group/GroupCard';
 import { useSelector } from 'react-redux';
 import { GroupFilters } from '../components/layouts/group/GroupFilters';
-import { mockGroupList } from '../mock/mockData';
+
 import Button from 'react-bootstrap/Button';
 import { GroupModals } from '../components/layouts/group/GroupModals';
 import { useGroupActions } from '../hooks/useGroupActions';
@@ -36,14 +37,14 @@ const GroupPage: React.FC = () => {
     }
   }, [selectedGroupId]);
 
-  // Filter và sort groups
+  // Get group list from useGroups
+  const { groupList, loading, error, refetch } = useGroups();
+
+  // Filter và sort groups using groupList from useGroups
   const processedGroups = useMemo(() => {
-    // Filter groups based on search term
-    const filteredGroups = mockGroupList.filter(group =>
+    const filteredGroups = groupList.filter((group: import('../types/GroupList').GroupList) =>
       group.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    // Sort groups based on selected option
     return [...filteredGroups].sort((a, b) => {
       switch (sortBy) {
         case 'Tên':
@@ -58,7 +59,7 @@ const GroupPage: React.FC = () => {
           return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
       }
     });
-  }, [searchTerm, sortBy]);
+  }, [groupList, searchTerm, sortBy]);
 
   
 

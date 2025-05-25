@@ -9,10 +9,10 @@ import ProductChart from '../components/layouts/dashboard/ProductChart';
 import StoreChart from '../components/layouts/dashboard/StoreChart';
 import StatisticCards from '../components/layouts/dashboard/StatisticCards';
 import MembersSection from '../components/layouts/dashboard/MembersSection';
-import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { fetchInvoiceList } from '../redux/slices/invoiceSlice';
+import { useInvoice } from '../hooks/useInvoice';
 import { fetchGroupDetailsData } from '../redux/slices/groupSlice';
 import { useAuth } from '../hooks/useAuth';
+import { useStatistic } from '../hooks/useStatistic';
 import { ExtractionData } from '../types/FileList';
 import { mockGroupList, mockGroupDetails, mockStoreChartData, mockStatisticData } from '../mock/mockData';
 
@@ -26,10 +26,16 @@ interface Group {
 }
 
 const Dashboard: React.FC = () => {
-  const dispatch = useAppDispatch();
   const { user } = useAuth();
-  const { invoiceList: { items: invoices }, isLoading, lastFetched } = useAppSelector((state) => state.invoices);
+  const {
+    invoices,
+    lastFetched,
+    getInvoices,
+  } = useInvoice();
   const navigate = useNavigate();
+
+  // Statistic hook
+  const { invoiceStats, loading: statsLoading, error: statsError, getInvoiceStatistics } = useStatistic();
 
   // Sidebar state
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -88,7 +94,7 @@ const Dashboard: React.FC = () => {
           id: mockGroupDetails.id,
           members: mockGroupDetails.members || []
         });
-        dispatch(fetchInvoiceList(selectedGroupId));
+        getInvoices(selectedGroupId);
       } catch (error) {
         console.error('Error fetching group details:', error);
       } finally {
@@ -96,7 +102,7 @@ const Dashboard: React.FC = () => {
       }
     };
     fetchGroupDetails();
-  }, [selectedGroupId, dispatch]);
+  }, [selectedGroupId, getInvoices]);
 
   // Pagination state for InvoiceList
   const [page, setPage] = useState(1);
@@ -121,9 +127,9 @@ const Dashboard: React.FC = () => {
       (Date.now() - lastFetched > 5 * 60 * 1000);
     
     if (shouldFetch && selectedGroup) {
-      dispatch(fetchInvoiceList(selectedGroup.id));
+      getInvoices(selectedGroup.id);
     }
-  }, [dispatch, invoices.length, lastFetched, selectedGroup]);
+  }, [invoices.length, lastFetched, selectedGroup, getInvoices]);
 
   const handleAddInvoice = () => {
     navigate('/upload-invoice');
@@ -153,12 +159,36 @@ const Dashboard: React.FC = () => {
   });
 
 
+  // Fetch statistics when selectedGroupId changes
+  React.useEffect(() => {
+    if (selectedGroupId) {
+      getInvoiceStatistics(selectedGroupId);
+    }
+  }, [selectedGroupId, getInvoiceStatistics]);
+
   // Handle adding a new member
   const handleAddMember = (email: string, role: string) => {
     // This would be handled by the MembersSection component
     console.log('Adding member:', { email, role });
     setShowAddMemberModal(false);
   };
+
+  // Example: Display invoice statistics at the top
+  // You can style or move this block as needed
+  const statsBlock = (
+    <div className="mb-4">
+      {statsLoading && <div>Đang tải thống kê...</div>}
+      {statsError && <div className="text-danger">Lỗi: {statsError}</div>}
+      {invoiceStats && (
+        <div className="d-flex gap-4">
+          <div>Tổng hóa đơn: <strong>{invoiceStats.invoices}</strong></div>
+          <div>Tổng sản phẩm: <strong>{invoiceStats.products}</strong></div>
+          <div>Tổng cửa hàng: <strong>{invoiceStats.stores}</strong></div>
+          <div>Tổng chi tiêu: <strong>{invoiceStats.total_spent?.toLocaleString()} VNĐ</strong></div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <Container fluid className="py-4">
@@ -173,6 +203,8 @@ const Dashboard: React.FC = () => {
           </Button>
         </Col>
       </Row>
+
+      {statsBlock}
 
       {/* Time range selector for all dashboard components */}
       <Card className="shadow-sm mb-4">
@@ -210,7 +242,7 @@ const Dashboard: React.FC = () => {
       </Card>
 
       {/* Statistics cards */}
-      <StatisticCards data={mockStatisticData} />
+      <StatisticCards />
 
       <Row className="mb-4">
         <Col lg={8} className="h-200">
@@ -223,7 +255,7 @@ const Dashboard: React.FC = () => {
         <Col lg={4} className="h-200">
           <Card className="shadow-sm h-100">
             <Card.Body>
-              <StoreChart data={mockStoreChartData} />
+              <StoreChart />
             </Card.Body>
           </Card>
         </Col>

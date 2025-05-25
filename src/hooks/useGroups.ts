@@ -6,7 +6,7 @@ import { fetchGroupListData } from '../redux/slices/groupSlice';
 
 export const useGroups = () => {
   const dispatch = useAppDispatch();
-  const { groupList, isLoading, error, totalCount, lastFetched } = useAppSelector(state => state.groups);
+  const { groupList, groupDetails, selectedGroupId, isLoading, error, totalCount, lastFetched } = useAppSelector(state => state.groups);
   
   const { user, isInitialized } = useAuth();
   const isAuthenticated = !!user;
@@ -23,8 +23,14 @@ export const useGroups = () => {
     }
   };
 
+  // Get members of the currently selected group from groupDetails
+  const members = (selectedGroupId && groupDetails[selectedGroupId]?.members) || [];
+
   return { 
     groupList, 
+    groupDetails,
+    selectedGroupId,
+    members,
     loading: isLoading, 
     error, 
     totalCount, 

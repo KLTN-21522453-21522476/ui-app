@@ -1,18 +1,24 @@
-import React, { useMemo } from 'react';
-import { Table } from 'react-bootstrap';
-import { MarketShareResponse } from '../../../api/statisticsApi';
+import React, { useEffect, useMemo } from 'react';
+import { Table, Card, Spinner, Alert } from 'react-bootstrap';
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { useStatistic } from '../../../hooks/useStatistic';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-interface StoreChartProps {
-  data: MarketShareResponse;
-}
+const StoreChart: React.FC = () => {
+  // Use Redux hook to fetch and select market share
+  const { marketShare, loading, error, getMarketShare } = useStatistic();
 
-import { Card } from 'react-bootstrap';
+  // For now, use a mock group_id (should be passed from Dashboard in real app)
+  const group_id = 'mock-group-id';
 
-const StoreChart: React.FC<StoreChartProps> = ({ data }) => {
+  useEffect(() => {
+    getMarketShare({ group_id });
+  }, [group_id, getMarketShare]);
+
+  const data = marketShare;
+
   const storeData = useMemo(() => {
     if (!data || !data.data || data.data.length === 0) {
       return {
@@ -49,7 +55,13 @@ const StoreChart: React.FC<StoreChartProps> = ({ data }) => {
       <Card.Header className="bg-white">
         <h5 className="mb-0">Biểu đồ các cửa hàng</h5>
       </Card.Header>
-      {storeData.stores.length === 0 ? (
+      {error ? (
+        <Alert variant="danger" className="text-center my-4">{error}</Alert>
+      ) : loading ? (
+        <div className="d-flex justify-content-center align-items-center my-5" style={{ height: 240 }}>
+          <Spinner animation="border" variant="primary" />
+        </div>
+      ) : storeData.stores.length === 0 ? (
         <p className="text-center">No store data available</p>
       ) : (
         <>

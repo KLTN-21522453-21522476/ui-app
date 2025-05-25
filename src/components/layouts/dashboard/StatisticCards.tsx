@@ -1,12 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Row, Col, Card, Spinner } from 'react-bootstrap';
-import { statisticsApi } from '../../../api/statisticsApi';
+import { useStatistic } from '../../../hooks/useStatistic';
 import AnimatedNumber from './AnimatedNumber';
-
-interface StatisticCardsProps {
-  groupId?: string;
-  data?: StatsType;
-}
 
 interface StatsType {
   totalInvoices: number;
@@ -15,57 +10,21 @@ interface StatsType {
   totalAmount: number;
 }
 
-const StatisticCards: React.FC<StatisticCardsProps> = ({ groupId, data }) => {
-  const [stats, setStats] = useState<StatsType>(data ?? {
+const StatisticCards: React.FC = () => {
+  const { invoiceStats, loading, error } = useStatistic();
+
+  // Map invoiceStats from redux to local format
+  const stats: StatsType = invoiceStats ? {
+    totalInvoices: invoiceStats.invoices || 0,
+    uniqueStores: invoiceStats.stores || 0,
+    totalProducts: invoiceStats.products || 0,
+    totalAmount: invoiceStats.total_spent || 0,
+  } : {
     totalInvoices: 0,
     uniqueStores: 0,
     totalProducts: 0,
-    totalAmount: 0
-  });
-  
-  const formatNumber = (num: number): string => {
-    return num === 0 ? '00.00' : num.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
+    totalAmount: 0,
   };
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (data) {
-      setStats(data);
-      setLoading(false);
-      return;
-    }
-    if (!groupId) return;
-    const fetchStats = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await statisticsApi.getInvoiceStatistics(groupId);
-        setStats({
-          totalInvoices: response.invoices,
-          uniqueStores: response.stores,
-          totalProducts: response.products,
-          totalAmount: response.total_spent
-        });
-      } catch (err) {
-        console.error('Error fetching invoice statistics:', err);
-        setError('Using default values. Failed to fetch latest statistics.');
-        // Reset to default values (0) which will be displayed as 00.00
-        setStats({
-          totalInvoices: 0,
-          uniqueStores: 0,
-          totalProducts: 0,
-          totalAmount: 0
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
-  }, [groupId, data]);
 
   if (loading) {
     return (

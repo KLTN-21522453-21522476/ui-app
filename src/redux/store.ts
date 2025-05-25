@@ -4,13 +4,15 @@ import invoiceReducer from './slices/invoiceSlice';
 import groupReducer from './slices/groupSlice';
 import authReducer from './slices/authSlice';
 import fileUploadReducer from './slices/fileUploadSlice';
+import statisticsReducer from './slices/statisticsSlice';
 
 export const store = configureStore({
   reducer: {
     invoices: invoiceReducer,
     groups: groupReducer,
     auth: authReducer,
-    fileUpload: fileUploadReducer
+    fileUpload: fileUploadReducer,
+    statistics: statisticsReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
