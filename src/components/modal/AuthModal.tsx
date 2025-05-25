@@ -184,17 +184,15 @@ const AuthModal: React.FC<AuthModalProps> = ({
               <div className="d-flex justify-content-center gap-3 mt-3">
                 <Button 
                   variant="outline-light" 
-                  className="rounded-circle p-2" 
-                  style={{ width: '45px', height: '45px' }}
+                  className="px-4 py-3 text-uppercase social-btn" 
                 >
-                  <FaGoogle />
+                  <FaGoogle className="social-icon" />
                 </Button>
                 <Button 
                   variant="outline-light" 
-                  className="rounded-circle p-2" 
-                  style={{ width: '45px', height: '45px' }}
+                  className="px-4 py-3 text-uppercase social-btn"
                 >
-                  <FaFacebook />
+                  <FaFacebook className="social-icon"/>
                 </Button>
               </div>
               
@@ -247,14 +245,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
               <div className="d-grid">
                 <Button 
                   type="submit" 
-                  variant="success" 
+                  variant="outline-light" 
                   disabled={loading}
-                  className="py-3 text-uppercase fw-bold"
+                  className="px-4 py-3 text-uppercase fw-bold" 
                 >
                   {loading ? <Loader size="sm" /> : 'Đăng nhập'}
                 </Button>
               </div>
-              
               <div className="text-center mt-4 mb-2">
                 <span className="text-secondary">Bạn chưa có tài khoản? </span>
                 <a 
@@ -270,7 +267,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 <br />
                 <a href="#forgot" className="text-decoration-none text-secondary">Quên mật khẩu?</a>
               </div>
-              
             </Form>
           </>
         ) : (
@@ -286,10 +282,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
               </Button>
               <h3 className="fw-light m-0">Tạo tài khoản</h3>
             </div>
-            
             <Form onSubmit={handleRegisterSubmit}>
               {error && <Alert variant="danger" className="bg-dark text-danger border-danger">{error}</Alert>}
-              
               <div className="row">
                 <div className="col-md-6">
                   <Form.Group className="mb-4">
@@ -305,7 +299,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     />
                   </Form.Group>
                 </div>
-                
                 <div className="col-md-6">
                   <Form.Group className="mb-4">
                     <Form.Label className="text-secondary">Email</Form.Label>
@@ -321,7 +314,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   </Form.Group>
                 </div>
               </div>
-
               <div className="row">
                 <div className="col-md-6">
                   <Form.Group className="mb-4">
@@ -344,7 +336,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
                     </Form.Text>
                   </Form.Group>
                 </div>
-                
                 <div className="col-md-6">
                   <Form.Group className="mb-4">
                     <Form.Label className="text-secondary">Xác nhận mật khẩu</Form.Label>
@@ -364,7 +355,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   </Form.Group>
                 </div>
               </div>
-
               <Form.Group className="mb-4">
                 <Form.Check
                   type="checkbox"
@@ -374,7 +364,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   className="text-secondary"
                   label={
                     <span>
-                     Tôi đồng ý với <a href="/terms" className="text-success">Điều khoản</a> và <a href="/privacy" className="text-success">Quyền riêng tư</a>
+                      Tôi đồng ý với <a href="/terms" className="text-success">Điều khoản</a> và <a href="/privacy" className="text-success">Quyền riêng tư</a>
                     </span>
                   }
                   required
@@ -382,37 +372,32 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   feedbackType="invalid"
                 />
               </Form.Group>
-
               <div className="d-grid mt-4">
                 <Button 
                   type="submit" 
-                  variant="success" 
+                  variant="outline-light" 
                   disabled={loading || !registerForm.agreeTerms}
-                  className="py-3 text-uppercase fw-bold"
+                  className="px-4 py-3 text-uppercase fw-bold"
                 >
                   {loading ? <Loader size="sm" /> : 'Tạo tài khoản'}
                 </Button>
               </div>
-              
               <div className="text-center mt-4 mb-2">
                 <div className="d-flex align-items-center my-4">
                   <div className="flex-grow-1 border-bottom border-secondary"></div>
                   <span className="mx-3 text-secondary">hoặc đăng ký với</span>
                   <div className="flex-grow-1 border-bottom border-secondary"></div>
                 </div>
-                
                 <div className="d-flex justify-content-center gap-3">
                   <Button 
                     variant="outline-light" 
-                    className="rounded-circle p-2" 
-                    style={{ width: '45px', height: '45px' }}
+                    className="px-4 py-3 text-uppercase"
                   >
                     <FaGoogle />
                   </Button>
                   <Button 
                     variant="outline-light" 
-                    className="rounded-circle p-2" 
-                    style={{ width: '45px', height: '45px' }}
+                    className="px-4 py-3 text-uppercase"
                   >
                     <FaFacebook />
                   </Button>
@@ -424,6 +409,6 @@ const AuthModal: React.FC<AuthModalProps> = ({
       </Modal.Body>
     </Modal>
   );
-};
+}
 
 export default AuthModal;
