@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { UploadedFile } from "../types/UploadeFile";
 import fileService from "../hooks/useFileService";
-import FileList from "../components/layouts/file-list/FileList";
-import FileUploadComponent from "../components/layouts/FileUploadComponent"; 
+import FileList from "../components/layouts/upload/FileList";
+import FileUploadComponent from "../components/layouts/upload/FileUploadComponent"; 
 
 const InvoiceExtraction: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
