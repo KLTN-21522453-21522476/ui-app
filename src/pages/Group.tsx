@@ -1,5 +1,6 @@
 // src/pages/Group.tsx
 import React, { useState, useMemo } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { useMembers } from '../hooks/useMembers';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { useGroups } from '../hooks/useGroups';
@@ -28,7 +29,31 @@ const GroupPage: React.FC = () => {
   };
 
   // Add member logic using useMembers hook
-  const { addNewMember } = useMembers(addMemberGroupId);
+  const { addNewMember, leaveGroupByUser } = useMembers(addMemberGroupId);
+
+  // State for Leave Group Modal
+  const [leaveModalGroup, setLeaveModalGroup] = useState<any>(null);
+  const [isLeavingGroup, setIsLeavingGroup] = useState(false);
+
+  // User info via custom auth hook
+  const { user } = useAuth();
+
+  const openLeaveModal = (group: any) => setLeaveModalGroup(group);
+  const closeLeaveModal = () => setLeaveModalGroup(null);
+
+  const handleLeaveGroup = async () => {
+    if (!leaveModalGroup || !user) return;
+    setIsLeavingGroup(true);
+    try {
+      await leaveGroupByUser(leaveModalGroup.id, user.$id);
+      closeLeaveModal();
+      refetch();
+    } catch (err) {
+      // Optionally handle error
+    } finally {
+      setIsLeavingGroup(false);
+    }
+  };
 
   const handleAddMember = async () => {
     if (!addMemberGroupId || !newMemberEmail.trim()) return;
@@ -129,6 +154,7 @@ const GroupPage: React.FC = () => {
                   onRename={group => openRenameModal(group as any)}
                   onDelete={group => openDeleteModal(group as any)}
                   onAddMember={() => handleShowAddMemberModal(group)}
+                  onLeave={() => openLeaveModal(group)}
                   selectedGroupId={selectedGroupId}
                 />
               </Col>
@@ -137,11 +163,23 @@ const GroupPage: React.FC = () => {
         )}
       </Container>
       <GroupModals
-        modalState={modalState}
-        onClose={closeAllModals}
+        modalState={{
+          ...modalState,
+          leave: {
+            show: !!leaveModalGroup,
+            group: leaveModalGroup,
+            isProcessing: isLeavingGroup
+          }
+        }}
+        onClose={() => {
+          closeAllModals();
+          closeLeaveModal();
+          refetch();
+        }}
         onDelete={handleDeleteGroup}
         onCreate={handleCreateGroup}
         onRename={handleRenameGroup}
+        onLeave={handleLeaveGroup}
         onUpdateCreateName={updateCreateGroupName}
         onUpdateRenameName={updateRenameGroupName}
         onUpdateCreateDescription={updateCreateGroupDescription}

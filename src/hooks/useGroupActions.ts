@@ -9,7 +9,8 @@ export const useGroupActions = () => {
   const [modalState, setModalState] = useState<GroupModalState>({
     delete: { show: false, group: null, isProcessing: false },
     create: { show: false, name: '', description: '', isProcessing: false },
-    rename: { show: false, group: null, newName: '', isProcessing: false }
+    rename: { show: false, group: null, newName: '', isProcessing: false },
+    leave: { show: false, group: null, isProcessing: false }
   });
 
   // Các hàm xử lý modal
@@ -38,7 +39,8 @@ export const useGroupActions = () => {
     setModalState({
       delete: { show: false, group: null, isProcessing: false },
       create: { show: false, name: '', description: '', isProcessing: false },
-      rename: { show: false, group: null, newName: '', isProcessing: false }
+      rename: { show: false, group: null, newName: '', isProcessing: false },
+      leave: { show: false, group: null, isProcessing: false }
     });
   };
 

@@ -43,6 +43,18 @@ export const addMember = createAsyncThunk(
   }
 );
 
+export const leaveGroup = createAsyncThunk(
+  'members/leaveGroup',
+  async (data: { groupId: string; userId: string }, { rejectWithValue }) => {
+    try {
+      await deleteGroupMember(data.groupId, data.userId);
+      return { groupId: data.groupId };
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Không thể rời nhóm');
+    }
+  }
+);
+
 export const removeMember = createAsyncThunk(
   'members/removeMember',
   async (data: { groupId: string; userId: string }, { rejectWithValue }) => {

@@ -10,6 +10,7 @@ interface GroupModalsProps {
   onDelete: () => void;
   onCreate: () => void;
   onRename: () => void;
+  onLeave: () => void;
   onUpdateCreateName: (name: string) => void;
   onUpdateRenameName: (name: string) => void;
   onUpdateCreateDescription: (description: string) => void;
@@ -21,6 +22,7 @@ export const GroupModals: React.FC<GroupModalsProps> = ({
   onDelete,
   onCreate,
   onRename,
+  onLeave,
   onUpdateCreateName,
   onUpdateRenameName,
   onUpdateCreateDescription
@@ -57,6 +59,38 @@ export const GroupModals: React.FC<GroupModalsProps> = ({
                 <FaTrash className="me-2" />
                 Xoá
               </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal xác nhận rời nhóm */}
+      <Modal show={modalState.leave.show} onHide={onClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Xác nhận rời nhóm</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Bạn có chắc chắn muốn rời nhóm "{modalState.leave.group?.name}"?
+          <div className="text-muted mt-2 small">
+            Sau khi rời nhóm, bạn sẽ mất quyền truy cập vào tất cả dữ liệu và hoạt động trong nhóm này.
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={onClose} disabled={modalState.leave.isProcessing}>
+            Huỷ
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={onLeave} 
+            disabled={modalState.leave.isProcessing}
+          >
+            {modalState.leave.isProcessing ? (
+              <>
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+                Đang xử lý...
+              </>
+            ) : (
+              <>Rời nhóm</>
             )}
           </Button>
         </Modal.Footer>

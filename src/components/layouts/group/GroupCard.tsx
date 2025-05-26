@@ -20,10 +20,11 @@ interface GroupCardProps {
   onRename: (group: GroupList) => void;
   onDelete: (group: GroupList) => void;
   onAddMember?: (group: GroupList) => void;
+  onLeave?: (group?: GroupList) => void;
   selectedGroupId?: string | null;
 }
 
-export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete, onAddMember, selectedGroupId }) => {
+export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete, onAddMember, onLeave, selectedGroupId }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.auth);
@@ -47,12 +48,14 @@ export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete,
   };
 
   const handleRename = (event: React.MouseEvent<HTMLElement>) => {
+    dispatch(setSelectedGroupId(group.id));
     event.stopPropagation(); // Ngăn chặn sự kiện click lan ra ngoài
     onRename(group);
     handleClose();
   };
 
   const handleDelete = (event: React.MouseEvent<HTMLElement>) => {
+    dispatch(setSelectedGroupId(group.id));
     event.stopPropagation(); // Ngăn chặn sự kiện click lan ra ngoài
     onDelete(group);
     handleClose();
@@ -201,7 +204,11 @@ export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete,
               <Typography variant="body2">Thêm thành viên</Typography>
             </MenuItem>
             <MenuItem
-              onClick={(e) => e.stopPropagation()} // Ngăn chặn sự kiện click lan ra ngoài
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onLeave) onLeave(group);
+                handleClose();
+              }}
               sx={{
                 color: 'error.main',
                 '&:hover': {
@@ -214,7 +221,11 @@ export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete,
           </>
         ) : (
           <MenuItem
-            onClick={(e) => e.stopPropagation()} // Ngăn chặn sự kiện click lan ra ngoài
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onLeave) onLeave(group);
+              handleClose();
+            }}
             sx={{
               color: 'error.main',
               '&:hover': {
