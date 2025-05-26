@@ -1,12 +1,9 @@
 // src/pages/Group.tsx
 import React, { useState, useMemo } from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col, Button } from 'react-bootstrap';
 import { useGroups } from '../hooks/useGroups';
 import { GroupCard } from '../components/layouts/group/GroupCard';
-import { useSelector } from 'react-redux';
 import { GroupFilters } from '../components/layouts/group/GroupFilters';
-
-import Button from 'react-bootstrap/Button';
 import { GroupModals } from '../components/layouts/group/GroupModals';
 import { useGroupActions } from '../hooks/useGroupActions';
 
@@ -14,15 +11,17 @@ const GroupPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('Ngày tạo');
 
-  // Redux selector for selectedGroupId
-  const selectedGroupId = useSelector((state: any) => state.groups.selectedGroupId);
+  // Group state and handlers
+  const {
+    selectedGroupId,
+    groupList,
+    refetch
+  } = useGroups();
 
   // Group modal and handlers
   const {
     modalState,
-    openDeleteModal,
     openCreateModal,
-    openRenameModal,
     closeAllModals,
     handleDeleteGroup,
     handleCreateGroup,
@@ -31,15 +30,6 @@ const GroupPage: React.FC = () => {
     updateRenameGroupName
   } = useGroupActions();
 
-  React.useEffect(() => {
-    if (selectedGroupId) {
-      console.log('Selected Group ID:', selectedGroupId);
-    }
-  }, [selectedGroupId]);
-
-  // Get group list from useGroups
-  const { groupList, refetch } = useGroups();
-
   // Ensure group data is fetched after login or navigation
   React.useEffect(() => {
     if (groupList.length === 0) {
@@ -47,75 +37,73 @@ const GroupPage: React.FC = () => {
     }
   }, [groupList, refetch]);
 
-  // Filter và sort groups using groupList from useGroups
+  // Process groups with search and sort
   const processedGroups = useMemo(() => {
-    const filteredGroups = groupList.filter((group: import('../types/GroupList').GroupList) =>
-      group.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    return [...filteredGroups].sort((a, b) => {
-      switch (sortBy) {
-        case 'Tên':
-          return a.name.localeCompare(b.name);
-        case 'Số lượng hoá đơn':
-          return b.invoice_count - a.invoice_count;
-        case 'Ngày tạo':
-        default:
-          if (!a.created_date && !b.created_date) return 0;
-          if (!a.created_date) return 1;
-          if (!b.created_date) return -1;
-          return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
-      }
-    });
+    return groupList
+      .filter(group => 
+        group.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'Tên':
+            return a.name.localeCompare(b.name);
+          case 'Số lượng hoá đơn':
+            return b.invoice_count - a.invoice_count;
+          case 'Ngày tạo':
+          default:
+            if (!a.created_date && !b.created_date) return 0;
+            if (!a.created_date) return 1;
+            if (!b.created_date) return -1;
+            return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
+        }
+      });
   }, [groupList, searchTerm, sortBy]);
-
-  
 
   return (
     <>
-    <Container fluid className="py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">Nhóm</h2>
-        <Button variant="primary" onClick={openCreateModal}>
-          + Tạo nhóm mới
-        </Button>
-      </div>
-
-      <GroupFilters 
-        searchTerm={searchTerm}
-        sortBy={sortBy}
-        onSearchChange={setSearchTerm}
-        onSortChange={setSortBy}
-      />
-
-      {processedGroups.length === 0 ? (
-        <div className="text-center py-5">
-          <p className="text-muted">Không tìm thấy nhóm nào</p>
+      <Container fluid className="py-4">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2 className="mb-0">Nhóm</h2>
+          <Button variant="primary" onClick={openCreateModal}>
+            + Tạo nhóm mới
+          </Button>
         </div>
-      ) : (
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {processedGroups.map((group) => (
-            <Col key={group.id}>
-              <GroupCard 
-                groupId={group.id}
-                isAdmin={true}
-                onRename={(group) => openRenameModal(group)}
-                onDelete={(group) => openDeleteModal(group)}
-                selectedGroupId={selectedGroupId}
-              />
-            </Col>
-          ))}
-        </Row>
-      )}
-    </Container>
-    <GroupModals
-      modalState={modalState}
-      onClose={closeAllModals}
-      onDelete={handleDeleteGroup}
-      onCreate={handleCreateGroup}
-      onRename={handleRenameGroup}
-      onUpdateCreateName={updateCreateGroupName}
-      onUpdateRenameName={updateRenameGroupName}
-    />
+
+        <GroupFilters
+          searchTerm={searchTerm}
+          sortBy={sortBy}
+          onSearchChange={setSearchTerm}
+          onSortChange={setSortBy}
+        />
+
+        {processedGroups.length === 0 ? (
+          <div className="text-center py-5">
+            <p className="text-muted">Không tìm thấy nhóm nào</p>
+          </div>
+        ) : (
+          <Row xs={1} md={2} lg={3} className="g-4">
+            {processedGroups.map(group => (
+              <Col key={group.id}>
+                <GroupCard 
+                  group={group}
+                  onRename={handleRenameGroup}
+                  onDelete={handleDeleteGroup}
+                  selectedGroupId={selectedGroupId}
+                />
+              </Col>
+            ))}
+          </Row>
+        )}
+      </Container>
+      <GroupModals
+        modalState={modalState}
+        onClose={closeAllModals}
+        onDelete={handleDeleteGroup}
+        onCreate={handleCreateGroup}
+        onRename={handleRenameGroup}
+        onUpdateCreateName={updateCreateGroupName}
+        onUpdateRenameName={updateRenameGroupName}
+      />
     </>
   );
 };

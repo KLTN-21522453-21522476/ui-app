@@ -24,6 +24,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ groupId, searchTerm, setSearc
     isLoadingList,
     isLoadingDetail,
     error,
+    rejectInvoice,
     deleteInvoice,
     approveInvoice,
     fetchInvoiceDetail,
@@ -219,7 +220,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ groupId, searchTerm, setSearc
                 expanded={expandedInvoiceIds.includes(invoice.id)}
                 onExpand={toggleInvoiceExpand}
                 onApprove={() => approveInvoice(invoice.id)}
-                onReject={() => deleteInvoice(invoice.id)}
+                onReject={() => rejectInvoice(invoice.id)}
                 onDelete={() => deleteInvoice(invoice.id)}
                 loading={getLoadingState(invoice.id)}
                 invoiceDetail={expandedInvoiceIds.includes(invoice.id) ? invoiceDetails[invoice.id] : null}

@@ -2,7 +2,6 @@
 import React from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
@@ -10,113 +9,218 @@ import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
-import Chip from '@mui/material/Chip';
-import { mockGroupList } from '../../../mock/mockData';
-import { GroupDetails } from '../../../types/GroupDetails';
-import { useDispatch } from 'react-redux';
-import { setSelectedGroupId } from '../../../redux/slices/groupSlice';
+import { GroupList } from '../../../types/GroupList';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { setSelectedGroupId } from '../../../redux/slices/groupSlice';
+import { RootState } from '../../../redux/store';
 
 interface GroupCardProps {
-  groupId: string;
-  isAdmin: boolean;
-  onRename: (group: GroupDetails) => void;
-  onDelete: (group: GroupDetails) => void;
+  group: GroupList;
+  onRename: (group: GroupList) => void;
+  onDelete: (group: GroupList) => void;
   selectedGroupId?: string | null;
 }
 
-export const GroupCard: React.FC<GroupCardProps> = ({
-  groupId,
-  selectedGroupId
-}) => {
-  // Find group data from mockGroupList
-  const group = mockGroupList.find((g: { id: string }) => g.id === groupId);
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
+export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete, selectedGroupId }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
-  if (!group) return null;
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation(); // Ngăn chặn sự kiện click lan ra ngoài
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMenuClose = () => {
+  const handleClose = () => {
     setAnchorEl(null);
   };
 
-  const handleCardClick = () => {
+  const handleSelect = () => {
     dispatch(setSelectedGroupId(group.id));
-    navigate('/dashboard');
+    if (user) {
+      navigate('/dashboard');
+    }
   };
 
-  const isSelected = selectedGroupId === group.id;
+  const handleRename = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation(); // Ngăn chặn sự kiện click lan ra ngoài
+    onRename(group);
+    handleClose();
+  };
+
+  const handleDelete = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation(); // Ngăn chặn sự kiện click lan ra ngoài
+    onDelete(group);
+    handleClose();
+  };
+
+  const isAdmin = group.user_roles.includes('admin');
 
   return (
     <Card
       sx={{
         height: '100%',
-        boxShadow: isSelected ? 6 : 3,
-        borderRadius: 2,
-        border: isSelected ? '2px solid #1976d2' : '2px solid transparent',
+        display: 'flex',
+        flexDirection: 'column',
         cursor: 'pointer',
-        transition: 'box-shadow 0.2s, border 0.2s',
-        backgroundColor: isSelected ? 'rgba(25, 118, 210, 0.07)' : 'background.paper',
+        border: selectedGroupId === group.id ? '2px solid #007bff' : '1px solid #e0e0e0',
+        borderRadius: 2,
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          border: '1px solid #007bff',
+          boxShadow: 2,
+        },
+        '&:hover .MuiCardActions-root': {
+          backgroundColor: 'rgba(0, 0, 0, 0.03)',
+        },
+        backgroundColor: 'background.paper',
       }}
-      onClick={handleCardClick}
+      onClick={handleSelect} // Loại bỏ điều kiện kiểm tra và gọi trực tiếp handleSelect
     >
-      <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
-          <Stack spacing={0.5}>
-            <Typography variant="h6" fontWeight={700} gutterBottom>{group.name}</Typography>
+      <CardContent sx={{ flexGrow: 1, p: 3 }}>
+        <Stack spacing={2}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack>
+              <Typography variant="h6" fontWeight={700} gutterBottom>
+                {group.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                ID: {group.id}
+              </Typography>
+            </Stack>
+            <IconButton
+              aria-label="more"
+              aria-controls="group-menu"
+              aria-haspopup="true"
+              onClick={handleClick}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                },
+              }}
+            >
+              <MoreVertIcon sx={{ color: 'text.secondary' }} />
+            </IconButton>
+          </Stack>
+          <Divider sx={{ my: 1 }} />
+          <Stack spacing={1.5}>
             <Typography variant="body2" color="text.secondary">
-              Ngày tạo: {group.created_date ? new Date(group.created_date).toLocaleDateString() : 'Không rõ'}
+              <span style={{ fontWeight: 600 }}>ID:</span> {group.id}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <span style={{ fontWeight: 600 }}>Ngày tạo:</span> {group.created_date}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <span style={{ fontWeight: 600 }}>Người tạo:</span> {group.created_by}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <span style={{ fontWeight: 600 }}>Số lượng hóa đơn:</span> {group.invoice_count}
+            </Typography>
+            {group.description && (
+              <Typography variant="body2" color="text.secondary">
+                <span style={{ fontWeight: 600 }}>Mô tả:</span> {group.description}
+              </Typography>
+            )}
+            <Typography variant="body2" color="text.secondary">
+              <span style={{ fontWeight: 600 }}>Ngày cập nhật:</span> {group.updated_date}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <span style={{ fontWeight: 600 }}>Người cập nhật:</span> {group.updated_by}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <span style={{ fontWeight: 600 }}>Vai trò:</span> {group.user_roles.join(', ')}
             </Typography>
           </Stack>
-          <IconButton
-            aria-label="more"
-            onClick={e => {
-              e.stopPropagation();
-              handleMenuOpen(e);
-            }}
-            size="small"
-          >
-            <MoreVertIcon />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleMenuClose}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-          >
-            <MenuItem
-              onClick={e => {
-                e.stopPropagation();
-                handleMenuClose();
-              }}
-            >
-              Đổi tên
-            </MenuItem>
-            <MenuItem
-              onClick={e => {
-                e.stopPropagation();
-                handleMenuClose();
-              }}
-              sx={{ color: 'error.main' }}
-            >
-              Xoá
-            </MenuItem>
-          </Menu>
-        </Stack>
-        <Divider sx={{ my: 2 }} />
-        <Typography variant="body1" gutterBottom>{group.description}</Typography>
-        <Stack direction="row" spacing={2} mb={1} alignItems="center">
-          <Chip label={`Số lượng hoá đơn: ${group.invoice_count}`} color="primary" variant="outlined" />
-          <Chip label={`Vai trò: ${group.user_roles?.join(', ') || 'Không rõ'}`} color="secondary" variant="outlined" />
         </Stack>
       </CardContent>
+      <Menu
+        id="group-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        onClick={(e) => e.stopPropagation()} // Ngăn chặn sự kiện click lan ra ngoài Menu
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        PaperProps={{
+          sx: {
+            '& .MuiMenuItem-root': {
+              borderRadius: 1,
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              },
+            },
+          },
+        }}
+      >
+        {isAdmin ? (
+          <>
+            <MenuItem
+              onClick={handleRename}
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.05) !important',
+                },
+              }}
+            >
+              <Typography variant="body2">Đổi tên</Typography>
+            </MenuItem>
+            <MenuItem
+              onClick={handleDelete}
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.05) !important',
+                },
+              }}
+            >
+              <Typography variant="body2">Xóa Nhóm</Typography>
+            </MenuItem>
+            <MenuItem
+              onClick={(e) => e.stopPropagation()} // Ngăn chặn sự kiện click lan ra ngoài
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.05) !important',
+                },
+              }}
+            >
+              <Typography variant="body2">Thêm thành viên</Typography>
+            </MenuItem>
+            <MenuItem
+              onClick={(e) => e.stopPropagation()} // Ngăn chặn sự kiện click lan ra ngoài
+              sx={{
+                color: 'error.main',
+                '&:hover': {
+                  backgroundColor: 'rgba(220, 53, 69, 0.08) !important',
+                },
+              }}
+            >
+              <Typography variant="body2">Rời Nhóm</Typography>
+            </MenuItem>
+          </>
+        ) : (
+          <MenuItem
+            onClick={(e) => e.stopPropagation()} // Ngăn chặn sự kiện click lan ra ngoài
+            sx={{
+              color: 'error.main',
+              '&:hover': {
+                backgroundColor: 'rgba(220, 53, 69, 0.08) !important',
+              },
+            }}
+          >
+            <Typography variant="body2">Rời Nhóm</Typography>
+          </MenuItem>
+        )}
+      </Menu>
     </Card>
   );
 };

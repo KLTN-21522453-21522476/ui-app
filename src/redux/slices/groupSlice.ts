@@ -7,7 +7,7 @@ import { GroupDetails } from '../../types/GroupDetails';
 interface GroupState {
   groupList: GroupList[];
   groupDetails: Record<string, GroupDetails>;
-  selectedGroupId: string | null; // 👈 thêm dòng này
+  selectedGroupId: string | null; 
   isLoading: boolean;
   error: string | null;
   totalCount: number;

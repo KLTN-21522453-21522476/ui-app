@@ -2,7 +2,10 @@
 import { useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { fetchGroupListData } from '../redux/slices/groupSlice';
+import { 
+  fetchGroupListData,
+  fetchGroupDetailsData
+} from '../redux/slices/groupSlice';
 
 export const useGroups = () => {
   const dispatch = useAppDispatch();
@@ -16,6 +19,12 @@ export const useGroups = () => {
       dispatch(fetchGroupListData());
     }
   }, [isInitialized, isAuthenticated, dispatch, lastFetched]);
+
+  useEffect(() => {
+    if (isAuthenticated && selectedGroupId) {
+      dispatch(fetchGroupDetailsData(selectedGroupId));
+    }
+  }, [isAuthenticated, selectedGroupId, dispatch]);
 
   const refetch = () => {
     if (isAuthenticated) {
@@ -34,6 +43,6 @@ export const useGroups = () => {
     loading: isLoading, 
     error, 
     totalCount, 
-    refetch 
+    refetch
   };
 };
