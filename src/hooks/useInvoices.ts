@@ -6,6 +6,7 @@ import {
   createInvoice as createInvoiceThunk,
   deleteInvoice as deleteInvoiceThunk,
   approveInvoice as approveInvoiceThunk,
+  rejectInvoice as rejectInvoiceThunk,
 } from '../redux/slices/invoiceSlice';
 import { RootState, AppDispatch } from '../redux/store';
 
@@ -52,6 +53,15 @@ export const useInvoices = (groupId: string) => {
     [dispatch, groupId]
   );
 
+  const rejectInvoice = useCallback(
+    async (invoiceId: string) => {
+      if (groupId) {
+        return dispatch(rejectInvoiceThunk({ groupId, invoiceId }));
+      }
+    },
+    [dispatch, groupId]
+  );
+
   // Fetch invoice detail
   const fetchInvoiceDetail = useCallback(
     async (invoiceId: string) => {
@@ -72,7 +82,8 @@ export const useInvoices = (groupId: string) => {
    *   approveInvoice: (invoiceId: string) => Promise<any>,
    *   fetchInvoiceDetail: (invoiceId: string) => Promise<any>,
    *   invoiceDetails: { [invoiceId: string]: InvoiceDetails },
-   *   createInvoice: (invoiceData: any, imageFile: File) => Promise<any>
+   *   createInvoice: (invoiceData: any, imageFile: File) => Promise<any>,
+   *   rejectInvoice: (invoiceId: string) => Promise<any>
    * }
    */
   return {
@@ -82,6 +93,7 @@ export const useInvoices = (groupId: string) => {
     error,
     deleteInvoice,
     approveInvoice,
+    rejectInvoice,
     fetchInvoiceDetail,
     invoiceDetails,
     createInvoice
