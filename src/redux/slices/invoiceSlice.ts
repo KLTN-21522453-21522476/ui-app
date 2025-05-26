@@ -12,10 +12,12 @@ interface InvoiceState {
     currentPage: number;
     totalPages: number;
   };
-  currentInvoice: InvoiceDetails | null;
+  invoiceDetails: { [invoiceId: string]: InvoiceDetails };
+
   isLoading: boolean;
   error: string | null;
   lastFetched: number | null;
+  currentInvoice: InvoiceDetails | null; // <-- Added for current invoice
 }
 
 const initialState: InvoiceState = {
@@ -25,10 +27,11 @@ const initialState: InvoiceState = {
     currentPage: 1,
     totalPages: 1
   },
-  currentInvoice: null,
+  invoiceDetails: {},
   isLoading: false,
   error: null,
   lastFetched: null,
+  currentInvoice: null, // <-- Added for current invoice
 };
 
 // Fetch invoice list for a specific group
@@ -39,7 +42,6 @@ export const fetchInvoiceList = createAsyncThunk(
       const response = await invoiceApi.getInvoiceList(groupId);
             
       if (response.data.results) {
-        console.log(response.data.results);
         return {
           invoices: response.data.results || [],
           count: response.data.count || 0,
@@ -67,7 +69,7 @@ export const fetchInvoiceDetails = createAsyncThunk(
   async ({ groupId, invoiceId }: { groupId: string; invoiceId: string }, { rejectWithValue }) => {
     try {
       const response = await invoiceApi.getInvoiceDetails(groupId, invoiceId);
-      return response.data;
+      return { invoiceId, data: response.data };
     } catch (error) {
       return rejectWithValue('Không thể tải chi tiết hóa đơn');
     }
@@ -168,7 +170,7 @@ const invoiceSlice = createSlice({
   initialState,
   reducers: {
     clearCurrentInvoice: (state) => {
-      state.currentInvoice = null;
+      state.invoiceDetails = {};
     },
     clearInvoiceError: (state) => {
       state.error = null;
@@ -202,7 +204,9 @@ const invoiceSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchInvoiceDetails.fulfilled, (state, action) => {
-        state.currentInvoice = action.payload;
+        if (action.payload && action.payload.invoiceId) {
+          state.invoiceDetails[action.payload.invoiceId] = action.payload.data;
+        }
         state.isLoading = false;
       })
       .addCase(fetchInvoiceDetails.rejected, (state, action) => {
@@ -261,7 +265,9 @@ const invoiceSlice = createSlice({
         state.error = null;
       })
       .addCase(approveInvoice.fulfilled, (state, action) => {
-        state.currentInvoice = action.payload;
+        if (action.payload && action.meta && action.meta.arg && action.meta.arg.invoiceId) {
+          state.invoiceDetails[action.meta.arg.invoiceId] = action.payload;
+        }
         state.isLoading = false;
       })
       .addCase(approveInvoice.rejected, (state, action) => {
@@ -275,7 +281,9 @@ const invoiceSlice = createSlice({
         state.error = null;
       })
       .addCase(rejectInvoice.fulfilled, (state, action) => {
-        state.currentInvoice = action.payload;
+        if (action.payload && action.meta && action.meta.arg && action.meta.arg.invoiceId) {
+          state.invoiceDetails[action.meta.arg.invoiceId] = action.payload;
+        }
         state.isLoading = false;
       })
       .addCase(rejectInvoice.rejected, (state, action) => {

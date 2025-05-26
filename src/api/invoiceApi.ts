@@ -54,7 +54,6 @@ const getInvoiceList = async (groupId: string): Promise<InvoiceListResponse> => 
         'Authorization': `Bearer ${token?.jwt}`
       },
     });
-    console.log('[API] getInvoiceList response.data:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching invoice list:', error);

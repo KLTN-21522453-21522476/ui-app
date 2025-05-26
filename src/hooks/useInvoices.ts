@@ -12,14 +12,13 @@ import { RootState, AppDispatch } from '../redux/store';
 export const useInvoices = (groupId: string) => {
   const dispatch = useDispatch<AppDispatch>();
   const invoices = useSelector((state: RootState) => state.invoices.invoiceList.invoices);
-  const currentInvoice = useSelector((state: RootState) => state.invoices.currentInvoice);
+  const invoiceDetails = useSelector((state: RootState) => state.invoices.invoiceDetails);
   const loading = useSelector((state: RootState) => state.invoices.isLoading);
   const error = useSelector((state: RootState) => state.invoices.error);
 
   useEffect(() => {
     if (groupId) {
       dispatch(fetchInvoiceList(groupId));
-      console.log(invoices);
     }
   }, [dispatch, groupId]);
 
@@ -55,21 +54,21 @@ export const useInvoices = (groupId: string) => {
   // Fetch invoice detail
   const fetchInvoiceDetail = useCallback(
     async (invoiceId: string) => {
-      if (groupId && invoiceId) {
-        return dispatch(fetchInvoiceDetails({ groupId, invoiceId }));
-      }
+      if (!invoiceId || !groupId) return;
+      if (invoiceDetails[invoiceId]) return; // Already fetched
+      return dispatch(fetchInvoiceDetails({ groupId, invoiceId }));
     },
-    [dispatch, groupId]
+    [dispatch, groupId, invoiceDetails]
   );
 
   return {
     invoices,
-    currentInvoice,
     loading,
     error,
-    createInvoice,
     deleteInvoice,
     approveInvoice,
     fetchInvoiceDetail,
+    invoiceDetails,
+    createInvoice
   };
 };

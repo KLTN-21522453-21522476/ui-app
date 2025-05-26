@@ -3,7 +3,7 @@ import { Card, Badge } from 'react-bootstrap';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { FaEllipsisH, FaUserShield, FaUserEdit, FaUser, FaTrash, FaCrown, FaCog } from 'react-icons/fa';
+import { FaEllipsisH, FaUserShield, FaUserEdit, FaUser, FaTrash, FaCog } from 'react-icons/fa';
 import { Members } from '../../../types/GroupDetails';
 
 interface MemberCardProps {
@@ -71,7 +71,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
     viewer: { name: 'Viewer', color: 'secondary', icon: <FaUser className="me-1" /> }
   };
   
-  const currentRole = roleInfo[highestRole] || roleInfo.viewer;
+
   const isUserAdmin = highestRole === 'admin';
 
   return (

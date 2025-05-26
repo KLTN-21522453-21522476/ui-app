@@ -3,33 +3,35 @@ import { InputAdornment, TextField, Box, Typography, MenuItem } from '@mui/mater
 import PaginationControls from './PaginationControls';
 import SearchIcon from '@mui/icons-material/Search';
 import InvoiceCard from './InvoiceCard';
-
-import { mockInvoices, mockInvoiceDetail } from '../../../mock/mockData';
-
-interface Invoice {
-  id: string;
-  invoice_number: string;
-  store_name: string;
-  created_date_formatted: string;
-  total_amount: number;
-  status: string;
-}
+import { useInvoices } from '../../../hooks/useInvoices';
+import type { InvoiceList } from '../../../types/InvoiceList';
 
 interface InvoiceListProps {
+  groupId: string;
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   sortBy: 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'status';
   setSortBy: (value: 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'status') => void;
 }
 
-const InvoiceList: React.FC<InvoiceListProps> = ({ searchTerm, setSearchTerm, sortBy, setSortBy }) => {
+const InvoiceList: React.FC<InvoiceListProps> = ({ groupId, searchTerm, setSearchTerm, sortBy, setSortBy }) => {
   const [expandedInvoiceIds, setExpandedInvoiceIds] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const invoices = mockInvoices[0]?.results || [];
+  const {
+    invoices = [],
+    loading,
+    error,
+    deleteInvoice,
+    approveInvoice,
+    fetchInvoiceDetail,
+    invoiceDetails
+  } = useInvoices(groupId);
 
-  const filteredInvoices = invoices.filter((invoice: Invoice) =>
+  console.log('invoices from InvoieList: ', invoices);
+
+  const filteredInvoices = (invoices || []).filter((invoice: InvoiceList) =>
     invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     invoice.store_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,9 +45,9 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ searchTerm, setSearchTerm, so
       case 'date_desc':
         return new Date(b.created_date_formatted.split(' ')[0].split('/').reverse().join('-')).getTime() - new Date(a.created_date_formatted.split(' ')[0].split('/').reverse().join('-')).getTime();
       case 'amount_asc':
-        return a.total_amount - b.total_amount;
+        return Number(a.total_amount) - Number(b.total_amount);
       case 'amount_desc':
-        return b.total_amount - a.total_amount;
+        return Number(b.total_amount) - Number(a.total_amount);
       case 'status':
         return a.status.localeCompare(b.status);
       default:
@@ -57,7 +59,12 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ searchTerm, setSearchTerm, so
   const pageCount = Math.ceil(sortedInvoices.length / rowsPerPage);
   const paginatedInvoices = sortedInvoices.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  console.log('filteredInvoices:', filteredInvoices);
+  console.log('sortedInvoices:', sortedInvoices);
+  console.log('paginatedInvoices:', paginatedInvoices);
+
+
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
 
@@ -72,6 +79,22 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ searchTerm, setSearchTerm, so
       prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Typography>Đang tải hóa đơn...</Typography>
+      </Box>
+    );
+  }  
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Typography color="error">Lỗi khi tải hóa đơn: {String(error)}</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ 
@@ -133,8 +156,8 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ searchTerm, setSearchTerm, so
         display: 'flex', 
         flexDirection: 'column',
         height: 0, 
-        minHeight: 0, 
-        overflow: 'hidden' 
+        minHeight: 300, 
+        overflow: 'auto' 
       }}>
         {/* Sticky column header row */}
         <Box
@@ -178,15 +201,18 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ searchTerm, setSearchTerm, so
           px: 1 
         }}>
           {paginatedInvoices.length > 0 ? (
-            paginatedInvoices.map((invoice: Invoice) => (
+            paginatedInvoices.map((invoice: InvoiceList) => (
               <InvoiceCard
                 key={invoice.id}
                 invoice={invoice}
                 expanded={expandedInvoiceIds.includes(invoice.id)}
                 onExpand={toggleInvoiceExpand}
-                onApprove={id => {}}
-                onReject={id => {}}
-                onDelete={id => {}}
+                onApprove={() => approveInvoice(invoice.id)}
+                onReject={() => deleteInvoice(invoice.id)}
+                onDelete={() => deleteInvoice(invoice.id)}
+                loading={expandedInvoiceIds.includes(invoice.id) ? loading : false}
+                invoiceDetail={expandedInvoiceIds.includes(invoice.id) ? invoiceDetails[invoice.id] : null}
+                fetchInvoiceDetail={fetchInvoiceDetail}
               />
             ))
           ) : (

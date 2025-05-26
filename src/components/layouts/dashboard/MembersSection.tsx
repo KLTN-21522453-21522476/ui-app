@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Modal, Form, Spinner, Alert, Button } from 'react-bootstrap';
+import { Modal, Form, Spinner, Alert, Button } from 'react-bootstrap';
 import { FaSearch, FaPlus } from 'react-icons/fa';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
@@ -7,8 +7,8 @@ import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import MemberCard from './MemberCard';
 import { Members } from '../../../types/GroupDetails';
-import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
-import { fetchGroupDetailsData } from '../../../redux/slices/groupSlice';
+
+
 import { mockGroupDetails } from '../../../mock/mockData';
 import PaginationControls from './PaginationControls';
 import { Box, Typography } from '@mui/material';
@@ -58,7 +58,7 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
   );
 
   // Handle pagination changes
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
 
