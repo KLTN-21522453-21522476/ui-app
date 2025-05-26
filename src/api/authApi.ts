@@ -17,8 +17,8 @@ interface SessionResponse extends Models.Session {
 const SESSION_COOKIE_NAME = 'app_session';
 const SESSION_EXPIRY_DAYS = 7; 
 const LOGIN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/api/login'
-const GET_TOKEN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/api/token'
-const VALIDATE_TOKEN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/api/validate-token'
+const GET_TOKEN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/token'
+const VALIDATE_TOKEN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/validate-token'
 
 export const authApi = {
   getCurrentUser: async (): Promise<Models.User<Models.Preferences>> => {

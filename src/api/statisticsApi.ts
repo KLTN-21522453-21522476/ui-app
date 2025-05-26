@@ -3,10 +3,12 @@ import { BASE_URL } from '../constants/api';
 
 export interface MarketShareResponse {
   data: Array<{
-    marketShare: number;
-    name: string;
+    amount: number;
+    percentage: number;
+    store: string;
   }>;
   message: string;
+  success: boolean;
 }
 
 export interface TopProductsResponse {
@@ -48,7 +50,7 @@ export interface InvoiceStatisticsResponse {
 export const statisticsApi = {
   getMarketShare: async (params: MarketShareParams): Promise<MarketShareResponse> => {
     const response = await axios.get<MarketShareResponse>(
-      `${BASE_URL}/group/${params.group_id}/invoices/market-share`,
+      `${BASE_URL}/api/group/${params.group_id}/invoices/market-share`,
       {
         params: {
           ...params,
@@ -63,7 +65,7 @@ export const statisticsApi = {
 
   getTopProducts: async (params: TopProductsParams): Promise<TopProductsResponse> => {
     const response = await axios.get<TopProductsResponse>(
-      `${BASE_URL}/group/${params.group_id}/invoices/top-products`,
+      `${BASE_URL}/api/group/${params.group_id}/invoices/top-products`,
       {
         params: {
           start_date: params.start_date,
@@ -77,7 +79,7 @@ export const statisticsApi = {
 
   getInvoiceStatistics: async (groupId: string): Promise<InvoiceStatisticsResponse> => {
     const response = await axios.get<InvoiceStatisticsResponse>(
-      `${BASE_URL}/group/${groupId}/invoices/statistic`
+      `${BASE_URL}/api/group/${groupId}/invoices/statistic`
     );
     return response.data;
   },

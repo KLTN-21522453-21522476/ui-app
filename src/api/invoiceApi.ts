@@ -36,14 +36,14 @@ export interface ApproveInvoiceResponse {
 import { GROUP_ENDPOINT } from '../constants/api';
 
 // API Endpoints
-const getInvoiceListEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/invoice`;
-const getInvoiceDetailsEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoice/${invoiceId}`;
-const createInvoiceEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/invoice`;
-const deleteInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoice/${invoiceId}`;
-const approveInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoice/${invoiceId}/approve`;
-const rejectInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoice/${invoiceId}/reject`;
-const updateInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoice/${invoiceId}`;
-const submitInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoice/${invoiceId}/submit`;
+const getInvoiceListEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices`;
+const getInvoiceDetailsEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}`;
+const createInvoiceEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices`;
+const deleteInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}`;
+const approveInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}/approve`;
+const rejectInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}/reject`;
+const updateInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}`;
+const submitInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}/submit`;
 
 // API Functions
 const getInvoiceList = async (groupId: string): Promise<InvoiceListResponse> => {
@@ -54,6 +54,7 @@ const getInvoiceList = async (groupId: string): Promise<InvoiceListResponse> => 
         'Authorization': `Bearer ${token?.jwt}`
       },
     });
+    console.log('[API] getInvoiceList response.data:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching invoice list:', error);
