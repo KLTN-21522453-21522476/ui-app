@@ -14,7 +14,8 @@ interface InvoiceState {
   };
   invoiceDetails: { [invoiceId: string]: InvoiceDetails };
 
-  isLoading: boolean;
+  isLoadingList: boolean;
+  isLoadingDetail: { [invoiceId: string]: boolean };
   error: string | null;
   lastFetched: number | null;
   currentInvoice: InvoiceDetails | null; // <-- Added for current invoice
@@ -28,7 +29,8 @@ const initialState: InvoiceState = {
     totalPages: 1
   },
   invoiceDetails: {},
-  isLoading: false,
+  isLoadingList: false,
+  isLoadingDetail: {},
   error: null,
   lastFetched: null,
   currentInvoice: null, // <-- Added for current invoice
@@ -180,11 +182,11 @@ const invoiceSlice = createSlice({
     builder
       // Fetch Invoice List
       .addCase(fetchInvoiceList.pending, (state) => {
-        state.isLoading = true;
+        state.isLoadingList = true;
         state.error = null;
       })
       .addCase(fetchInvoiceList.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.isLoadingList = false;
         state.invoiceList = {
           invoices: action.payload.invoices,
           count: action.payload.count,
@@ -194,29 +196,33 @@ const invoiceSlice = createSlice({
         state.lastFetched = Date.now();
       })
       .addCase(fetchInvoiceList.rejected, (state, action) => {
-        state.isLoading = false;
+        state.isLoadingList = false;
         state.error = action.payload as string;
       })
       
       // Fetch Invoice Details
-      .addCase(fetchInvoiceDetails.pending, (state) => {
-        state.isLoading = true;
+      .addCase(fetchInvoiceDetails.pending, (state, action) => {
+        if (action.meta && action.meta.arg && action.meta.arg.invoiceId) {
+          state.isLoadingDetail[action.meta.arg.invoiceId] = true;
+        }
         state.error = null;
       })
       .addCase(fetchInvoiceDetails.fulfilled, (state, action) => {
         if (action.payload && action.payload.invoiceId) {
           state.invoiceDetails[action.payload.invoiceId] = action.payload.data;
+          state.isLoadingDetail[action.payload.invoiceId] = false;
         }
-        state.isLoading = false;
       })
       .addCase(fetchInvoiceDetails.rejected, (state, action) => {
-        state.isLoading = false;
+        if (action.meta && action.meta.arg && action.meta.arg.invoiceId) {
+          state.isLoadingDetail[action.meta.arg.invoiceId] = false;
+        }
         state.error = action.payload as string;
       })
       
       // Create Invoice
       .addCase(createInvoice.pending, (state) => {
-        state.isLoading = true;
+        state.isLoadingList = true;
         state.error = null;
       })
       .addCase(createInvoice.fulfilled, (state, action) => {
@@ -226,17 +232,17 @@ const invoiceSlice = createSlice({
           currentPage: action.payload.current_page,
           totalPages: action.payload.total_pages
         };
-        state.isLoading = false;
+        state.isLoadingList = false;
         state.lastFetched = Date.now();
       })
       .addCase(createInvoice.rejected, (state, action) => {
-        state.isLoading = false;
+        state.isLoadingList = false;
         state.error = action.payload as string;
       })
       
       // Delete Invoice
       .addCase(deleteInvoice.pending, (state) => {
-        state.isLoading = true;
+        state.isLoadingList = true;
         state.error = null;
       })
       .addCase(deleteInvoice.fulfilled, (state, action) => {
@@ -251,43 +257,51 @@ const invoiceSlice = createSlice({
         if (state.currentInvoice && state.currentInvoice.id === action.payload.invoiceId) {
           state.currentInvoice = null;
         }
-        state.isLoading = false;
+        state.isLoadingList = false;
         state.lastFetched = Date.now();
       })
       .addCase(deleteInvoice.rejected, (state, action) => {
-        state.isLoading = false;
+        state.isLoadingList = false;
         state.error = action.payload as string;
       })
       
       // Approve Invoice
-      .addCase(approveInvoice.pending, (state) => {
-        state.isLoading = true;
+      .addCase(approveInvoice.pending, (state, action) => {
+        if (action.meta && action.meta.arg && action.meta.arg.invoiceId) {
+          state.isLoadingDetail[action.meta.arg.invoiceId] = true;
+        }
         state.error = null;
       })
       .addCase(approveInvoice.fulfilled, (state, action) => {
         if (action.payload && action.meta && action.meta.arg && action.meta.arg.invoiceId) {
           state.invoiceDetails[action.meta.arg.invoiceId] = action.payload;
+          state.isLoadingDetail[action.meta.arg.invoiceId] = false;
         }
-        state.isLoading = false;
       })
       .addCase(approveInvoice.rejected, (state, action) => {
-        state.isLoading = false;
+        if (action.meta && action.meta.arg && action.meta.arg.invoiceId) {
+          state.isLoadingDetail[action.meta.arg.invoiceId] = false;
+        }
         state.error = action.payload as string;
       })
       
       // Reject Invoice
-      .addCase(rejectInvoice.pending, (state) => {
-        state.isLoading = true;
+      .addCase(rejectInvoice.pending, (state, action) => {
+        if (action.meta && action.meta.arg && action.meta.arg.invoiceId) {
+          state.isLoadingDetail[action.meta.arg.invoiceId] = true;
+        }
         state.error = null;
       })
       .addCase(rejectInvoice.fulfilled, (state, action) => {
         if (action.payload && action.meta && action.meta.arg && action.meta.arg.invoiceId) {
           state.invoiceDetails[action.meta.arg.invoiceId] = action.payload;
+          state.isLoadingDetail[action.meta.arg.invoiceId] = false;
         }
-        state.isLoading = false;
       })
       .addCase(rejectInvoice.rejected, (state, action) => {
-        state.isLoading = false;
+        if (action.meta && action.meta.arg && action.meta.arg.invoiceId) {
+          state.isLoadingDetail[action.meta.arg.invoiceId] = false;
+        }
         state.error = action.payload as string;
       });
   },

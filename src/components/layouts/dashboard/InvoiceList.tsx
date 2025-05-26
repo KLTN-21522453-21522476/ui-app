@@ -21,7 +21,8 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ groupId, searchTerm, setSearc
 
   const {
     invoices = [],
-    loading,
+    isLoadingList,
+    isLoadingDetail,
     error,
     deleteInvoice,
     approveInvoice,
@@ -80,7 +81,17 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ groupId, searchTerm, setSearc
     );
   };
 
-  if (loading) {
+
+  const getLoadingState = (invoiceId: string) => {
+    if (typeof isLoadingDetail === 'boolean') {
+      return expandedInvoiceIds.includes(invoiceId) && isLoadingDetail;
+    } else if (typeof isLoadingDetail === 'object' && isLoadingDetail !== null) {
+      return expandedInvoiceIds.includes(invoiceId) && (isLoadingDetail[invoiceId] || false);
+    }
+    return false;
+  };
+
+  if (isLoadingList && invoices.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <Typography>Đang tải hóa đơn...</Typography>
@@ -210,7 +221,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ groupId, searchTerm, setSearc
                 onApprove={() => approveInvoice(invoice.id)}
                 onReject={() => deleteInvoice(invoice.id)}
                 onDelete={() => deleteInvoice(invoice.id)}
-                loading={expandedInvoiceIds.includes(invoice.id) ? loading : false}
+                loading={getLoadingState(invoice.id)}
                 invoiceDetail={expandedInvoiceIds.includes(invoice.id) ? invoiceDetails[invoice.id] : null}
                 fetchInvoiceDetail={fetchInvoiceDetail}
               />

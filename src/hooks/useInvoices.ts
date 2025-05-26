@@ -13,7 +13,8 @@ export const useInvoices = (groupId: string) => {
   const dispatch = useDispatch<AppDispatch>();
   const invoices = useSelector((state: RootState) => state.invoices.invoiceList.invoices);
   const invoiceDetails = useSelector((state: RootState) => state.invoices.invoiceDetails);
-  const loading = useSelector((state: RootState) => state.invoices.isLoading);
+  const isLoadingList = useSelector((state: RootState) => state.invoices.isLoadingList);
+  const isLoadingDetail = useSelector((state: RootState) => state.invoices.isLoadingDetail);
   const error = useSelector((state: RootState) => state.invoices.error);
 
   useEffect(() => {
@@ -61,9 +62,23 @@ export const useInvoices = (groupId: string) => {
     [dispatch, groupId, invoiceDetails]
   );
 
+  /**
+   * @returns {
+   *   invoices: InvoiceList[],
+   *   isLoadingList: boolean, // loading state for invoice list
+   *   isLoadingDetail: { [invoiceId: string]: boolean }, // loading state for each invoice detail
+   *   error: string | null,
+   *   deleteInvoice: (invoiceId: string) => Promise<any>,
+   *   approveInvoice: (invoiceId: string) => Promise<any>,
+   *   fetchInvoiceDetail: (invoiceId: string) => Promise<any>,
+   *   invoiceDetails: { [invoiceId: string]: InvoiceDetails },
+   *   createInvoice: (invoiceData: any, imageFile: File) => Promise<any>
+   * }
+   */
   return {
     invoices,
-    loading,
+    isLoadingList, // loading state for invoice list
+    isLoadingDetail, // loading state for each invoice detail
     error,
     deleteInvoice,
     approveInvoice,
@@ -71,4 +86,5 @@ export const useInvoices = (groupId: string) => {
     invoiceDetails,
     createInvoice
   };
+
 };
