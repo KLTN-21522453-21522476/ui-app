@@ -62,7 +62,7 @@ export const fetchGroupDetailsData = createAsyncThunk(
 
 export const createGroupData = createAsyncThunk(
   'groups/createGroup',
-  async (data: { name: string }, { rejectWithValue }) => {
+  async (data: { name: string, description: string }, { rejectWithValue }) => {
     try {
       await createGroup(data);
       return; // Không cần trả về data vì API trả về 201 không có body

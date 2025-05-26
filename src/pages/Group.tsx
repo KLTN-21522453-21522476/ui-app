@@ -27,7 +27,8 @@ const GroupPage: React.FC = () => {
     handleCreateGroup,
     handleRenameGroup,
     updateCreateGroupName,
-    updateRenameGroupName
+    updateRenameGroupName,
+    updateCreateGroupDescription
   } = useGroupActions();
 
   // Ensure group data is fetched after login or navigation
@@ -103,6 +104,7 @@ const GroupPage: React.FC = () => {
         onRename={handleRenameGroup}
         onUpdateCreateName={updateCreateGroupName}
         onUpdateRenameName={updateRenameGroupName}
+        onUpdateCreateDescription={updateCreateGroupDescription}
       />
     </>
   );

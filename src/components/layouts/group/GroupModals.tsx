@@ -12,6 +12,7 @@ interface GroupModalsProps {
   onRename: () => void;
   onUpdateCreateName: (name: string) => void;
   onUpdateRenameName: (name: string) => void;
+  onUpdateCreateDescription: (description: string) => void;
 }
 
 export const GroupModals: React.FC<GroupModalsProps> = ({
@@ -21,7 +22,8 @@ export const GroupModals: React.FC<GroupModalsProps> = ({
   onCreate,
   onRename,
   onUpdateCreateName,
-  onUpdateRenameName
+  onUpdateRenameName,
+  onUpdateCreateDescription
 }) => {
   return (
     <>
@@ -81,6 +83,19 @@ export const GroupModals: React.FC<GroupModalsProps> = ({
               />
               <Form.Text className="text-muted">
                 Tên nhóm nên dễ nhớ và mô tả được mục đích của nhóm.
+              </Form.Text>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Mô tả nhóm</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                placeholder="Mô tả mục đích và hoạt động của nhóm"
+                value={modalState.create.description || ''}
+                onChange={(e) => onUpdateCreateDescription(e.target.value)}
+              />
+              <Form.Text className="text-muted">
+                Mô tả ngắn gọn về mục đích và hoạt động của nhóm.
               </Form.Text>
             </Form.Group>
           </Form>

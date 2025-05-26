@@ -79,10 +79,13 @@ export const deleteGroup = async (groupId: string): Promise<void> => {
   }
 };
 
-export const createGroup = async (data: { name: string }): Promise<void> => {
+export const createGroup = async (
+  data: { name: string, description: string },
+  onRefetch?: () => void
+): Promise<void> => {
   try {
     const token = jwtUtils.getTokens();
-    const response = await fetch(GROUP_ENDPOINT, {
+    const response = await fetch(`${GROUP_ENDPOINT}/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -94,6 +97,9 @@ export const createGroup = async (data: { name: string }): Promise<void> => {
     if (response.status != 201) {
       throw new Error('Failed to create group');
     }
+
+    // Call refetch if provided
+    onRefetch?.();
     
     return;
   } catch (error) {
