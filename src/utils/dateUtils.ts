@@ -14,7 +14,7 @@ export const formatDateForAPI = (dateString: string) => {
 export const formatInvoiceDatesForAPI = (invoice: InvoiceData): InvoiceData => {
   const formattedInvoice = { ...invoice };
   
-  formattedInvoice.createdDate = formatDateForAPI(formattedInvoice.createdDate);
+  formattedInvoice.created_date = formatDateForAPI(formattedInvoice.created_date);
   
   return formattedInvoice;
 };

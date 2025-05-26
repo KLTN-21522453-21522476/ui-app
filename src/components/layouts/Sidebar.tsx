@@ -29,6 +29,8 @@ interface MenuItem {
 
 const SidebarContainer = styled.div`
   width: 250px;
+  min-width: 250px;
+  max-width: 250px;
   height: 100vh;
   background-color: #1e2233;
   color: #a0a3b8;
@@ -128,7 +130,7 @@ const Sidebar: React.FC = () => {
   const menuItems: MenuItem[] = [
     { title: 'Bảng Điều Khiển', icon: <AiOutlineHome />, path: '/dashboard' },
     { title: 'Upload Hoá Đơn', icon: <AiOutlineLayout />, path: '/'},
-    { title: 'Nhóm', icon: <AiOutlineLayout />, path: '/group'},
+    { title: 'Nhóm', icon: <AiOutlineLayout />, path: '/groups'},
     { title: 'Sidebar Layouts', icon: <AiOutlineLayout />, expandable: true },
     // { title: 'Forms', icon: <AiOutlineForm />, expandable: true },
     // { title: 'Tables', icon: <AiOutlineTable />, expandable: true },

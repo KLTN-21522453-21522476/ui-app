@@ -1,94 +1,102 @@
-import { useState, useEffect } from 'react';
-import { invoiceApi } from '../api/invoiceApi';
-import { InvoiceData } from '../types/Invoice';
+import { useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchInvoiceList,
+  fetchInvoiceDetails,
+  createInvoice as createInvoiceThunk,
+  deleteInvoice as deleteInvoiceThunk,
+  approveInvoice as approveInvoiceThunk,
+  rejectInvoice as rejectInvoiceThunk,
+} from '../redux/slices/invoiceSlice';
+import { RootState, AppDispatch } from '../redux/store';
 
-export const useInvoices = () => {
-  const [invoices, setInvoices] = useState<InvoiceData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchInvoices = async () => {
-    try {
-      setLoading(true);
-      const data = await invoiceApi.getInvoices();
-      setInvoices(data.results);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch invoices');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+export const useInvoices = (groupId: string) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const invoices = useSelector((state: RootState) => state.invoices.invoiceList.invoices);
+  const invoiceDetails = useSelector((state: RootState) => state.invoices.invoiceDetails);
+  const isLoadingList = useSelector((state: RootState) => state.invoices.isLoadingList);
+  const isLoadingDetail = useSelector((state: RootState) => state.invoices.isLoadingDetail);
+  const error = useSelector((state: RootState) => state.invoices.error);
 
   useEffect(() => {
-    fetchInvoices();
-  }, []);
-
-  const addInvoice = async (invoice: Omit<InvoiceData, 'id'>) => {
-    try {
-      const newInvoice = await invoiceApi.createInvoice(invoice);
-      setInvoices([...invoices, newInvoice]);
-      return newInvoice;
-    } catch (err) {
-      setError('Failed to add invoice');
-      console.error(err);
-      throw err;
+    if (groupId) {
+      dispatch(fetchInvoiceList(groupId));
     }
-  };
+  }, [dispatch, groupId]);
 
-  const updateInvoice = async (id: string, invoice: Partial<InvoiceData>) => {
-    try {
-      const updatedInvoice = await invoiceApi.updateInvoice(id, invoice);
-      setInvoices(invoices.map(inv => inv.id === id ? updatedInvoice : inv));
-      return updatedInvoice;
-    } catch (err) {
-      setError('Failed to update invoice');
-      console.error(err);
-      throw err;
-    }
-  };
+  // CRUD actions using Redux thunks
+  const createInvoice = useCallback(
+    async (invoiceData: any, imageFile: File) => {
+      if (groupId) {
+        return dispatch(createInvoiceThunk({ groupId, invoiceData, imageFile }));
+      }
+    },
+    [dispatch, groupId]
+  );
 
-  const deleteInvoice = async (id: string) => {
-    try {
-      await invoiceApi.deleteInvoice(id);
-      setInvoices(invoices.filter(invoice => invoice.id !== id));
-    } catch (err) {
-      setError('Failed to delete invoice');
-      console.error(err);
-      throw err;
-    }
-  };
 
-  const submitInvoice = async (invoice: InvoiceData) => {
-    try {
-      await invoiceApi.submitInvoice(invoice);
-    } catch (err) {
-      setError('Failed to submit invoice');
-      console.error(err);
-      throw err;
-    }
-  };
+  const deleteInvoice = useCallback(
+    async (invoiceId: string) => {
+      if (groupId) {
+        return dispatch(deleteInvoiceThunk({ groupId, invoiceId }));
+      }
+    },
+    [dispatch, groupId]
+  );
 
-  const approveInvoice = async (invoice: InvoiceData) => {
-    try {
-      await invoiceApi.approveInvoice(invoice);
-    } catch (err) {
-      setError('Failed to approve invoice');
-      console.error(err);
-      throw err;
-    }
-  };
+  const approveInvoice = useCallback(
+    async (invoiceId: string) => {
+      if (groupId) {
+        return dispatch(approveInvoiceThunk({ groupId, invoiceId }));
+      }
+    },
+    [dispatch, groupId]
+  );
 
+  const rejectInvoice = useCallback(
+    async (invoiceId: string) => {
+      if (groupId) {
+        return dispatch(rejectInvoiceThunk({ groupId, invoiceId }));
+      }
+    },
+    [dispatch, groupId]
+  );
+
+  // Fetch invoice detail
+  const fetchInvoiceDetail = useCallback(
+    async (invoiceId: string) => {
+      if (!invoiceId || !groupId) return;
+      if (invoiceDetails[invoiceId]) return; // Already fetched
+      return dispatch(fetchInvoiceDetails({ groupId, invoiceId }));
+    },
+    [dispatch, groupId, invoiceDetails]
+  );
+
+  /**
+   * @returns {
+   *   invoices: InvoiceList[],
+   *   isLoadingList: boolean, // loading state for invoice list
+   *   isLoadingDetail: { [invoiceId: string]: boolean }, // loading state for each invoice detail
+   *   error: string | null,
+   *   deleteInvoice: (invoiceId: string) => Promise<any>,
+   *   approveInvoice: (invoiceId: string) => Promise<any>,
+   *   fetchInvoiceDetail: (invoiceId: string) => Promise<any>,
+   *   invoiceDetails: { [invoiceId: string]: InvoiceDetails },
+   *   createInvoice: (invoiceData: any, imageFile: File) => Promise<any>,
+   *   rejectInvoice: (invoiceId: string) => Promise<any>
+   * }
+   */
   return {
     invoices,
-    loading,
+    isLoadingList, // loading state for invoice list
+    isLoadingDetail, // loading state for each invoice detail
     error,
-    fetchInvoices,
-    addInvoice,
-    updateInvoice,
     deleteInvoice,
-    submitInvoice,
-    approveInvoice
+    approveInvoice,
+    rejectInvoice,
+    fetchInvoiceDetail,
+    invoiceDetails,
+    createInvoice
   };
+
 };

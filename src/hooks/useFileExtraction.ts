@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { FileWithStatus } from '../types/FileList';
-import { InvoiceData, Item } from '../types/Invoice';
+import { ExtractionData, Item } from '../types/ExtractionData';
 import { extractFile } from '../api/extractionApi';
+import { ExtractResponse } from '../types/FileList';
 
 export const useFileExtraction = (
   filesWithStatus: FileWithStatus[],
-  updateFileStatus: (fileName: string, status: 'idle' | 'loading' | 'success' | 'error', extractedData?: InvoiceData, errorMessage?: string) => void,
+  updateFileStatus: (fileName: string, status: 'idle' | 'loading' | 'success' | 'error', extractedData?: ExtractResponse, errorMessage?: string) => void,
   updateExtractedData: (fileName: string, itemIndex: number, field: keyof Item, value: string) => void,
-  updateInvoiceData: (fileName: string, updatedInvoiceData: Partial<InvoiceData>) => void,
+  updateInvoiceData: (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => void,
 ) => {
-  const [extractedDataList, setExtractedDataList] = useState<InvoiceData[] | null>(null);
+  const [extractedDataList, setExtractedDataList] = useState<ExtractionData[] | null>(null);
 
   // Extract data from a file
   const extractData = async (fileName: string, selectedModel: string): Promise<void> => {
@@ -20,123 +21,58 @@ export const useFileExtraction = (
     }
 
     try {
-      // Set status to loading
       updateFileStatus(fileName, 'loading');
-
-      // Call the extraction API
       const response = await extractFile(fileToExtract.file, selectedModel);
       
-      if (response.status !== 200 || !response.data) {
-        throw new Error(response.statusText || 'Failed to extract data');
-      }
-
-      // Get the first result from the data array
-      const extractedData = response.data[0] || {
+      // Convert to ExtractionData format
+      const formattedData: ExtractionData = {
+        model: selectedModel,
+        address: '',
         fileName: fileName,
         storeName: '',
-        createdDate: new Date().toISOString().split('T')[0],
+        createdDate: new Date().toISOString(),
         id: '',
         status: 'pending',
         approvedBy: '',
-        submittedBy: 'current_user',
-        items: []
+        submittedBy: '',
+        updateAt: new Date().toISOString(),
+        items: [],
+        totalAmount: 0
       };
 
-      // Make sure the fileName matches
-      const invoiceData: InvoiceData = {
-        ...extractedData,
-        fileName: fileName // Ensure fileName is set correctly
-      };
+      // Handle the data from the response
+      if (response.data && response.data.length > 0) {
+        const data = response.data[0];
+        if (data.items) formattedData.items = data.items;
+        if (data.totalAmount) formattedData.totalAmount = data.totalAmount;
+      }
 
-      // Update file status with extracted data
-      updateFileStatus(fileName, 'success', invoiceData);
-
-      // Update extracted data list
+      updateFileStatus(fileName, 'success', [formattedData]);
       setExtractedDataList(prev => {
-        const newList = prev ? [...prev] : [];
-        const existingIndex = newList.findIndex(item => item.fileName === fileName);
-        
-        if (existingIndex >= 0) {
-          newList[existingIndex] = invoiceData;
-        } else {
-          newList.push(invoiceData);
-        }
-        
+        const newList = prev ? [...prev, formattedData] : [formattedData];
+        console.log('[extractData] extractedDataList after update:', newList);
         return newList;
       });
+      console.log('[extractData] Formatted extraction data:', formattedData);
     } catch (error) {
-      console.error('Error extracting data:', error);
+      console.error('[extractData] Extraction error:', error);
       updateFileStatus(fileName, 'error', undefined, error instanceof Error ? error.message : 'Unknown error occurred');
     }
   };
 
-  // Handle item data change
-  const handleDataChange = (fileName: string, itemIndex: number, field: keyof Item, value: string) => {
-    updateExtractedData(fileName, itemIndex, field, value);
-    
-    // Update the extracted data list state
-    setExtractedDataList(prev => {
-      if (!prev) return null;
-      
-      return prev.map(invoiceData => {
-        if (invoiceData.fileName === fileName) {
-          const updatedItems = invoiceData.items ? [...invoiceData.items] : [];
-          updatedItems[itemIndex] = {
-            ...updatedItems[itemIndex],
-            [field]: value
-          };
-          
-          const updatedTotalAmount = calculateTotalAmount(updatedItems);
-
-          return {
-            ...invoiceData,
-            items: updatedItems,
-            totalAmount: updatedTotalAmount
-          };
-        }
-        return invoiceData;
-      });
-    });
-  };
-
-  // Handle invoice data updates
-  const handleInvoiceDataUpdate = (fileName: string, updatedInvoiceData: Partial<InvoiceData>) => {
-    updateInvoiceData(fileName, updatedInvoiceData);
-    
-    // Update the extracted data list state
-    setExtractedDataList(prev => {
-      if (!prev) return null;
-      
-      return prev.map(invoiceData => {
-        if (invoiceData.fileName === fileName) {
-          return {
-            ...invoiceData,
-            ...updatedInvoiceData
-          };
-        }
-        return invoiceData;
-      });
-    });
-  };
-
-  const calculateTotalAmount = (items: Item[]) => {
-    if (!items) return 0;
-    
-    let total = 0;
-    
-    for (let i = 0; i < items.length; i++) {
-      const price = items[i].price || 0;
-      const quantity = items[i].quantity || 0;
-      total += price * quantity;
-    }
-    
-    return total;
-  };
   
   return {
-    extractedDataList,
+    extractedDataList: extractedDataList || [],
     extractData,
-    handleDataChange,
-    handleInvoiceDataUpdate,
+    handleDataChange: (fileName: string, itemIndex: number, field: keyof Item, value: string) => {
+      const file = filesWithStatus.find(f => f.name === fileName);
+      if (!file) return;
+      updateExtractedData(fileName, itemIndex, field, value);
+    },
+    handleInvoiceDataUpdate: (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => {
+      const file = filesWithStatus.find(f => f.name === fileName);
+      if (!file) return;
+      updateInvoiceData(fileName, updatedInvoiceData);
+    }
   };
 };

@@ -9,16 +9,15 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   onAddFiles,
   fileListComponent,
 }) => {
-  // State for hover effect
   const [hovered, setHovered] = useState(false);
 
-  // Dropzone functionality
   const onDrop = (acceptedFiles: File[]) => {
     const filesWithPreview = acceptedFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
       name: file.name,
       size: (file.size / 1024).toFixed(2),
+      
     }));
     onAddFiles(filesWithPreview);
   };
@@ -30,7 +29,6 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     },
   });
 
-  // Upload component from FileUpload.tsx
   const uploadComponent = (
     <div
       {...getRootProps()}

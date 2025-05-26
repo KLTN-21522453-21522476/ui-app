@@ -1,39 +1,52 @@
-import React, { useMemo } from 'react';
-import { InvoiceData } from '../../../types/Invoice';
-import { Table } from 'react-bootstrap';
+import React, { useEffect, useMemo } from 'react';
+import { Table, Card, Spinner, Alert } from 'react-bootstrap';
+import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { useStatistic } from '../../../hooks/useStatistic';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface StoreChartProps {
-  invoices: InvoiceData[];
+  group_id: string;
 }
 
-const StoreChart: React.FC<StoreChartProps> = ({ invoices }) => {
+const StoreChart: React.FC<StoreChartProps> = ({ group_id }) => {
+  // Use Redux hook to fetch and select market share
+  const { marketShare, loading, error, getMarketShare } = useStatistic();
+
+  useEffect(() => {
+    if (group_id) {
+      getMarketShare({ group_id });
+    }
+  }, [group_id, getMarketShare]);
+
+  const data = marketShare;
+
   const storeData = useMemo(() => {
-    // Group by store
-    const storeAmounts: Record<string, number> = {};
-    
-    invoices.forEach(invoice => {
-      if (!storeAmounts[invoice.storeName]) {
-        storeAmounts[invoice.storeName] = 0;
-      }
-      // Add the totalAmount to the corresponding store
-      storeAmounts[invoice.storeName] += invoice.totalAmount;
-    });
-    
-    // Calculate total
-    const total = Object.values(storeAmounts).reduce((sum, amount) => sum + amount, 0);
-    
-    // Sort by amount and calculate percentages
-    const storeStats = Object.entries(storeAmounts).map(([name, amount]) => ({
-      name,
-      amount,
-      percentage: total > 0 ? (amount / total) * 100 : 0
-    })).sort((a, b) => b.amount - a.amount);
-    
+    if (!data || !data.data || data.data.length === 0) {
+      return {
+        stores: [],
+        total: 0
+      };
+    }
+
+    // Use new API fields: amount, percentage, store
+    const totalAmount = data.data.reduce((sum, store) => sum + (store.amount || 0), 0);
+
+    // Sort by percentage and format the data
+    const storeStats = [...data.data]
+      .map(store => ({
+        name: store.store,
+        percentage: typeof store.percentage === 'number' ? store.percentage : 0,
+        amount: typeof store.amount === 'number' ? store.amount : 0
+      }))
+      .sort((a, b) => b.percentage - a.percentage);
+
     return {
       stores: storeStats,
-      total
+      total: totalAmount
     };
-  }, [invoices]);
+  }, [data]);
 
   // Colors for the chart
   const colors = [
@@ -42,74 +55,55 @@ const StoreChart: React.FC<StoreChartProps> = ({ invoices }) => {
 
   return (
     <div className="store-chart">
-      {storeData.stores.length === 0 ? (
+      <Card.Header className="bg-white">
+        <h5 className="mb-0">Biểu đồ các cửa hàng</h5>
+      </Card.Header>
+      {error ? (
+        <Alert variant="danger" className="text-center my-4">{error}</Alert>
+      ) : loading ? (
+        <div className="d-flex justify-content-center align-items-center my-5" style={{ height: 240 }}>
+          <Spinner animation="border" variant="primary" />
+        </div>
+      ) : storeData.stores.length === 0 ? (
         <p className="text-center">No store data available</p>
       ) : (
         <>
-          {/* Simple pie chart visualization */}
           <div className="d-flex justify-content-center mb-3">
-            <div style={{ width: '200px', height: '200px', position: 'relative' }}>
-              {storeData.stores.map((store, index) => {
-                // Calculate the slice
-                const startAngle = storeData.stores
-                  .slice(0, index)
-                  .reduce((sum, s) => sum + s.percentage, 0) * 3.6; // 3.6 = 360/100
-                
-                const endAngle = startAngle + store.percentage * 3.6;
-                
-                // Convert to radians for calculations
-                const startRad = (startAngle - 90) * Math.PI / 180;
-                const endRad = (endAngle - 90) * Math.PI / 180;
-                
-                // Calculate path
-                const x1 = 100 + 80 * Math.cos(startRad);
-                const y1 = 100 + 80 * Math.sin(startRad);
-                const x2 = 100 + 80 * Math.cos(endRad);
-                const y2 = 100 + 80 * Math.sin(endRad);
-                
-                const largeArcFlag = store.percentage > 50 ? 1 : 0;
-                
-                const pathData = [
-                  `M 100 100`,
-                  `L ${x1} ${y1}`,
-                  `A 80 80 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                  `Z`
-                ].join(' ');
-                
-                return (
-                  <div 
-                    key={store.name}
-                    className="position-absolute"
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
-                      top: 0,
-                      left: 0
-                    }}
-                  >
-                    <svg width="100%" height="100%" viewBox="0 0 200 200">
-                      <path 
-                        d={pathData} 
-                        fill={colors[index % colors.length]} 
-                        stroke="#fff" 
-                        strokeWidth="1"
-                      />
-                    </svg>
-                  </div>
-                );
-              })}
-              
-              {/* Center circle for donut chart effect */}
-              <div 
-                className="position-absolute bg-white rounded-circle" 
-                style={{ 
-                  width: '100px', 
-                  height: '100px', 
-                  top: '50px', 
-                  left: '50px',
-                  boxShadow: 'inset 0 0 5px rgba(0,0,0,0.1)'
+            <div style={{ width: '240px', height: '240px' }}>
+              <Pie
+                data={{
+                  labels: storeData.stores.map(store => store.name),
+                  datasets: [
+                    {
+                      data: storeData.stores.map(store => store.percentage),
+                      backgroundColor: colors,
+                      borderColor: '#fff',
+                      borderWidth: 2,
+                    },
+                  ],
                 }}
-              ></div>
+                options={{
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) {
+                          const label = context.label || '';
+                          const value = context.parsed || 0;
+                          return `${label}: ${value.toFixed(1)}%`;
+                        }
+                      }
+                    }
+                  },
+                  cutout: '60%',
+                  responsive: true,
+                  maintainAspectRatio: false,
+                }}
+                width={240}
+                height={240}
+              />
             </div>
           </div>
           
@@ -130,8 +124,8 @@ const StoreChart: React.FC<StoreChartProps> = ({ invoices }) => {
                     ></span>
                   </td>
                   <td>{store.name}</td>
-                  <td className="text-end">{store.amount.toFixed(2)} VNĐ</td>
-                  <td className="text-end">{store.percentage.toFixed(1)}%</td>
+                  <td className="text-end">{typeof store.amount === 'number' ? store.amount.toFixed(2) : '-'} VNĐ</td>
+                  <td className="text-end">{typeof store.percentage === 'number' ? store.percentage.toFixed(1) : '-'}%</td>
                 </tr>
               ))}
               

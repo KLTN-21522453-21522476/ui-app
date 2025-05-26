@@ -1,0 +1,78 @@
+/* GroupDashboard.css */
+.member-avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+}
+
+.member-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.member-item {
+    transition: background-color 0.2s;
+}
+
+.member-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.member-actions {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.member-item:hover .member-actions {
+    visibility: visible;
+    opacity: 1;
+}
+
+.status-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    color: white;
+}
+
+.status-icon.completed {
+    background-color: #2ecc71;
+}
+
+.status-icon.pending {
+    background-color: #f39c12;
+}
+
+.status-icon.failed {
+    background-color: #e74c3c;
+}
+
+.invoice-table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #6c757d;
+    font-weight: 600;
+    padding: 12px 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.invoice-table td {
+    padding: 15px;
+    vertical-align: middle;
+    border-bottom: 1px solid #eee;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 12px;
+}

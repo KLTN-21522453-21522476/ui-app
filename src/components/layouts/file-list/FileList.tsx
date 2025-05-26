@@ -27,8 +27,8 @@ const FileList: React.FC<FileListProps> = ({
     { value: "yolo10", label: "YOLO 10", description: "Phiên bản mới, độ chính xác cao hơn" },
     { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất, tối ưu nhất" }
   ];
-
-  const { submitInvoice, approveInvoice } = useInvoices();
+  const groupId = "mock group id";
+  const { createInvoice, approveInvoice } = useInvoices(groupId);
 
   // Initialize file status management
   const { 
@@ -217,7 +217,7 @@ const FileList: React.FC<FileListProps> = ({
                   onUpdateInvoiceData={handleInvoiceDataUpdate}
                   onDataChange={handleDataChange}
                   onRemoveFile={onRemoveFile}
-                  onSubmitFile={submitInvoice}
+                  onSubmitFile={createInvoice}
                   onApproveFile={approveInvoice}
                 />
               </div>

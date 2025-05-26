@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useContext } from 'react';
-import { AuthContext } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../hooks/useAuth';
 import { Form, Table, Button, Row, Col, InputGroup, FormControl } from 'react-bootstrap';
 import { ExtractedDataTableProps } from '../../../types/FileList';
 import FilePreview from './FilePreview';
-import { InvoiceData } from '../../../types/Invoice';
+import { ExtractionData } from '../../../types/ExtractionData';
 import VietnameseInput from '../../commons/VietnameseInput '
 
 const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
@@ -16,8 +15,36 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   onSubmitFile,
   onApproveFile,
 }) => {
-  const authContext = useContext(AuthContext);
-  const [matchedInvoiceData, setMatchedInvoiceData] = useState<InvoiceData | null>(null);
+  // Hàm chuyển đổi ExtractionData sang InvoiceData
+  const convertExtractionDataToInvoiceData = (
+    extraction: ExtractionData,
+    options?: { submittedBy?: string; approvedBy?: string }
+  ): import('../../../types/Invoice').InvoiceData => {
+    return {
+      id: extraction.id,
+      invoice_number: extraction.id || '', // hoặc có thể là một trường khác nếu có
+      group_id: '', // Nếu có group_id thì truyền vào, không thì để rỗng hoặc sửa lại cho đúng nghiệp vụ
+      model: extraction.model,
+      address: extraction.address,
+      file_name: extraction.fileName,
+      store_name: extraction.storeName,
+      status: extraction.status,
+      approved_by: options?.approvedBy || extraction.approvedBy || '',
+      submitted_by: options?.submittedBy || extraction.submittedBy || '',
+      created_date: extraction.createdDate,
+      update_at: extraction.updateAt,
+      total_amount: extraction.totalAmount,
+      image_url: '', // Nếu có image_url thì truyền vào, không thì để rỗng hoặc sửa lại cho đúng nghiệp vụ
+      items: extraction.items.map(item => ({
+        item: item.item,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+    };
+  };
+
+  const {user} = useAuth();
+  const [matchedInvoiceData, setMatchedInvoiceData] = useState<ExtractionData | null>(null);
 
 
   useEffect(() => {
@@ -60,13 +87,10 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (matchedInvoiceData && authContext?.user?.$id) {
-      const invoiceToSubmit = {
-        ...matchedInvoiceData,
-        submittedBy: authContext.user.$id,
-      };
+    if (matchedInvoiceData && user?.$id) {
+      const invoiceToSubmit = convertExtractionDataToInvoiceData(matchedInvoiceData, { submittedBy: user.$id });
       try{
-        await onSubmitFile(invoiceToSubmit);
+        await onSubmitFile(invoiceToSubmit, file.file);
         alert('Submit thành công');
       }
       catch (error){
@@ -78,19 +102,15 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   };
 
   const handleApprove = async () => {
-    if (matchedInvoiceData && authContext?.user?.$id) {
-      const invoiceToApprove = {
-        ...matchedInvoiceData,
-        approvedBy: authContext.user.$id,
-      };
+    if (matchedInvoiceData && user?.$id) {
+      const invoiceToApprove = convertExtractionDataToInvoiceData(matchedInvoiceData, { approvedBy: user.$id });
       try{
-        await onApproveFile(invoiceToApprove);
+        await onApproveFile(invoiceToApprove.id || '');
         alert('Approve thành công');
       }
       catch (error){
         alert('Có lỗi xảy ra: ' + error);
       }
-      onApproveFile(invoiceToApprove);
     } else {
       alert('Vui lòng đăng nhập để approve hoá đơn');
     }
@@ -242,7 +262,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           variant="success" 
           className="me-3" 
           onClick={handleApprove}
-          disabled={!authContext?.user?.$id}
+          disabled={user?.$id == null}
         >
           Approve hoá đơn
         </Button>
@@ -250,7 +270,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           variant="success" 
           className="me-3" 
           onClick={handleSubmit}
-          disabled={!authContext?.user?.$id}
+          disabled={user?.$id == null}
         >
           Submit hoá đơn
         </Button>

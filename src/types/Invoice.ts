@@ -1,20 +1,25 @@
 export interface Item {
-  item: string | null;
-  price: number | null;
-  quantity: number | null;
+  id?: string;
+  invoice_id?: string;
+  item: string;
+  price: number;
+  quantity: number;
 }
 
 export interface InvoiceData {
+  id?: string;
+  invoice_number: string;
+  group_id: string;
   model: string;
   address: string;
-  fileName: string;
-  storeName: string;
-  createdDate: string;
-  id: string;
+  file_name: string;
+  store_name: string;
   status: string;
-  approvedBy: string;
-  submittedBy: string;
-  updateAt: string;
-  items: Item[] | null;
-  totalAmount: number;
+  approved_by: string;
+  submitted_by: string;
+  created_date: string;
+  update_at: string;
+  total_amount: number;
+  image_url: string;
+  items: Item[];
 }
