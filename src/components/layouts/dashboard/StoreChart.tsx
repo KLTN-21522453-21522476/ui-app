@@ -6,15 +6,18 @@ import { useStatistic } from '../../../hooks/useStatistic';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const StoreChart: React.FC = () => {
+interface StoreChartProps {
+  group_id: string;
+}
+
+const StoreChart: React.FC<StoreChartProps> = ({ group_id }) => {
   // Use Redux hook to fetch and select market share
   const { marketShare, loading, error, getMarketShare } = useStatistic();
 
-  // For now, use a mock group_id (should be passed from Dashboard in real app)
-  const group_id = 'mock-group-id';
-
   useEffect(() => {
-    getMarketShare({ group_id });
+    if (group_id) {
+      getMarketShare({ group_id });
+    }
   }, [group_id, getMarketShare]);
 
   const data = marketShare;
@@ -27,21 +30,21 @@ const StoreChart: React.FC = () => {
       };
     }
 
-    // Calculate total for percentage calculation
-    const totalPercentage = data.data.reduce((sum, store) => sum + store.marketShare, 0);
-    
-    // Sort by market share and format the data
+    // Use new API fields: amount, percentage, store
+    const totalAmount = data.data.reduce((sum, store) => sum + (store.amount || 0), 0);
+
+    // Sort by percentage and format the data
     const storeStats = [...data.data]
       .map(store => ({
-        name: store.name,
-        percentage: store.marketShare,
-        amount: (store.marketShare / 100) * totalPercentage // This is just a relative value
+        name: store.store,
+        percentage: typeof store.percentage === 'number' ? store.percentage : 0,
+        amount: typeof store.amount === 'number' ? store.amount : 0
       }))
       .sort((a, b) => b.percentage - a.percentage);
-    
+
     return {
       stores: storeStats,
-      total: totalPercentage
+      total: totalAmount
     };
   }, [data]);
 
@@ -121,8 +124,8 @@ const StoreChart: React.FC = () => {
                     ></span>
                   </td>
                   <td>{store.name}</td>
-                  <td className="text-end">{store.amount.toFixed(2)} VNĐ</td>
-                  <td className="text-end">{store.percentage.toFixed(1)}%</td>
+                  <td className="text-end">{typeof store.amount === 'number' ? store.amount.toFixed(2) : '-'} VNĐ</td>
+                  <td className="text-end">{typeof store.percentage === 'number' ? store.percentage.toFixed(1) : '-'}%</td>
                 </tr>
               ))}
               

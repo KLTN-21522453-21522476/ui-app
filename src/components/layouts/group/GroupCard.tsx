@@ -27,9 +27,6 @@ interface GroupCardProps {
 
 export const GroupCard: React.FC<GroupCardProps> = ({
   groupId,
-  isAdmin,
-  onRename,
-  onDelete,
   selectedGroupId
 }) => {
   // Find group data from mockGroupList
@@ -98,7 +95,6 @@ export const GroupCard: React.FC<GroupCardProps> = ({
               onClick={e => {
                 e.stopPropagation();
                 handleMenuClose();
-                onRename(group);
               }}
             >
               Đổi tên
@@ -107,7 +103,6 @@ export const GroupCard: React.FC<GroupCardProps> = ({
               onClick={e => {
                 e.stopPropagation();
                 handleMenuClose();
-                onDelete(group);
               }}
               sx={{ color: 'error.main' }}
             >

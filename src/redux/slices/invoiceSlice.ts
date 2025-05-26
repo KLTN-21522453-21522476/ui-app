@@ -7,7 +7,7 @@ import { InvoiceDetails } from '../../types/InvoiceDetails';
 
 interface InvoiceState {
   invoiceList: {
-    items: InvoiceList[];
+    invoices: InvoiceList[];
     count: number;
     currentPage: number;
     totalPages: number;
@@ -20,7 +20,7 @@ interface InvoiceState {
 
 const initialState: InvoiceState = {
   invoiceList: {
-    items: [],
+    invoices: [],
     count: 0,
     currentPage: 1,
     totalPages: 1
@@ -37,20 +37,37 @@ export const fetchInvoiceList = createAsyncThunk(
   async (groupId: string, { rejectWithValue }) => {
     try {
       const response = await invoiceApi.getInvoiceList(groupId);
-      return response.data; // The response is already the data we need
+            
+      if (response.data.results) {
+        console.log(response.data.results);
+        return {
+          invoices: response.data.results || [],
+          count: response.data.count || 0,
+          currentPage: response.data.current_page || 1,
+          totalPages: response.data.total_pages || 1
+        };
+      } 
+      
+      return {
+        invoices: [],
+        count: 0,
+        currentPage: 1,
+        totalPages: 1
+      };
     } catch (error) {
+      console.error('Error fetching invoice list:', error);
       return rejectWithValue('Không thể tải danh sách hóa đơn');
     }
   }
 );
 
-// Fetch invoice details
+
 export const fetchInvoiceDetails = createAsyncThunk(
   'invoices/fetchInvoiceDetails',
   async ({ groupId, invoiceId }: { groupId: string; invoiceId: string }, { rejectWithValue }) => {
     try {
       const response = await invoiceApi.getInvoiceDetails(groupId, invoiceId);
-      return response.data; // The response is already the data we need
+      return response.data;
     } catch (error) {
       return rejectWithValue('Không thể tải chi tiết hóa đơn');
     }
@@ -167,10 +184,10 @@ const invoiceSlice = createSlice({
       .addCase(fetchInvoiceList.fulfilled, (state, action) => {
         state.isLoading = false;
         state.invoiceList = {
-          items: action.payload.results,
+          invoices: action.payload.invoices,
           count: action.payload.count,
-          currentPage: action.payload.current_page,
-          totalPages: action.payload.total_pages
+          currentPage: action.payload.currentPage,
+          totalPages: action.payload.totalPages
         };
         state.lastFetched = Date.now();
       })
@@ -200,7 +217,7 @@ const invoiceSlice = createSlice({
       })
       .addCase(createInvoice.fulfilled, (state, action) => {
         state.invoiceList = {
-          items: action.payload.results,
+          invoices: action.payload.results,
           count: action.payload.count,
           currentPage: action.payload.current_page,
           totalPages: action.payload.total_pages
@@ -221,7 +238,7 @@ const invoiceSlice = createSlice({
       .addCase(deleteInvoice.fulfilled, (state, action) => {
         // Cập nhật danh sách sau khi xóa
         state.invoiceList = {
-          items: action.payload.updatedList.results,
+          invoices: action.payload.updatedList.results,
           count: action.payload.updatedList.count,
           currentPage: action.payload.updatedList.current_page,
           totalPages: action.payload.updatedList.total_pages

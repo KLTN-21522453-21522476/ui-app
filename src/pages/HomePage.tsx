@@ -3,8 +3,10 @@ import { Container, Row, Col, Button, Nav } from 'react-bootstrap';
 import { Facebook, Twitter, Linkedin, Instagram, Envelope } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import AuthModal from '../components/modal/AuthModal';
+import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'login' | 'register'>('login');
 
@@ -62,6 +64,10 @@ const HomePage: React.FC = () => {
         show={showModal} 
         onHide={() => setShowModal(false)} 
         initialMode={modalMode}
+        onSuccess={() => {
+          setShowModal(false);
+          navigate('/groups');
+        }}
       />
     </div>
   );

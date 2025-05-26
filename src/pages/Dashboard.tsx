@@ -1,112 +1,61 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Button, ButtonGroup, Spinner, Modal } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaSearch } from 'react-icons/fa';
 import InvoiceList from '../components/layouts/dashboard/InvoiceList';
-import { Box, Typography, TextField, MenuItem, InputAdornment } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import ProductChart from '../components/layouts/dashboard/ProductChart';
 import StoreChart from '../components/layouts/dashboard/StoreChart';
 import StatisticCards from '../components/layouts/dashboard/StatisticCards';
 import MembersSection from '../components/layouts/dashboard/MembersSection';
-import { useInvoice } from '../hooks/useInvoice';
-import { fetchGroupDetailsData } from '../redux/slices/groupSlice';
 import { useAuth } from '../hooks/useAuth';
 import { useStatistic } from '../hooks/useStatistic';
-import { ExtractionData } from '../types/FileList';
-import { mockGroupList, mockGroupDetails, mockStoreChartData, mockStatisticData } from '../mock/mockData';
+import { useSelector, useDispatch } from 'react-redux';
+import { setSelectedGroupId } from '../redux/slices/groupSlice';
 
 // TimeRange type for tracking selected time periods across components
 type TimeRange = '7days' | '30days' | '90days' | 'year';
 
-// Group interface for sidebar
-interface Group {
-  id: string;
-  name: string;
-}
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const {
-    invoices,
-    lastFetched,
-    getInvoices,
-  } = useInvoice();
   const navigate = useNavigate();
 
   // Statistic hook
   const { invoiceStats, loading: statsLoading, error: statsError, getInvoiceStatistics } = useStatistic();
 
-  // Sidebar state
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [groupSidebarOpen, setGroupSidebarOpen] = useState(true);
-  const [actionsSidebarOpen, setActionsSidebarOpen] = useState(false);
 
-  // Group data state
-  const [userGroups, setUserGroups] = useState<Group[]>([]);
-  const [isLoadingGroups, setIsLoadingGroups] = useState(true);
+
+  // Sidebar state (Redux-driven)
+  const dispatch = useDispatch();
+  const selectedGroupId = useSelector((state: any) => state.groups.selectedGroupId);
+  const groupDetails = useSelector((state: any) => state.groups.groupDetails);
+  const groupList = useSelector((state: any) => state.groups.groupList);
+  const isLoadingGroups = useSelector((state: any) => state.groups.isLoading);
+  const selectedGroup = selectedGroupId ? groupDetails[selectedGroupId] : null;
 
   // Dashboard state
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'status'>('date_desc');
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<{
-    id: string;
-    members: Array<{ user_id: string; roles: string[] }>;
-  } | null>(null);
-  const [isGroupLoading, setIsGroupLoading] = useState(false);
+  // selectedGroup is now derived from Redux state
 
-  // Fetch user's groups
-  useEffect(() => {
-    const fetchUserGroups = async () => {
-      setIsLoadingGroups(true);
-      try {
-        // Replace with your actual API call
-        // Example: const response = await groupApi.getUserGroups(user?.$id);
-        // For now, using mock data
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-        // Sử dụng mockGroupList từ mockData
-        const groups = mockGroupList.map(g => ({ id: g.id, name: g.name }));
-        setUserGroups(groups);
-        if (!selectedGroupId && groups.length > 0) {
-          setSelectedGroupId(groups[0].id);
-        }
-      } catch (error) {
-        console.error('Error fetching user groups:', error);
-      } finally {
-        setIsLoadingGroups(false);
-      }
-    };
-    fetchUserGroups();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.$id]);
 
-  // Fetch selected group details
-  useEffect(() => {
-    if (!selectedGroupId) return;
-    setIsGroupLoading(true);
-    const fetchGroupDetails = async () => {
-      try {
-        // Sử dụng mockGroupDetails từ mockData
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-        setSelectedGroup({
-          id: mockGroupDetails.id,
-          members: mockGroupDetails.members || []
-        });
-        getInvoices(selectedGroupId);
-      } catch (error) {
-        console.error('Error fetching group details:', error);
-      } finally {
-        setIsGroupLoading(false);
-      }
-    };
-    fetchGroupDetails();
-  }, [selectedGroupId, getInvoices]);
+  // Remove mock group fetch logic. Group data is now managed by Redux.
+// If you want to select a default group when none is selected, you can use this effect:
+useEffect(() => {
+  if (!selectedGroupId && groupList.length > 0) {
+    dispatch(setSelectedGroupId(groupList[0].id));
+  }
+}, [selectedGroupId, groupList, dispatch]);
 
-  // Pagination state for InvoiceList
-  const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+// Fetch invoices when selectedGroupId changes
+// Fetch statistics when selectedGroupId changes
+React.useEffect(() => {
+  if (selectedGroupId) {
+    getInvoiceStatistics(selectedGroupId);
+  }
+}, [selectedGroupId, getInvoiceStatistics]);
+
 
   // isAdmin function at the top level
   const isAdmin = (): boolean => {
@@ -117,47 +66,9 @@ const Dashboard: React.FC = () => {
 
   // Always set mock user groups for testing
   // (Đã dùng mock ở trên, có thể xoá hoặc giữ lại nếu muốn test riêng)
-
-
-  useEffect(() => {
-    // Check if data doesn't exist or is older than 5 minutes
-    const shouldFetch = 
-      !invoices.length || 
-      !lastFetched || 
-      (Date.now() - lastFetched > 5 * 60 * 1000);
-    
-    if (shouldFetch && selectedGroup) {
-      getInvoices(selectedGroup.id);
-    }
-  }, [invoices.length, lastFetched, selectedGroup, getInvoices]);
-
   const handleAddInvoice = () => {
     navigate('/upload-invoice');
   };
-
-  // Pagination handlers for InvoiceList
-  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-  };
-  // Add a handler for InvoiceList with the correct signature
-  const handleInvoiceListPageChange = (page: number) => {
-    setPage(page);
-  };
-  const handleRowsPerPageChange = (value: number) => {
-    setRowsPerPage(value);
-    setPage(1);
-  };
-
-  // Use invoices from Redux selector
-  const filteredInvoices = invoices.filter(invoice => {
-    const term = searchTerm.trim().toLowerCase();
-    return (
-      !term ||
-      (invoice.invoice_number && invoice.invoice_number.toLowerCase().includes(term)) ||
-      (invoice.store_name && invoice.store_name.toLowerCase().includes(term))
-    );
-  });
-
 
   // Fetch statistics when selectedGroupId changes
   React.useEffect(() => {
@@ -248,14 +159,18 @@ const Dashboard: React.FC = () => {
         <Col lg={8} className="h-200">
           <Card className="shadow-sm h-100">
             <Card.Body>
-              <ProductChart />
+              {selectedGroupId && (
+  <ProductChart group_id={selectedGroupId} />
+) }
             </Card.Body>
           </Card>
         </Col>
         <Col lg={4} className="h-200">
           <Card className="shadow-sm h-100">
             <Card.Body>
-              <StoreChart />
+              {selectedGroupId && (
+  <StoreChart group_id={selectedGroupId} />
+) }
             </Card.Body>
           </Card>
         </Col>
@@ -271,7 +186,7 @@ const Dashboard: React.FC = () => {
             overflow: 'hidden',
             height: '100%' 
         }}>
-            {isGroupLoading ? (
+            {isLoadingGroups ? (
               <div className="d-flex justify-content-center py-5">
                 <Spinner animation="border" variant="primary" />
               </div>
@@ -297,6 +212,7 @@ const Dashboard: React.FC = () => {
             overflow: 'hidden' 
           }}>
             <InvoiceList
+              groupId={selectedGroupId}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               sortBy={sortBy}

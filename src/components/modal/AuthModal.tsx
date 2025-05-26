@@ -35,8 +35,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
   initialMode = 'login',
   onSuccess 
 }) => {
-  const { login, register, loading, error } = useAuth();
+  const { login, register, loading, error, isAuthenticated } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
+
+  React.useEffect(() => {
+    if (isAuthenticated && onSuccess) {
+      onSuccess();
+    }
+  }, [isAuthenticated, onSuccess]);
   
   // Login form state
   const [loginForm, setLoginForm] = useState<LoginFormState>({

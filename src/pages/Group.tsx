@@ -38,7 +38,14 @@ const GroupPage: React.FC = () => {
   }, [selectedGroupId]);
 
   // Get group list from useGroups
-  const { groupList, loading, error, refetch } = useGroups();
+  const { groupList, refetch } = useGroups();
+
+  // Ensure group data is fetched after login or navigation
+  React.useEffect(() => {
+    if (groupList.length === 0) {
+      refetch();
+    }
+  }, [groupList, refetch]);
 
   // Filter và sort groups using groupList from useGroups
   const processedGroups = useMemo(() => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, ButtonGroup, Spinner, Alert } from 'react-bootstrap';
+import { Button, ButtonGroup, Spinner, Alert } from 'react-bootstrap';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend, ChartOptions } from 'chart.js';
 import { useStatistic } from '../../../hooks/useStatistic';
@@ -19,13 +19,10 @@ const barColors = [
   '#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab'
 ];
 
-const ProductChart: React.FC = () => {
+const ProductChart: React.FC<{ group_id: string }> = ({ group_id }) => {
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const { topProducts, loading, error, getTopProducts } = useStatistic();
 
-  // For now, get group_id and date range from local mock or props (should be lifted up in real app)
-  const group_id = 'mock-group-id'; // TODO: Replace with real group_id from Dashboard context
-  // Generate mock dates for demo
   const now = new Date();
   let start_date = new Date(now);
   let end_date = new Date(now);
@@ -45,22 +42,28 @@ const ProductChart: React.FC = () => {
   }, [timeRange, getTopProducts]);
 
   // Prepare chart data from Redux
-  const chartData = topProducts ? {
-    labels: topProducts.labels,
-    datasets: [
-      {
-        label: topProducts.datasets[0]?.label || '',
-        data: topProducts.datasets[0]?.data || [],
-        backgroundColor: topProducts.labels.map((_: string, idx: number) => barColors[idx % barColors.length]),
-        hoverBackgroundColor: topProducts.labels.map((_: string, idx: number) => barColors[(idx + 1) % barColors.length]),
-        borderRadius: 6,
-        maxBarThickness: 40,
-      },
-    ],
-  } : {
-    labels: [],
-    datasets: [],
-  };
+  const chartData = (topProducts 
+    && Array.isArray(topProducts.labels)
+    && Array.isArray(topProducts.datasets)
+    && topProducts.datasets[0])
+    ? {
+        labels: topProducts.labels,
+        datasets: [
+          {
+            label: topProducts.datasets[0].label || '',
+            data: topProducts.datasets[0].data || [],
+            backgroundColor: topProducts.labels.map((_: string, idx: number) => barColors[idx % barColors.length]),
+            hoverBackgroundColor: topProducts.labels.map((_: string, idx: number) => barColors[(idx + 1) % barColors.length]),
+            borderRadius: 6,
+            maxBarThickness: 40,
+          },
+        ],
+      }
+    : {
+        labels: [],
+        datasets: [],
+      };
+
 
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,

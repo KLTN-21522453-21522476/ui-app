@@ -8,5 +8,7 @@ export interface InvoiceList {
     status: string;
     status_display: string;
     store_name: string;
-    total_amount: number;
+    total_amount: string;
+    update_at: string;
+    update_at_formatted: string;
 }
