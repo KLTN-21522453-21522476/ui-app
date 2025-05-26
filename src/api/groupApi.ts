@@ -19,6 +19,7 @@ const BASE_URL = import.meta.env.VITE_PROXY_ENDPOINT;
 const GROUP_ENDPOINT = `${BASE_URL}/api/group`;
 const GROUP_LIST_ENDPOINT = `${GROUP_ENDPOINT}/`;
 const getGroupDetailEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}`;
+const getGroupUpdateNameEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/name`;
 const getGroupMemberEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/members`;
 const getGroupDeleteMemberEndpoint = (groupId: string, userId: string) => `${GROUP_ENDPOINT}/${groupId}/members/${userId}`;
 const getGroupChangeRoleMemberEndpoint = (groupId: string, userId: string) => `${GROUP_ENDPOINT}/${groupId}/members/${userId}/roles`;
@@ -111,7 +112,7 @@ export const createGroup = async (
 export const renameGroup = async (data: { id: string, name: string }): Promise<void> => {
   try {
     const token = jwtUtils.getTokens();
-    const response = await fetch(getGroupDetailEndpoint(data.id), {
+    const response = await fetch(getGroupUpdateNameEndpoint(data.id), {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

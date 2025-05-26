@@ -19,10 +19,11 @@ interface GroupCardProps {
   group: GroupList;
   onRename: (group: GroupList) => void;
   onDelete: (group: GroupList) => void;
+  onAddMember?: (group: GroupList) => void;
   selectedGroupId?: string | null;
 }
 
-export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete, selectedGroupId }) => {
+export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete, onAddMember, selectedGroupId }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.auth);
@@ -88,7 +89,7 @@ export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete,
                 {group.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                ID: {group.id}
+                Mô tả: {group.description}
               </Typography>
             </Stack>
             <IconButton
@@ -186,7 +187,11 @@ export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete,
               <Typography variant="body2">Xóa Nhóm</Typography>
             </MenuItem>
             <MenuItem
-              onClick={(e) => e.stopPropagation()} // Ngăn chặn sự kiện click lan ra ngoài
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onAddMember) onAddMember(group);
+                handleClose();
+              }}
               sx={{
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.05) !important',

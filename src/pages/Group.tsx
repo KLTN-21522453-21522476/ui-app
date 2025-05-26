@@ -1,13 +1,50 @@
 // src/pages/Group.tsx
 import React, { useState, useMemo } from 'react';
+import { useMembers } from '../hooks/useMembers';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { useGroups } from '../hooks/useGroups';
+import AddMemberModal from '../components/modal/AddMemberModal';
 import { GroupCard } from '../components/layouts/group/GroupCard';
 import { GroupFilters } from '../components/layouts/group/GroupFilters';
 import { GroupModals } from '../components/layouts/group/GroupModals';
 import { useGroupActions } from '../hooks/useGroupActions';
 
 const GroupPage: React.FC = () => {
+  // State for Add Member Modal
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState('viewer');
+  const [isAddingMember, setIsAddingMember] = useState(false);
+  const [addMemberError, setAddMemberError] = useState<string | null>(null);
+  const [addMemberGroupId, setAddMemberGroupId] = useState<string | null>(null);
+
+  // Handler to open modal for a group
+  const handleShowAddMemberModal = (group: any) => {
+    setShowAddMemberModal(true);
+    setAddMemberGroupId(group.id);
+    setNewMemberEmail('');
+    setNewMemberRole('viewer');
+    setAddMemberError(null);
+  };
+
+  // Add member logic using useMembers hook
+  const { addNewMember } = useMembers(addMemberGroupId);
+
+  const handleAddMember = async () => {
+    if (!addMemberGroupId || !newMemberEmail.trim()) return;
+    setIsAddingMember(true);
+    setAddMemberError(null);
+    try {
+      await addNewMember(newMemberEmail, [newMemberRole]);
+      setShowAddMemberModal(false);
+    } catch (err: any) {
+      setAddMemberError(err?.message || 'Lỗi khi thêm thành viên');
+    } finally {
+      setIsAddingMember(false);
+    }
+  };
+
+
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('Ngày tạo');
 
@@ -23,6 +60,8 @@ const GroupPage: React.FC = () => {
     modalState,
     openCreateModal,
     closeAllModals,
+    openDeleteModal,
+    openRenameModal,
     handleDeleteGroup,
     handleCreateGroup,
     handleRenameGroup,
@@ -87,8 +126,9 @@ const GroupPage: React.FC = () => {
               <Col key={group.id}>
                 <GroupCard 
                   group={group}
-                  onRename={handleRenameGroup}
-                  onDelete={handleDeleteGroup}
+                  onRename={group => openRenameModal(group as any)}
+                  onDelete={group => openDeleteModal(group as any)}
+                  onAddMember={() => handleShowAddMemberModal(group)}
                   selectedGroupId={selectedGroupId}
                 />
               </Col>
@@ -105,6 +145,17 @@ const GroupPage: React.FC = () => {
         onUpdateCreateName={updateCreateGroupName}
         onUpdateRenameName={updateRenameGroupName}
         onUpdateCreateDescription={updateCreateGroupDescription}
+      />
+      <AddMemberModal
+        show={showAddMemberModal}
+        onHide={() => setShowAddMemberModal(false)}
+        email={newMemberEmail}
+        role={newMemberRole}
+        onEmailChange={setNewMemberEmail}
+        onRoleChange={setNewMemberRole}
+        onAdd={handleAddMember}
+        isProcessing={isAddingMember}
+        error={addMemberError}
       />
     </>
   );
