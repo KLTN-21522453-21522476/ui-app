@@ -59,7 +59,7 @@ React.useEffect(() => {
 
   // isAdmin function at the top level
   const isAdmin = (): boolean => {
-    if (!user || !selectedGroup) return true;
+    if (!user || !selectedGroup) return false;
     const currentUserMember = selectedGroup.members.find((member: { user_id: string; roles: string[] }) => member.user_id === user.$id);
     return currentUserMember?.roles?.includes('admin') || false;
   };

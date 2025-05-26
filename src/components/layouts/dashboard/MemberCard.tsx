@@ -5,20 +5,20 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { FaEllipsisH, FaUserShield, FaUserEdit, FaUser, FaTrash, FaCog } from 'react-icons/fa';
 import { Members } from '../../../types/GroupDetails';
+import { useMembers } from '../../../hooks/useMembers';
 
 interface MemberCardProps {
   member: Members;
   isAdmin: boolean;
-  onRoleChange?: (userId: string, newRole: string) => void;
-  onDelete?: (userId: string) => void;
+  groupId: string;
 }
 
 const MemberCard: React.FC<MemberCardProps> = ({ 
   member, 
   isAdmin, 
-  onRoleChange, 
-  onDelete 
+  groupId 
 }) => {
+  const { updateMember, removeMemberById } = useMembers(groupId);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   
   // Function to get user display name
@@ -137,9 +137,14 @@ const MemberCard: React.FC<MemberCardProps> = ({
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               >
                 <MenuItem
-                  onClick={() => {
-                    onRoleChange?.(member.user_id, isUserAdmin ? 'viewer' : 'admin');
-                    setAnchorEl(null);
+                  onClick={async () => {
+                    try {
+                      await updateMember(member.user_id, isUserAdmin ? ['viewer'] : ['admin']);
+                    } catch (error) {
+                      console.error('Error updating member role:', error);
+                    } finally {
+                      setAnchorEl(null);
+                    }
                   }}
                 >
                   {isUserAdmin ? (
@@ -149,13 +154,17 @@ const MemberCard: React.FC<MemberCardProps> = ({
                   )}
                 </MenuItem>
                 <MenuItem
-                  onClick={() => {
-                    onDelete?.(member.user_id);
-                    setAnchorEl(null);
+                  onClick={async () => {
+                    try {
+                      await removeMemberById(member.user_id);
+                    } catch (error) {
+                      console.error('Error removing member:', error);
+                    } finally {
+                      setAnchorEl(null);
+                    }
                   }}
-                  sx={{ color: 'error.main' }}
                 >
-                  <FaTrash className="me-2" /> Remove
+                  <FaTrash className="me-2" /> Xoá khỏi nhóm
                 </MenuItem>
               </Menu>
             </>

@@ -5,6 +5,7 @@ import groupReducer from './slices/groupSlice';
 import authReducer from './slices/authSlice';
 import fileUploadReducer from './slices/fileUploadSlice';
 import statisticsReducer from './slices/statisticsSlice';
+import memberReducer from './slices/memberSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,7 +13,8 @@ export const store = configureStore({
     groups: groupReducer,
     auth: authReducer,
     fileUpload: fileUploadReducer,
-    statistics: statisticsReducer
+    statistics: statisticsReducer,
+    member: memberReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

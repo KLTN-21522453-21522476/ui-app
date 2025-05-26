@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// MembersSection.tsx
+import React, { useState, useEffect } from 'react'; // Thêm useEffect
 import { Modal, Form, Spinner, Alert, Button } from 'react-bootstrap';
 import { FaSearch, FaPlus } from 'react-icons/fa';
 import IconButton from '@mui/material/IconButton';
@@ -6,10 +7,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import MemberCard from './MemberCard';
-import { Members } from '../../../types/GroupDetails';
-
-
-import { mockGroupDetails } from '../../../mock/mockData';
+import { useMembers } from '../../../hooks/useMembers';
 import PaginationControls from './PaginationControls';
 import { Box, Typography } from '@mui/material';
 
@@ -19,29 +17,31 @@ interface MembersSectionProps {
 }
 
 const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => {
-  const [members, setMembers] = useState<Members[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberRole, setNewMemberRole] = useState('viewer');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   
   // Pagination state
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // Fetch group members when component mounts or groupId changes
+  // Use useMembers hook
+  const { 
+    members, 
+    isLoading, 
+    error, 
+    addNewMember, 
+    fetchMembers 
+  } = useMembers(groupId);
+
+  // Fetch members when component mounts or groupId changes
   useEffect(() => {
-    // Sử dụng mock data thay vì gọi API
-    setIsLoading(true);
-    setError(null);
-    setTimeout(() => {
-      setMembers(mockGroupDetails.members || []);
-      setIsLoading(false);
-    }, 300);
-  }, [groupId]);
+    if (groupId) {
+      fetchMembers();
+    }
+  }, [groupId, fetchMembers]);
 
   // Filter members based on search term
   const filteredMembers = members.filter(member => 
@@ -49,6 +49,10 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
     member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.user_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Rest of your component remains the same
+  // ...
+
 
   // Calculate pagination
   const pageCount = Math.ceil(filteredMembers.length / rowsPerPage);
@@ -71,53 +75,35 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
   const handleAddMember = async () => {
     if (!newMemberEmail.trim()) return;
     
-    setIsLoading(true);
     try {
-      // Here you would typically make an API call to add the member
-      // const newMember = await api.addGroupMember(groupId, newMemberEmail, newMemberRole);
-      
-      // Mock response for demo
-      const newMember = {
-        user_id: `user${members.length + 1}`,
-        roles: [newMemberRole],
-        name: newMemberEmail.split('@')[0],
-        email: newMemberEmail,
-        added_by: 'mock',
-        added_date: new Date().toISOString()
-      };
-      
-      setMembers([...members, newMember]);
+      await addNewMember(newMemberEmail, [newMemberRole]);
       setNewMemberEmail('');
       setShowAddMemberModal(false);
     } catch (error) {
       console.error('Error adding member:', error);
       // Handle error (show notification, etc.)
-    } finally {
-      setIsLoading(false);
     }
   };
 
   // Handle role change
-  const handleRoleChange = (userId: string, newRole: string) => {
-    setMembers(members.map(member => 
-      member.user_id === userId 
-        ? { ...member, roles: [newRole] } 
-        : member
-    ));
-    
-    // Here you would typically make an API call to update the role
-    // await api.updateMemberRole(groupId, userId, newRole);
-  };
+  // const handleRoleChange = async (userId: string, newRole: string) => {
+  //   try {
+  //     await updateMember(userId, [newRole]);
+  //   } catch (error) {
+  //     console.error('Error updating member role:', error);
+  //   }
+  // };
 
   // Handle member deletion
-  const handleDeleteMember = (userId: string) => {
-    if (window.confirm('Are you sure you want to remove this member?')) {
-      setMembers(members.filter(member => member.user_id !== userId));
-      
-      // Here you would typically make an API call to remove the member
-      // await api.removeGroupMember(groupId, userId);
-    }
-  };
+  // const handleDeleteMember = async (userId: string) => {
+  //   if (window.confirm('Are you sure you want to remove this member?')) {
+  //     try {
+  //       await removeMemberById(userId);
+  //     } catch (error) {
+  //       console.error('Error removing member:', error);
+  //     }
+  //   }
+  // };
 
   return (
     <Box sx={{ 
@@ -214,8 +200,7 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
               <MemberCard 
                 member={member} 
                 isAdmin={isAdmin}
-                onRoleChange={handleRoleChange}
-                onDelete={handleDeleteMember}
+                groupId={groupId}
               />
             </div>
           ))
