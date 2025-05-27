@@ -43,7 +43,6 @@ const FileList: React.FC<FileListProps> = ({
   const {
     extractedDataList,
     extractData,
-    handleInvoiceDataUpdate,
   } = useFileExtraction(
     filesWithStatus,
     updateFileStatus,
@@ -215,7 +214,6 @@ const FileList: React.FC<FileListProps> = ({
                   file={file}
                   groupId={selectedGroupId}
                   extractResponse={extractedDataList || []}
-                  onUpdateInvoiceData={handleInvoiceDataUpdate}
                   onRemoveFile={onRemoveFile}
                   onSubmitFile={createInvoice}
                   onApproveFile={approveInvoice}

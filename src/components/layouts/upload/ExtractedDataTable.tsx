@@ -11,7 +11,6 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   file,
   groupId,
   extractResponse,
-  onUpdateInvoiceData,
   onRemoveFile,
   onSubmitFile,
   onApproveFile,
@@ -20,26 +19,28 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
     extraction: ExtractionData,
     options?: { submittedBy?: string; approvedBy?: string }
   ): import('../../../types/Invoice').InvoiceData => {
+    const localInvoiceItems = localItems.map(item => ({
+      item: item.item,
+      price: Number(item.price),
+      quantity: Number(item.quantity),
+    }));
+    
     return {
       id: extraction.id,
-      invoice_number: extraction.id || '',
+      invoice_number: localId,
       group_id: groupId || '',
       model: extraction.model,
-      address: extraction.address,
-      file_name: extraction.fileName,
-      store_name: extraction.storeName,
+      address: localAddress,
+      file_name: localFileName,
+      store_name: localStoreName,
       status: extraction.status,
       approved_by: options?.approvedBy || extraction.approvedBy || '',
       submitted_by: options?.submittedBy || extraction.submittedBy || '',
-      created_date: extraction.createdDate,
+      created_date: localCreatedDate,
       update_at: extraction.updateAt,
-      total_amount: extraction.totalAmount,
+      total_amount: localTotalAmount,
       image_url: '',
-      items: extraction.items.map(item => ({
-        item: item.item,
-        price: Number(item.price),
-        quantity: Number(item.quantity),
-      })),
+      items: localInvoiceItems,
     };
   };
 
@@ -47,13 +48,33 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   // Always use latest invoice data from extractResponse
   const matchedInvoiceData = extractResponse?.find(data => data.fileName === file.name) || null;
   const [localAddress, setLocalAddress] = useState<string>("");
+  const [localId, setLocalId] = useState<string>("");
+  const [localFileName, setLocalFileName] = useState<string>("");
+  const [localStoreName, setLocalStoreName] = useState<string>("");
+  const [localCreatedDate, setLocalCreatedDate] = useState<string>("");
+  const [localTotalAmount, setLocalTotalAmount] = useState<number>(0);
+  const [localItems, setLocalItems] = useState<Item[]>([]);
 
   useEffect(() => {
     if (!extractResponse || extractResponse.length <= 0) {
       setLocalAddress("");
+      setLocalId("");
+      setLocalFileName("");
+      setLocalStoreName("");
+      setLocalCreatedDate("");
+      setLocalTotalAmount(0);
+      setLocalItems([]);
     } else {
       const matchedData = extractResponse.find(data => data.fileName === file.name);
-      setLocalAddress(matchedData?.address || "");
+      if (matchedData) {
+        setLocalAddress(matchedData.address || "");
+        setLocalId(matchedData.id || "");
+        setLocalFileName(matchedData.fileName || "");
+        setLocalStoreName(matchedData.storeName || "");
+        setLocalCreatedDate(matchedData.createdDate || "");
+        setLocalTotalAmount(matchedData.totalAmount || 0);
+        setLocalItems(matchedData.items || []);
+      }
     }
   }, [file.name, extractResponse]);
 
@@ -72,32 +93,42 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
       const day = String(now.getDate()).padStart(2, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const year = now.getFullYear();
-      dateString = `${day}/${month}/${year}`
-      handleFieldChange('createdDate', dateString)
+      const formattedDate = `${day}/${month}/${year}`;
+      setLocalCreatedDate(formattedDate);
+      handleFieldChange('createdDate', formattedDate);
+      return formattedDate;
     }
   
-  return dateString;
-};
+    return dateString;
+  };
 
-  const handleFieldChange = (field: string, value: string) => {
+  const handleFieldChange = (field: string, value: string | number) => {
     if (matchedInvoiceData) {
       if (field === 'address') {
-        setLocalAddress(value);
+        setLocalAddress(value as string);
       }
-      setTimeout(() => {
-        onUpdateInvoiceData(file.name, { [field]: value });
-      }, 0);
+      else if (field === 'id') {
+        setLocalId(value as string);
+      }
+      else if (field === 'fileName') {
+        setLocalFileName(value as string);
+      }
+      else if (field === 'storeName') {
+        setLocalStoreName(value as string);
+      }
+      else if (field === 'createdDate') {
+        setLocalCreatedDate(value as string);
+      }
+      else if (field === 'totalAmount') {
+        setLocalTotalAmount(Number(value));
+      }
     }
   };
 
   const handleSubmit = async () => {
     const latestMatched = extractResponse?.find(data => data.fileName === file.name);
     if (latestMatched && user?.$id) {
-      // Always use the latest local address
-      const invoiceToSubmit = convertExtractionDataToInvoiceData({
-        ...latestMatched,
-        address: localAddress
-      }, { submittedBy: user.$id });
+      const invoiceToSubmit = convertExtractionDataToInvoiceData(latestMatched, { submittedBy: user.$id });
       try{
         await onSubmitFile(invoiceToSubmit, file.file);
       }
@@ -108,8 +139,6 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
       alert('Vui lòng đăng nhập để submit hoá đơn');
     }
   };
-
-
 
   const handleApprove = async () => {
     if (matchedInvoiceData && user?.$id) {
@@ -126,31 +155,24 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   };
 
   const handleAddItem = () => {
-    if (matchedInvoiceData) {
-      const newItems = [...(matchedInvoiceData.items || []), { item: '', price: 0, quantity: 0 }];
-      onUpdateInvoiceData(file.name, { items: newItems });
-    }
+    const newItems = [...localItems, { item: '', price: 0, quantity: 0 }];
+    setLocalItems(newItems);
   };
 
   const handleRemoveItem = (index: number) => {
-    if (matchedInvoiceData && matchedInvoiceData.items) {
-      const newItems = matchedInvoiceData.items.filter((_, i) => i !== index);
-      onUpdateInvoiceData(file.name, { items: newItems });
-    }
+    const newItems = localItems.filter((_, i) => i !== index);
+    setLocalItems(newItems);
   };
 
   const handleUpdateItem = (index: number, updatedItem: Item) => {
-    if (matchedInvoiceData && matchedInvoiceData.items) {
-      handleRemoveItem(index);
-      const newItems = [...(matchedInvoiceData.items || []), updatedItem];
-      onUpdateInvoiceData(file.name, { items: newItems });
-    }
+    const newItems = [...localItems];
+    newItems[index] = updatedItem;
+    setLocalItems(newItems);
   };
 
   if (!matchedInvoiceData) {
     return <div className="mt-3 border rounded p-3">Không có dữ liệu</div>;
-  } // (No change, just for clarity: matchedInvoiceData is now always from props)
-
+  }
 
   return (
     <div className="mt-3 border rounded p-3">
@@ -160,7 +182,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
             <Form.Label><strong>Tên hoá đơn</strong></Form.Label>
             <VietnameseInput 
               type="text" 
-              value={matchedInvoiceData.fileName || ''} 
+              value={matchedInvoiceData?.fileName || ''} 
               onChange={(e) => handleFieldChange('fileName', e.target.value)}
             />
           </Form.Group>
@@ -169,17 +191,17 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
             <Form.Label><strong>Cửa hàng</strong></Form.Label>
             <VietnameseInput 
               type="text" 
-              value={matchedInvoiceData.storeName || ''} 
+              value={matchedInvoiceData?.storeName || ''} 
               onChange={(e) => handleFieldChange('storeName', e.target.value)}
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label style={{color: '#fff'}}><strong>ID hoá đơn</strong></Form.Label>
+            <Form.Label style={{color: '#fff'}}><strong>Số hoá đơn</strong></Form.Label>
             <InputGroup>
               <VietnameseInput
                 type="text"
-                value={matchedInvoiceData.id || ''}
+                value={matchedInvoiceData?.id || ''}
                 onChange={(e) => handleFieldChange('id', e.target.value)}
                 maxLength={25}
               />
@@ -187,6 +209,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
                 variant="outline-secondary"
                 onClick={() => {
                   const newId = generateRandomId();
+                  setLocalId(newId);
                   handleFieldChange('id', newId);
                 }}
               >
@@ -199,7 +222,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
             <Form.Label><strong>Địa chỉ</strong></Form.Label>
             <VietnameseInput 
               type="text" 
-              value={matchedInvoiceData.address || localAddress}
+              value={matchedInvoiceData?.address || ''}
               onChange={(e) => handleFieldChange('address', e.target.value)}
             />
           </Form.Group>
@@ -208,7 +231,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
             <Form.Label><strong>Ngày tạo</strong></Form.Label>
             <VietnameseInput 
               type="text" 
-              value={formatDateForInput(matchedInvoiceData.createdDate)} 
+              value={formatDateForInput(matchedInvoiceData?.createdDate) ?? ''}
               onChange={(e) => handleFieldChange('createdDate', e.target.value)}
             />
           </Form.Group>
@@ -230,7 +253,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {matchedInvoiceData.items?.map((item, index) => (
+          {localItems.map((item, index) => (
             <tr key={index}>
               <td>
                 <VietnameseInput 
@@ -275,14 +298,13 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
         <Form.Label><strong>Tổng cộng</strong></Form.Label>
           <FormControl 
             type="number" 
-            value={matchedInvoiceData.totalAmount || 0} 
+            value={localTotalAmount} 
             onChange={(e) => {
               const value = e.target.value === '' ? 0 : Number(e.target.value);
-              handleFieldChange('totalAmount', value.toString());
+              handleFieldChange('totalAmount', value);
             }}
             className="bg-light"
           />
-
       </Form.Group>
 
       <div className="d-flex justify-content-end mt-3">

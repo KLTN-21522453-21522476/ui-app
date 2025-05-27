@@ -45,7 +45,6 @@ export interface ExtractedDataTableProps {
   file: FileWithStatus;
   extractResponse: ExtractResponse;
   groupId?: string;
-  onUpdateInvoiceData: (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => void;
   onRemoveFile: (fileName: string) => void;
   onSubmitFile: (invoice: InvoiceData, file: File) => void
   onApproveFile: (invoiceId: string) => void
