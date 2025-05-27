@@ -216,7 +216,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
         </Box>
         <Box flex={2} minWidth={120} display="flex" justifyContent="center">
           <Typography width={120} fontWeight={600} color="primary" align="center">
-            {invoice.total_amount.toLocaleString()}
+            {Number(invoice.total_amount).toLocaleString('vi-VN', { minimumFractionDigits: 0 })} VNĐ
           </Typography>
         </Box>
         <Box flex={1} minWidth={100} display="flex" justifyContent="center">
@@ -319,7 +319,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
                   <strong>Trạng thái:</strong> {invoiceDetail.status}
                 </Typography>
                 <Typography variant="body2" gutterBottom>
-                  <strong>Tổng cộng:</strong> {invoiceDetail.total_amount?.toLocaleString()} đồng
+                  <strong>Tổng cộng:</strong> {Number(invoiceDetail.total_amount).toLocaleString('vi-VN', { minimumFractionDigits: 0 })} VNĐ
                 </Typography>
                 <Box mt={2}>
                   <Typography variant="subtitle2" fontWeight={600} gutterBottom>Danh sách sản phẩm</Typography>
@@ -336,7 +336,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
                         <Box component="tr" key={item.id}>
                           <Box component="td" sx={{ p: 1, border: '1px solid #eee' }}>{item.item}</Box>
                           <Box component="td" sx={{ p: 1, border: '1px solid #eee' }}>{item.quantity}</Box>
-                          <Box component="td" sx={{ p: 1, border: '1px solid #eee' }}>{item.price.toLocaleString()} đồng</Box>
+                          <Box component="td" sx={{ p: 1, border: '1px solid #eee' }}>{Number(item.price).toLocaleString('vi-VN', { minimumFractionDigits: 0 })} VNĐ</Box>
                         </Box>
                       ))}
                     </Box>

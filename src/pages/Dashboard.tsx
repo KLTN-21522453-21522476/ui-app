@@ -184,7 +184,8 @@ React.useEffect(() => {
             display: 'flex', 
             flexDirection: 'column',
             overflow: 'hidden',
-            height: '100%' 
+            height: '100%',
+            minHeight: '700px'
         }}>
             {isLoadingGroups ? (
               <div className="d-flex justify-content-center py-5">
@@ -209,7 +210,8 @@ React.useEffect(() => {
           <Card className="shadow-sm h-100" style={{ 
             display: 'flex', 
             flexDirection: 'column',
-            overflow: 'hidden' 
+            overflow: 'hidden',
+            minHeight: '700px'
           }}>
             <InvoiceList
               groupId={selectedGroupId}
