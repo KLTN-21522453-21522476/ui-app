@@ -38,7 +38,7 @@ import { GROUP_ENDPOINT } from '../constants/api';
 // API Endpoints
 const getInvoiceListEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices`;
 const getInvoiceDetailsEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}`;
-const createInvoiceEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices`;
+const createInvoiceEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/`;
 const deleteInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}`;
 const approveInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}/approve`;
 const rejectInvoiceEndpoint = (groupId: string, invoiceId: string) => `${GROUP_ENDPOINT}/${groupId}/invoices/${invoiceId}/reject`;
