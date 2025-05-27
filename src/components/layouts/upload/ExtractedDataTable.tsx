@@ -5,25 +5,25 @@ import { ExtractedDataTableProps } from '../../../types/FileList';
 import FilePreview from './FilePreview';
 import { ExtractionData } from '../../../types/ExtractionData';
 import VietnameseInput from '../../commons/VietnameseInput '
+import { Item } from '../../../types/Invoice';
 
 const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   file,
+  groupId,
   extractResponse,
   onUpdateInvoiceData,
-  onDataChange,
   onRemoveFile,
   onSubmitFile,
   onApproveFile,
 }) => {
-  // Hàm chuyển đổi ExtractionData sang InvoiceData
   const convertExtractionDataToInvoiceData = (
     extraction: ExtractionData,
     options?: { submittedBy?: string; approvedBy?: string }
   ): import('../../../types/Invoice').InvoiceData => {
     return {
       id: extraction.id,
-      invoice_number: extraction.id || '', // hoặc có thể là một trường khác nếu có
-      group_id: '', // Nếu có group_id thì truyền vào, không thì để rỗng hoặc sửa lại cho đúng nghiệp vụ
+      invoice_number: extraction.id || '',
+      group_id: groupId || '',
       model: extraction.model,
       address: extraction.address,
       file_name: extraction.fileName,
@@ -34,25 +34,26 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
       created_date: extraction.createdDate,
       update_at: extraction.updateAt,
       total_amount: extraction.totalAmount,
-      image_url: '', // Nếu có image_url thì truyền vào, không thì để rỗng hoặc sửa lại cho đúng nghiệp vụ
+      image_url: '',
       items: extraction.items.map(item => ({
         item: item.item,
-        price: item.price,
-        quantity: item.quantity,
+        price: Number(item.price),
+        quantity: Number(item.quantity),
       })),
     };
   };
 
   const {user} = useAuth();
-  const [matchedInvoiceData, setMatchedInvoiceData] = useState<ExtractionData | null>(null);
-
+  // Always use latest invoice data from extractResponse
+  const matchedInvoiceData = extractResponse?.find(data => data.fileName === file.name) || null;
+  const [localAddress, setLocalAddress] = useState<string>("");
 
   useEffect(() => {
     if (!extractResponse || extractResponse.length <= 0) {
-      setMatchedInvoiceData(null);
+      setLocalAddress("");
     } else {
       const matchedData = extractResponse.find(data => data.fileName === file.name);
-      setMatchedInvoiceData(matchedData || null);
+      setLocalAddress(matchedData?.address || "");
     }
   }, [file.name, extractResponse]);
 
@@ -80,6 +81,9 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
 
   const handleFieldChange = (field: string, value: string) => {
     if (matchedInvoiceData) {
+      if (field === 'address') {
+        setLocalAddress(value);
+      }
       setTimeout(() => {
         onUpdateInvoiceData(file.name, { [field]: value });
       }, 0);
@@ -87,11 +91,15 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (matchedInvoiceData && user?.$id) {
-      const invoiceToSubmit = convertExtractionDataToInvoiceData(matchedInvoiceData, { submittedBy: user.$id });
+    const latestMatched = extractResponse?.find(data => data.fileName === file.name);
+    if (latestMatched && user?.$id) {
+      // Always use the latest local address
+      const invoiceToSubmit = convertExtractionDataToInvoiceData({
+        ...latestMatched,
+        address: localAddress
+      }, { submittedBy: user.$id });
       try{
         await onSubmitFile(invoiceToSubmit, file.file);
-        alert('Submit thành công');
       }
       catch (error){
         alert('Có lỗi xảy ra: ' + error);
@@ -101,12 +109,13 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
     }
   };
 
+
+
   const handleApprove = async () => {
     if (matchedInvoiceData && user?.$id) {
       const invoiceToApprove = convertExtractionDataToInvoiceData(matchedInvoiceData, { approvedBy: user.$id });
       try{
         await onApproveFile(invoiceToApprove.id || '');
-        alert('Approve thành công');
       }
       catch (error){
         alert('Có lỗi xảy ra: ' + error);
@@ -130,9 +139,18 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
     }
   };
 
+  const handleUpdateItem = (index: number, updatedItem: Item) => {
+    if (matchedInvoiceData && matchedInvoiceData.items) {
+      handleRemoveItem(index);
+      const newItems = [...(matchedInvoiceData.items || []), updatedItem];
+      onUpdateInvoiceData(file.name, { items: newItems });
+    }
+  };
+
   if (!matchedInvoiceData) {
     return <div className="mt-3 border rounded p-3">Không có dữ liệu</div>;
-  }
+  } // (No change, just for clarity: matchedInvoiceData is now always from props)
+
 
   return (
     <div className="mt-3 border rounded p-3">
@@ -148,25 +166,7 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label><strong>ID hoá đơn</strong></Form.Label>
-            <InputGroup>
-              <VietnameseInput 
-                type="text" 
-                value={matchedInvoiceData.id || ''} 
-                onChange={(e) => handleFieldChange('id', e.target.value)}
-                maxLength={25}
-              />
-              <Button 
-                variant="outline-secondary"
-                onClick={() => handleFieldChange('id', generateRandomId())}
-              >
-                Random
-              </Button>
-            </InputGroup>
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label><strong>Tên cửa hàng</strong></Form.Label>
+            <Form.Label><strong>Cửa hàng</strong></Form.Label>
             <VietnameseInput 
               type="text" 
               value={matchedInvoiceData.storeName || ''} 
@@ -175,10 +175,31 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           </Form.Group>
 
           <Form.Group className="mb-3">
+            <Form.Label style={{color: '#fff'}}><strong>ID hoá đơn</strong></Form.Label>
+            <InputGroup>
+              <VietnameseInput
+                type="text"
+                value={matchedInvoiceData.id || ''}
+                onChange={(e) => handleFieldChange('id', e.target.value)}
+                maxLength={25}
+              />
+              <Button
+                variant="outline-secondary"
+                onClick={() => {
+                  const newId = generateRandomId();
+                  handleFieldChange('id', newId);
+                }}
+              >
+                Random
+              </Button>
+            </InputGroup>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
             <Form.Label><strong>Địa chỉ</strong></Form.Label>
             <VietnameseInput 
               type="text" 
-              value={matchedInvoiceData.address || ''} 
+              value={matchedInvoiceData.address || localAddress}
               onChange={(e) => handleFieldChange('address', e.target.value)}
             />
           </Form.Group>
@@ -215,24 +236,27 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
                 <VietnameseInput 
                   type="text" 
                   value={item.item || ''} 
-                  onChange={(e) => onDataChange(file.name, index, 'item', e.target.value)}
+                  onChange={(e) => handleUpdateItem(index, { ...item, item: e.target.value })}
                 />
               </td>
               <td>
                 <FormControl 
-                  type="number"
-                  step="1"
-                  value={item.price || 0} 
-                  onChange={(e) => onDataChange(file.name, index, 'price', e.target.value)}
+                  type="number" 
+                  value={item.price} 
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : Number(e.target.value);
+                    handleUpdateItem(index, { ...item, price: value });
+                  }}
                 />
               </td>
               <td>
-                <FormControl 
+                <FormControl
                   type="number"
-                  min="0"
-                  step="1" 
-                  value={item.quantity || 0} 
-                  onChange={(e) => onDataChange(file.name, index, 'quantity', e.target.value)}
+                  value={item.quantity}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : Number(e.target.value);
+                    handleUpdateItem(index, { ...item, quantity: value });
+                  }}
                 />
               </td>
               <td>
@@ -249,12 +273,16 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
 
       <Form.Group className="mb-3">
         <Form.Label><strong>Tổng cộng</strong></Form.Label>
-        <FormControl 
-          type="number" 
-          value={matchedInvoiceData.totalAmount || 0} 
-          onChange={(e) => handleFieldChange('totalAmount', e.target.value)}
-          className="bg-light"
-        />
+          <FormControl 
+            type="number" 
+            value={matchedInvoiceData.totalAmount || 0} 
+            onChange={(e) => {
+              const value = e.target.value === '' ? 0 : Number(e.target.value);
+              handleFieldChange('totalAmount', value.toString());
+            }}
+            className="bg-light"
+          />
+
       </Form.Group>
 
       <div className="d-flex justify-content-end mt-3">

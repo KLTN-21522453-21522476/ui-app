@@ -23,6 +23,7 @@ export interface FileListProps {
   files: UploadedFile[];
   onRemoveFile: (fileName: string) => void;
   onClearAll: () => void;
+  groupId?: string;
 }
 
 export interface FileItemProps {
@@ -43,7 +44,7 @@ export interface FilePreviewProps {
 export interface ExtractedDataTableProps {
   file: FileWithStatus;
   extractResponse: ExtractResponse;
-  onDataChange: (fileName: string, itemIndex: number, field: keyof Item, value: string) => void;
+  groupId?: string;
   onUpdateInvoiceData: (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => void;
   onRemoveFile: (fileName: string) => void;
   onSubmitFile: (invoice: InvoiceData, file: File) => void
