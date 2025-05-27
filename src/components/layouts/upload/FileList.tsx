@@ -8,6 +8,7 @@ import { useFileExtraction } from '../../../hooks/useFileExtraction';
 import { useInvoices } from '../../../hooks/useInvoices';
 import FilePreview from './FilePreview';
 import ExtractedDataTable from './ExtractedDataTable';
+import { useAppSelector } from '../../../redux/hooks';
 
 const FileList: React.FC<FileListProps> = ({
   files,
@@ -27,8 +28,8 @@ const FileList: React.FC<FileListProps> = ({
     { value: "yolo10", label: "YOLO 10", description: "Phiên bản mới, độ chính xác cao hơn" },
     { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất, tối ưu nhất" }
   ];
-  const groupId = "mock group id";
-  const { createInvoice, approveInvoice } = useInvoices(groupId);
+  const selectedGroupId = useAppSelector((state: any) => state.groups.selectedGroupId);
+  const { createInvoice, approveInvoice } = useInvoices(selectedGroupId || '');
 
   // Initialize file status management
   const { 
@@ -212,6 +213,7 @@ const FileList: React.FC<FileListProps> = ({
                 {/* Extracted data table */}
                 <ExtractedDataTable 
                   file={file}
+                  groupId={selectedGroupId}
                   extractResponse={extractedDataList || []}
                   onUpdateInvoiceData={handleInvoiceDataUpdate}
                   onRemoveFile={onRemoveFile}
