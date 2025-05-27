@@ -179,7 +179,8 @@ const rejectInvoice = async (
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token?.jwt}`
-      }
+      },
+      body: JSON.stringify({reason: ""})
     });
 
     if (response.status !== 200) {
