@@ -17,6 +17,7 @@ interface LoginFormState {
 interface RegisterFormState {
   fullName: string;
   email: string;
+  phone: string;
   password: string;
   confirmPassword: string;
   agreeTerms: boolean;
@@ -55,6 +56,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const [registerForm, setRegisterForm] = useState<RegisterFormState>({
     fullName: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
     agreeTerms: false,
@@ -142,13 +144,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
     }
     
     try {
-      await register(registerForm.email, registerForm.password, registerForm.fullName);
+      await register(registerForm.email, registerForm.password, registerForm.fullName, registerForm.phone);
       // Switch to login mode after successful registration
       setMode('login');
       // Reset register form
       setRegisterForm({
         fullName: '',
         email: '',
+        phone: '',
         password: '',
         confirmPassword: '',
         agreeTerms: false,
@@ -286,20 +289,22 @@ const AuthModal: React.FC<AuthModalProps> = ({
               >
                 <FaArrowLeft />
               </Button>
-              <h3 className="fw-light m-0">Tạo tài khoản</h3>
+              <h4 className="mb-0 text-white">Đăng ký tài khoản</h4>
             </div>
+
             <Form onSubmit={handleRegisterSubmit}>
               {error && <Alert variant="danger" className="bg-dark text-danger border-danger">{error}</Alert>}
+              
               <div className="row">
                 <div className="col-md-6">
                   <Form.Group className="mb-4">
-                    <Form.Label className="text-secondary">Tên đầy đủ</Form.Label>
+                    <Form.Label className="text-secondary">Họ tên</Form.Label>
                     <Form.Control
                       type="text"
                       name="fullName"
                       value={registerForm.fullName}
                       onChange={handleRegisterChange}
-                      placeholder="Nhập tên đầy đủ"
+                      placeholder="Nhập họ tên"
                       required
                       className="py-3 bg-dark text-white"
                     />
@@ -307,19 +312,32 @@ const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
                 <div className="col-md-6">
                   <Form.Group className="mb-4">
-                    <Form.Label className="text-secondary">Email</Form.Label>
+                    <Form.Label className="text-secondary">Số điện thoại</Form.Label>
                     <Form.Control
-                      type="email"
-                      name="email"
-                      value={registerForm.email}
+                      type="tel"
+                      name="phone"
+                      value={registerForm.phone}
                       onChange={handleRegisterChange}
-                      placeholder="Nhập email"
-                      required
+                      placeholder="Nhập số điện thoại"
                       className="py-3 bg-dark text-white"
                     />
                   </Form.Group>
                 </div>
               </div>
+              
+              <Form.Group className="mb-4">
+                <Form.Label className="text-secondary">Email</Form.Label>
+                <Form.Control
+                  type="email"
+                  name="email"
+                  value={registerForm.email}
+                  onChange={handleRegisterChange}
+                  placeholder="Nhập địa chỉ email"
+                  required
+                  className="py-3 bg-dark text-white"
+                />
+              </Form.Group>
+              
               <div className="row">
                 <div className="col-md-6">
                   <Form.Group className="mb-4">
@@ -361,6 +379,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   </Form.Group>
                 </div>
               </div>
+              
               <Form.Group className="mb-4">
                 <Form.Check
                   type="checkbox"
@@ -378,6 +397,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   feedbackType="invalid"
                 />
               </Form.Group>
+              
               <div className="d-grid mt-4">
                 <Button 
                   type="submit" 
@@ -388,6 +408,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   {loading ? <Loader size="sm" /> : 'Tạo tài khoản'}
                 </Button>
               </div>
+              
               <div className="text-center mt-4 mb-2">
                 <div className="d-flex align-items-center my-4">
                   <div className="flex-grow-1 border-bottom border-secondary"></div>

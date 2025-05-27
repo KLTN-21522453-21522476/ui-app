@@ -39,10 +39,10 @@ export const login = createAsyncThunk(
 // Async thunk để xử lý đăng ký
 export const register = createAsyncThunk(
   'auth/register',
-  async ({ email, password, name }: { email: string; password: string; name: string }, { rejectWithValue }) => {
+  async ({ email, password, name, phone }: { email: string; password: string; name: string; phone: string }, { rejectWithValue }) => {
     try {
-      const newUser = await authApi.register(email, password, name);
-      return newUser;
+      await authApi.register(email, password, name, phone);
+      return;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Registration failed');
     }
