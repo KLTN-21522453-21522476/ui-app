@@ -1,4 +1,6 @@
 import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuth } from './hooks/useAuth';
 import AppRoutes from './pages/Routes';
 import SidebarContainer from './components/layouts/sidebar/SidebarContainer';
 import styled from 'styled-components';
@@ -17,7 +19,17 @@ const ContentContainer = styled.div`
 const AppLayout: React.FC = () => {
     const location = useLocation();
     const isHomePage = location.pathname === '/';
-    
+    const { checkAuth, isInitialized } = useAuth();
+
+    useEffect(() => {
+        checkAuth();
+    }, []);
+
+    if (!isInitialized) {
+        // Optionally show a loading spinner or splash screen
+        return <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh'}}>Đang kiểm tra phiên đăng nhập...</div>;
+    }
+
     return (
       <AppContainer>
         {!isHomePage && <SidebarContainer />}
