@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import { Form, Table, Button, Row, Col, InputGroup, FormControl } from 'react-bootstrap';
+import { Form, Table, Button, Row, Col, InputGroup, FormControl, Modal, Spinner } from 'react-bootstrap';
 import { ExtractedDataTableProps } from '../../../types/FileList';
 import FilePreview from './FilePreview';
 import { ExtractionData } from '../../../types/ExtractionData';
@@ -54,6 +54,14 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   const [localCreatedDate, setLocalCreatedDate] = useState<string>("");
   const [localTotalAmount, setLocalTotalAmount] = useState<number>(0);
   const [localItems, setLocalItems] = useState<Item[]>([]);
+  
+  // Modal states
+  const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
+  const [showApproveModal, setShowApproveModal] = useState<boolean>(false);
+  
+  // Loading states
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isApproving, setIsApproving] = useState<boolean>(false);
 
   useEffect(() => {
     if (!extractResponse || extractResponse.length <= 0) {
@@ -128,31 +136,52 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   const handleSubmit = async () => {
     const latestMatched = extractResponse?.find(data => data.fileName === file.name);
     if (latestMatched && user?.$id) {
+      setIsSubmitting(true); 
       const invoiceToSubmit = convertExtractionDataToInvoiceData(latestMatched, { submittedBy: user.$id });
       try{
         await onSubmitFile(invoiceToSubmit, file.file);
+        setShowSubmitModal(true); 
+        return invoiceToSubmit;
       }
       catch (error){
         alert('Có lỗi xảy ra: ' + error);
+        return null;
+      } finally {
+        setIsSubmitting(false); 
       }
     } else {
       alert('Vui lòng đăng nhập để submit hoá đơn');
+      return null;
     }
   };
-
+  
   const handleApprove = async () => {
     if (matchedInvoiceData && user?.$id) {
-      const invoiceToApprove = convertExtractionDataToInvoiceData(matchedInvoiceData, { approvedBy: user.$id });
-      try{
-        await onApproveFile(invoiceToApprove.id || '');
-      }
-      catch (error){
-        alert('Có lỗi xảy ra: ' + error);
+      setIsApproving(true); 
+      try {
+        const submittedInvoice = await handleSubmit();
+        
+        if (submittedInvoice) {
+          const invoiceToApprove = {
+            ...submittedInvoice,
+            approved_by: user.$id
+          };
+          
+          await onApproveFile(invoiceToApprove.id || '');
+          setShowApproveModal(true); 
+        } else {
+          throw new Error('Không thể submit hoá đơn');
+        }
+      } catch (error) {
+        alert('Có lỗi xảy ra khi approve: ' + error);
+      } finally {
+        setIsApproving(false); 
       }
     } else {
       alert('Vui lòng đăng nhập để approve hoá đơn');
     }
   };
+  
 
   const handleAddItem = () => {
     const newItems = [...localItems, { item: '', price: 0, quantity: 0 }];
@@ -168,6 +197,11 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
     const newItems = [...localItems];
     newItems[index] = updatedItem;
     setLocalItems(newItems);
+  };
+
+  const handleRandomId = () => {
+    const newId = generateRandomId();
+    setLocalId(newId);
   };
 
   if (!matchedInvoiceData) {
@@ -197,21 +231,17 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label style={{color: '#fff'}}><strong>Số hoá đơn</strong></Form.Label>
+            <Form.Label style={{color: '#000'}}><strong>Số hoá đơn</strong></Form.Label>
             <InputGroup>
               <VietnameseInput
                 type="text"
-                value={matchedInvoiceData?.id || ''}
+                value={localId}
                 onChange={(e) => handleFieldChange('id', e.target.value)}
                 maxLength={25}
               />
               <Button
                 variant="outline-secondary"
-                onClick={() => {
-                  const newId = generateRandomId();
-                  setLocalId(newId);
-                  handleFieldChange('id', newId);
-                }}
+                onClick={handleRandomId}
               >
                 Random
               </Button>
@@ -312,22 +342,94 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           variant="success" 
           className="me-3" 
           onClick={handleApprove}
-          disabled={user?.$id == null}
+          disabled={user?.$id == null || isApproving}
         >
-          Approve hoá đơn
+          {isApproving ? (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+                className="me-2"
+              />
+              Đang xử lý...
+            </>
+          ) : (
+            'Approve hoá đơn'
+          )}
         </Button>
         <Button 
           variant="success" 
           className="me-3" 
           onClick={handleSubmit}
-          disabled={user?.$id == null}
+          disabled={user?.$id == null || isSubmitting}
         >
-          Submit hoá đơn
+          {isSubmitting ? (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+                className="me-2"
+              />
+              Đang xử lý...
+            </>
+          ) : (
+            'Submit hoá đơn'
+          )}
         </Button>
         <Button variant="danger" onClick={() => onRemoveFile(file.name)}>
           Xoá hoá đơn này
         </Button>
       </div>
+
+      {/* Modal thông báo submit thành công */}
+      <Modal 
+        show={showSubmitModal} 
+        onHide={() => setShowSubmitModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Thành công</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-center">
+            <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '48px' }}></i>
+            <p className="mt-3">Hoá đơn đã được submit thành công!</p>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowSubmitModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal thông báo approve thành công */}
+      <Modal 
+        show={showApproveModal} 
+        onHide={() => setShowApproveModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Thành công</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-center">
+            <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '48px' }}></i>
+            <p className="mt-3">Hoá đơn đã được approve thành công!</p>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowApproveModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

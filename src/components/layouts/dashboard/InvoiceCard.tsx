@@ -66,17 +66,44 @@ const getActionButtons = (
   onReject: (id: string) => void,
   onDelete: (id: string) => void
 ) => {
+  const buttonStyle = {
+    fontWeight: 700,
+    fontFamily: 'Roboto',
+    textTransform: 'none',
+  };
+
   switch (status) {
     case 'pending':
       return (
         <Stack direction="row" spacing={1}>
-          <Button size="small" color="success" startIcon={<CheckCircleIcon />} onClick={() => onApprove(id)}>
+          <Button
+            size="small"
+            color="success"
+            variant="outlined"
+            startIcon={<CheckCircleIcon />}
+            onClick={() => onApprove(id)}
+            sx={{ ...buttonStyle, borderColor: 'success.main', color: 'success.main' }}
+          >
             Duyệt
           </Button>
-          <Button size="small" color="error" startIcon={<CancelIcon />} onClick={() => onReject(id)}>
+          <Button
+            size="small"
+            color="error"
+            variant="outlined"
+            startIcon={<CancelIcon />}
+            onClick={() => onReject(id)}
+            sx={{ ...buttonStyle, borderColor: 'error.main', color: 'error.main' }}
+          >
             Từ chối
           </Button>
-          <Button size="small" color="inherit" startIcon={<DeleteIcon />} onClick={() => onDelete(id)}>
+          <Button
+            size="small"
+            color="inherit"
+            variant="outlined"
+            startIcon={<DeleteIcon />}
+            onClick={() => onDelete(id)}
+            sx={{ ...buttonStyle, borderColor: 'grey.500', color: 'grey.800' }}
+          >
             Xóa
           </Button>
         </Stack>
@@ -84,10 +111,24 @@ const getActionButtons = (
     case 'approved':
       return (
         <Stack direction="row" spacing={1}>
-          <Button size="small" color="error" startIcon={<CancelIcon />} onClick={() => onReject(id)}>
+          <Button
+            size="small"
+            color="error"
+            variant="outlined"
+            startIcon={<CancelIcon />}
+            onClick={() => onReject(id)}
+            sx={{ ...buttonStyle, borderColor: 'error.main', color: 'error.main' }}
+          >
             Từ chối
           </Button>
-          <Button size="small" color="inherit" startIcon={<DeleteIcon />} onClick={() => onDelete(id)}>
+          <Button
+            size="small"
+            color="inherit"
+            variant="outlined"
+            startIcon={<DeleteIcon />}
+            onClick={() => onDelete(id)}
+            sx={{ ...buttonStyle, borderColor: 'grey.500', color: 'grey.800' }}
+          >
             Xóa
           </Button>
         </Stack>
@@ -101,7 +142,7 @@ const getActionButtons = (
             variant="outlined"
             startIcon={<CheckCircleIcon />}
             onClick={() => onApprove(id)}
-            sx={{ fontWeight: 700, borderColor: 'success.main', color: 'success.main' }}
+            sx={{ ...buttonStyle, borderColor: 'success.main', color: 'success.main' }}
           >
             Duyệt
           </Button>
@@ -111,7 +152,7 @@ const getActionButtons = (
             variant="outlined"
             startIcon={<DeleteIcon />}
             onClick={() => onDelete(id)}
-            sx={{ fontWeight: 700, borderColor: 'grey.500', color: 'grey.800' }}
+            sx={{ ...buttonStyle, borderColor: 'grey.500', color: 'grey.800' }}
           >
             Xóa
           </Button>
@@ -126,7 +167,7 @@ const getActionButtons = (
             variant="outlined"
             startIcon={<CheckCircleIcon />}
             onClick={() => onApprove(id)}
-            sx={{ fontWeight: 700, borderColor: 'success.main', color: 'success.main' }}
+            sx={{ ...buttonStyle, borderColor: 'success.main', color: 'success.main' }}
           >
             Duyệt
           </Button>
@@ -136,7 +177,7 @@ const getActionButtons = (
             variant="outlined"
             startIcon={<CancelIcon />}
             onClick={() => onReject(id)}
-            sx={{ fontWeight: 700, borderColor: 'error.main', color: 'error.main' }}
+            sx={{ ...buttonStyle, borderColor: 'error.main', color: 'error.main' }}
           >
             Từ chối
           </Button>
@@ -146,7 +187,7 @@ const getActionButtons = (
             variant="outlined"
             startIcon={<DeleteIcon />}
             onClick={() => onDelete(id)}
-            sx={{ fontWeight: 700, borderColor: 'grey.500', color: 'grey.800' }}
+            sx={{ ...buttonStyle, borderColor: 'grey.500', color: 'grey.800' }}
           >
             Xóa
           </Button>
