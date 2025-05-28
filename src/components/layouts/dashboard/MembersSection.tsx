@@ -1,6 +1,7 @@
 // MembersSection.tsx
 import React, { useState, useEffect } from 'react'; // Thêm useEffect
-import { Modal, Form, Spinner, Alert, Button } from 'react-bootstrap';
+import { Spinner, Alert } from 'react-bootstrap';
+import AddMemberModal from '../../modal/AddMemberModal';
 import { FaSearch, FaPlus } from 'react-icons/fa';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
@@ -237,49 +238,17 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
 
 
       {/* Add Member Modal */}
-      <Modal show={showAddMemberModal} onHide={() => setShowAddMemberModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Add Team Member</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Email Address</Form.Label>
-            <Form.Control
-              type="email"
-              placeholder="Enter email address"
-              value={newMemberEmail}
-              onChange={(e) => setNewMemberEmail(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Role</Form.Label>
-            <Form.Select 
-              value={newMemberRole} 
-              onChange={(e) => setNewMemberRole(e.target.value)}
-            >
-              <option value="viewer">Viewer</option>
-              <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
-            </Form.Select>
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button 
-            variant="secondary" 
-            onClick={() => setShowAddMemberModal(false)}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button 
-            variant="primary" 
-            onClick={handleAddMember}
-            disabled={!newMemberEmail.trim() || isLoading}
-          >
-            {isLoading ? 'Adding...' : 'Add Member'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <AddMemberModal
+        show={showAddMemberModal}
+        onHide={() => setShowAddMemberModal(false)}
+        email={newMemberEmail}
+        role={newMemberRole}
+        onEmailChange={setNewMemberEmail}
+        onRoleChange={setNewMemberRole}
+        onAdd={handleAddMember}
+        isProcessing={isLoading}
+        error={error as string | null}
+      />
     </Box>
   
   );

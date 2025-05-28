@@ -14,15 +14,41 @@ import { setSelectedGroupId } from '../redux/slices/groupSlice';
 // TimeRange type for tracking selected time periods across components
 type TimeRange = '7days' | '30days' | '90days' | 'year';
 
-
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isInitialized, checkAuth } = useAuth();
   const navigate = useNavigate();
+
+  // Check authentication status when component mounts
+  useEffect(() => {
+    const verifyAuth = async () => {
+      if (!isInitialized) {
+        await checkAuth();
+      }
+      
+      if (!isAuthenticated && isInitialized) {
+        navigate('/');
+      }
+    };
+    
+    verifyAuth();
+  }, [isAuthenticated, isInitialized, checkAuth, navigate]);
+
+  // Show loading state while checking auth
+  if (!isInitialized) {
+    return (
+      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+        <Spinner animation="border" variant="primary" />
+      </Container>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    return null; // Will be redirected by the useEffect
+  }
 
   // Statistic hook
   const { invoiceStats, loading: statsLoading, error: statsError, getInvoiceStatistics } = useStatistic();
-
-
 
   // Sidebar state (Redux-driven)
   const dispatch = useDispatch();
@@ -37,25 +63,20 @@ const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'status'>('date_desc');
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
-  // selectedGroup is now derived from Redux state
 
+  useEffect(() => {
+    if (!selectedGroupId && groupList.length > 0) {
+      dispatch(setSelectedGroupId(groupList[0].id));
+    }
+  }, [selectedGroupId, groupList, dispatch]);
 
-  // Remove mock group fetch logic. Group data is now managed by Redux.
-// If you want to select a default group when none is selected, you can use this effect:
-useEffect(() => {
-  if (!selectedGroupId && groupList.length > 0) {
-    dispatch(setSelectedGroupId(groupList[0].id));
-  }
-}, [selectedGroupId, groupList, dispatch]);
-
-// Fetch invoices when selectedGroupId changes
-// Fetch statistics when selectedGroupId changes
-React.useEffect(() => {
-  if (selectedGroupId) {
-    getInvoiceStatistics(selectedGroupId);
-  }
-}, [selectedGroupId, getInvoiceStatistics]);
-
+  // Fetch invoices when selectedGroupId changes
+  // Fetch statistics when selectedGroupId changes
+  React.useEffect(() => {
+    if (selectedGroupId) {
+      getInvoiceStatistics(selectedGroupId);
+    }
+  }, [selectedGroupId, getInvoiceStatistics]);
 
   // isAdmin function at the top level
   const isAdmin = (): boolean => {
@@ -184,7 +205,8 @@ React.useEffect(() => {
             display: 'flex', 
             flexDirection: 'column',
             overflow: 'hidden',
-            height: '100%' 
+            height: '100%',
+            minHeight: '700px'
         }}>
             {isLoadingGroups ? (
               <div className="d-flex justify-content-center py-5">
@@ -209,7 +231,8 @@ React.useEffect(() => {
           <Card className="shadow-sm h-100" style={{ 
             display: 'flex', 
             flexDirection: 'column',
-            overflow: 'hidden' 
+            overflow: 'hidden',
+            minHeight: '700px'
           }}>
             <InvoiceList
               groupId={selectedGroupId}

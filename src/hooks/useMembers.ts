@@ -1,5 +1,5 @@
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
-import { fetchGroupDetailsData, addMember, removeMember, updateMemberRoles } from '../redux/slices/memberSlice';
+import { fetchGroupDetailsData, addMember, removeMember, updateMemberRoles, leaveGroup } from '../redux/slices/memberSlice';
 import { useCallback } from 'react';
 
 export const useMembers = (groupId: string | null) => {
@@ -55,10 +55,22 @@ export const useMembers = (groupId: string | null) => {
     }
   }, [dispatch, groupId]);
 
+  const leaveGroupByUser = async (groupId: string, userId: string) => {
+    try {
+      await dispatch(leaveGroup({ groupId: groupId || '', userId })).unwrap();
+      await fetchMembers();
+    } catch (error) {
+      console.error('Error leaving group:', error);
+      throw error;
+    }
+  };
+
+
   return {
     members,
     isLoading,
     error,
+    leaveGroupByUser,
     fetchMembers,
     addNewMember,
     updateMember,

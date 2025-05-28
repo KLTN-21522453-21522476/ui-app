@@ -8,37 +8,39 @@ export const useGroupActions = () => {
   const dispatch = useAppDispatch();
   const [modalState, setModalState] = useState<GroupModalState>({
     delete: { show: false, group: null, isProcessing: false },
-    create: { show: false, name: '', isProcessing: false },
-    rename: { show: false, group: null, newName: '', isProcessing: false }
+    create: { show: false, name: '', description: '', isProcessing: false },
+    rename: { show: false, group: null, newName: '', isProcessing: false },
+    leave: { show: false, group: null, isProcessing: false }
   });
 
   // Các hàm xử lý modal
   const openDeleteModal = (group: GroupDetails) => {
-    setModalState(prev => ({
-      ...prev,
-      delete: { ...prev.delete, show: true, group }
-    }));
+    setModalState({
+      ...modalState,
+      delete: { ...modalState.delete, show: true, group }
+    });
   };
 
   const openCreateModal = () => {
-    setModalState(prev => ({
-      ...prev,
-      create: { ...prev.create, show: true }
-    }));
+    setModalState({
+      ...modalState,
+      create: { ...modalState.create, show: true }
+    });
   };
 
   const openRenameModal = (group: GroupDetails) => {
-    setModalState(prev => ({
-      ...prev,
-      rename: { ...prev.rename, show: true, group, newName: group.name }
-    }));
+    setModalState({
+      ...modalState,
+      rename: { ...modalState.rename, show: true, group, newName: group.name }
+    });
   };
 
   const closeAllModals = () => {
     setModalState({
       delete: { show: false, group: null, isProcessing: false },
-      create: { show: false, name: '', isProcessing: false },
-      rename: { show: false, group: null, newName: '', isProcessing: false }
+      create: { show: false, name: '', description: '', isProcessing: false },
+      rename: { show: false, group: null, newName: '', isProcessing: false },
+      leave: { show: false, group: null, isProcessing: false }
     });
   };
 
@@ -63,7 +65,7 @@ export const useGroupActions = () => {
   };
 
   const handleCreateGroup = async () => {
-    const { name } = modalState.create;
+    const { name, description } = modalState.create;
     if (!name.trim()) return;
     
     setModalState(prev => ({
@@ -72,7 +74,10 @@ export const useGroupActions = () => {
     }));
     
     try {
-      await dispatch(createGroupData({ name: name.trim() })).unwrap();
+      await dispatch(createGroupData({ 
+        name: name.trim(), 
+        description: description || '' 
+      })).unwrap();
       console.log('Đã tạo nhóm thành công');
       dispatch(fetchGroupListData());
     } catch (error) {
@@ -114,10 +119,17 @@ export const useGroupActions = () => {
   };
 
   const updateRenameGroupName = (newName: string) => {
-    setModalState(prev => ({
-      ...prev,
-      rename: { ...prev.rename, newName }
-    }));
+    setModalState({
+      ...modalState,
+      rename: { ...modalState.rename, newName }
+    });
+  };
+
+  const updateCreateGroupDescription = (description: string) => {
+    setModalState({
+      ...modalState,
+      create: { ...modalState.create, description }
+    });
   };
 
   return {
@@ -130,6 +142,7 @@ export const useGroupActions = () => {
     handleCreateGroup,
     handleRenameGroup,
     updateCreateGroupName,
-    updateRenameGroupName
+    updateRenameGroupName,
+    updateCreateGroupDescription
   };
 };

@@ -39,10 +39,10 @@ export const login = createAsyncThunk(
 // Async thunk để xử lý đăng ký
 export const register = createAsyncThunk(
   'auth/register',
-  async ({ email, password, name }: { email: string; password: string; name: string }, { rejectWithValue }) => {
+  async ({ email, password, name, phone }: { email: string; password: string; name: string; phone: string }, { rejectWithValue }) => {
     try {
-      const newUser = await authApi.register(email, password, name);
-      return newUser;
+      await authApi.register(email, password, name, phone);
+      return;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Registration failed');
     }
@@ -90,6 +90,14 @@ const authSlice = createSlice({
     setUser(state, action) {
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
+    },
+    resetAuth(state) {
+      state.user = null;
+      state.loading = false;
+      state.error = null;
+      state.sessionId = null;
+      state.isAuthenticated = false;
+      state.isInitialized = true;
     },
   },
   extraReducers: (builder) => {
@@ -161,5 +169,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { resetError, setUser } = authSlice.actions;
+export const { resetError, setUser, resetAuth } = authSlice.actions;
 export default authSlice.reducer;

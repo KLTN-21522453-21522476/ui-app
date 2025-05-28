@@ -1,7 +1,6 @@
 // src/api/authApi.ts
 import axios from 'axios';
 import { Models } from 'appwrite';
-import { ID, account } from '../libs/appwrite';
 import Cookies from 'js-cookie';
 import { jwtUtils } from '../utils/jwtUtils';
 
@@ -19,6 +18,7 @@ const SESSION_EXPIRY_DAYS = 7;
 const LOGIN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/api/login'
 const GET_TOKEN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/token'
 const VALIDATE_TOKEN_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/validate-token'
+const SIGNUP_URL = import.meta.env.VITE_PROXY_ENDPOINT + '/api/signup'
 
 export const authApi = {
   getCurrentUser: async (): Promise<Models.User<Models.Preferences>> => {
@@ -105,10 +105,17 @@ export const authApi = {
     return sessionData;
   },
 
-  register: async (email: string, password: string, name: string): Promise<Models.User<Models.Preferences>> => {
-    const newUser = await account.create(ID.unique(), email, password, name);
-    await account.createEmailPasswordSession(email, password);
-    return newUser;
+  register: async (email: string, password: string, name: string, phone: string): Promise<void> => {
+    const response = await axios.post(SIGNUP_URL, {
+      email,
+      password,
+      name,
+      phone
+    });
+    if (response.status !== 200) {
+      throw new Error('Đăng ký thất bại');
+    }
+    return;
   },
 
   logout: async (session_id: string): Promise<void> => {

@@ -10,8 +10,10 @@ interface GroupModalsProps {
   onDelete: () => void;
   onCreate: () => void;
   onRename: () => void;
+  onLeave: () => void;
   onUpdateCreateName: (name: string) => void;
   onUpdateRenameName: (name: string) => void;
+  onUpdateCreateDescription: (description: string) => void;
 }
 
 export const GroupModals: React.FC<GroupModalsProps> = ({
@@ -20,8 +22,10 @@ export const GroupModals: React.FC<GroupModalsProps> = ({
   onDelete,
   onCreate,
   onRename,
+  onLeave,
   onUpdateCreateName,
-  onUpdateRenameName
+  onUpdateRenameName,
+  onUpdateCreateDescription
 }) => {
   return (
     <>
@@ -60,6 +64,38 @@ export const GroupModals: React.FC<GroupModalsProps> = ({
         </Modal.Footer>
       </Modal>
 
+      {/* Modal xác nhận rời nhóm */}
+      <Modal show={modalState.leave.show} onHide={onClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Xác nhận rời nhóm</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Bạn có chắc chắn muốn rời nhóm "{modalState.leave.group?.name}"?
+          <div className="text-muted mt-2 small">
+            Sau khi rời nhóm, bạn sẽ mất quyền truy cập vào tất cả dữ liệu và hoạt động trong nhóm này.
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={onClose} disabled={modalState.leave.isProcessing}>
+            Huỷ
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={onLeave} 
+            disabled={modalState.leave.isProcessing}
+          >
+            {modalState.leave.isProcessing ? (
+              <>
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+                Đang xử lý...
+              </>
+            ) : (
+              <>Rời nhóm</>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       {/* Modal tạo nhóm mới */}
       <Modal show={modalState.create.show} onHide={onClose} centered>
         <Modal.Header closeButton>
@@ -81,6 +117,19 @@ export const GroupModals: React.FC<GroupModalsProps> = ({
               />
               <Form.Text className="text-muted">
                 Tên nhóm nên dễ nhớ và mô tả được mục đích của nhóm.
+              </Form.Text>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Mô tả nhóm</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                placeholder="Mô tả mục đích và hoạt động của nhóm"
+                value={modalState.create.description || ''}
+                onChange={(e) => onUpdateCreateDescription(e.target.value)}
+              />
+              <Form.Text className="text-muted">
+                Mô tả ngắn gọn về mục đích và hoạt động của nhóm.
               </Form.Text>
             </Form.Group>
           </Form>

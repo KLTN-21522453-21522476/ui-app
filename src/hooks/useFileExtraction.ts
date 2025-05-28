@@ -35,7 +35,7 @@ export const useFileExtraction = (
         status: 'pending',
         approvedBy: '',
         submittedBy: '',
-        updateAt: new Date().toISOString(),
+        updateAt: '',
         items: [],
         totalAmount: 0
       };
@@ -43,8 +43,13 @@ export const useFileExtraction = (
       // Handle the data from the response
       if (response.data && response.data.length > 0) {
         const data = response.data[0];
+        if (data.address) formattedData.address = data.address;
+        if (data.storeName) formattedData.storeName = data.storeName;
+        if (data.id) formattedData.id = data.id;
+        if (data.createdDate) formattedData.createdDate = data.createdDate;
         if (data.items) formattedData.items = data.items;
         if (data.totalAmount) formattedData.totalAmount = data.totalAmount;
+        if (data.updateAt) formattedData.updateAt = data.updateAt;
       }
 
       updateFileStatus(fileName, 'success', [formattedData]);

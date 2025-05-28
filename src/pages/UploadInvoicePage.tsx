@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { UploadedFile } from "../types/UploadeFile";
 import fileService from "../hooks/useFileService";
-import FileList from "../components/layouts/file-list/FileList";
-import FileUploadComponent from "../components/layouts/FileUploadComponent"; 
+import FileList from "../components/layouts/upload/FileList";
+import FileUploadComponent from "../components/layouts/upload/FileUploadComponent"; 
+import { useSelector } from 'react-redux';
 
 const InvoiceExtraction: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const selectedGroupId = useSelector((state: any) => state.groups.selectedGroupId);
+
 
   useEffect(() => {
     return () => {
@@ -45,6 +48,7 @@ const InvoiceExtraction: React.FC = () => {
             files={uploadedFiles}
             onRemoveFile={handleRemoveFile}
             onClearAll={handleClearAll}
+            groupId={selectedGroupId}
           />
         ) : null
       }

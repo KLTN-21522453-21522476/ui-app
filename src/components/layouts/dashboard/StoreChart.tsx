@@ -124,7 +124,7 @@ const StoreChart: React.FC<StoreChartProps> = ({ group_id }) => {
                     ></span>
                   </td>
                   <td>{store.name}</td>
-                  <td className="text-end">{typeof store.amount === 'number' ? store.amount.toFixed(2) : '-'} VNĐ</td>
+                  <td className="text-end">{typeof store.amount === 'number' ? store.amount.toLocaleString('vi-VN', { minimumFractionDigits: 0 }) : '-'} VNĐ</td>
                   <td className="text-end">{typeof store.percentage === 'number' ? store.percentage.toFixed(1) : '-'}%</td>
                 </tr>
               ))}
@@ -144,7 +144,7 @@ const StoreChart: React.FC<StoreChartProps> = ({ group_id }) => {
                   </td>
                   <td>Others</td>
                   <td className="text-end">
-                    {storeData.stores.slice(5).reduce((sum, store) => sum + store.amount, 0).toFixed(2)} VNĐ
+                    {storeData.stores.slice(5).reduce((sum, store) => sum + store.amount, 0).toFixed(0)} VNĐ
                   </td>
                   <td className="text-end">
                     {storeData.stores.slice(5).reduce((sum, store) => sum + store.percentage, 0).toFixed(1)}%

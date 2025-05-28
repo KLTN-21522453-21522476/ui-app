@@ -11,7 +11,7 @@ export interface AuthHookResult {
   isInitialized: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, phone: string) => Promise<void>;
   checkAuth: () => Promise<void>;
   resetError: () => void;
 }
@@ -35,8 +35,8 @@ export const useAuth = (): AuthHookResult => {
       await dispatch(logout()).unwrap();
     },
     
-    register: async (email: string, password: string, name: string) => {
-      await dispatch(register({ email, password, name })).unwrap();
+    register: async (email: string, password: string, name: string, phone: string) => {
+      await dispatch(register({ email, password, name, phone })).unwrap();
     },
     
     checkAuth: async () => {

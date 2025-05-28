@@ -20,6 +20,7 @@ export interface GroupDetails {
 
 export interface GroupModalState {
     delete: { show: boolean; group: GroupDetails | null; isProcessing: boolean };
-    create: { show: boolean; name: string; isProcessing: boolean };
+    create: { show: boolean; name: string; description: string; isProcessing: boolean };
     rename: { show: boolean; group: GroupDetails | null; newName: string; isProcessing: boolean };
+    leave: { show: boolean; group: GroupDetails | null; isProcessing: boolean };
   }

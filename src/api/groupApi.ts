@@ -19,6 +19,7 @@ const BASE_URL = import.meta.env.VITE_PROXY_ENDPOINT;
 const GROUP_ENDPOINT = `${BASE_URL}/api/group`;
 const GROUP_LIST_ENDPOINT = `${GROUP_ENDPOINT}/`;
 const getGroupDetailEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}`;
+const getGroupUpdateNameEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/name`;
 const getGroupMemberEndpoint = (groupId: string) => `${GROUP_ENDPOINT}/${groupId}/members`;
 const getGroupDeleteMemberEndpoint = (groupId: string, userId: string) => `${GROUP_ENDPOINT}/${groupId}/members/${userId}`;
 const getGroupChangeRoleMemberEndpoint = (groupId: string, userId: string) => `${GROUP_ENDPOINT}/${groupId}/members/${userId}/roles`;
@@ -79,10 +80,13 @@ export const deleteGroup = async (groupId: string): Promise<void> => {
   }
 };
 
-export const createGroup = async (data: { name: string }): Promise<void> => {
+export const createGroup = async (
+  data: { name: string, description: string },
+  onRefetch?: () => void
+): Promise<void> => {
   try {
     const token = jwtUtils.getTokens();
-    const response = await fetch(GROUP_ENDPOINT, {
+    const response = await fetch(`${GROUP_ENDPOINT}/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -94,6 +98,9 @@ export const createGroup = async (data: { name: string }): Promise<void> => {
     if (response.status != 201) {
       throw new Error('Failed to create group');
     }
+
+    // Call refetch if provided
+    onRefetch?.();
     
     return;
   } catch (error) {
@@ -105,7 +112,7 @@ export const createGroup = async (data: { name: string }): Promise<void> => {
 export const renameGroup = async (data: { id: string, name: string }): Promise<void> => {
   try {
     const token = jwtUtils.getTokens();
-    const response = await fetch(getGroupDetailEndpoint(data.id), {
+    const response = await fetch(getGroupUpdateNameEndpoint(data.id), {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

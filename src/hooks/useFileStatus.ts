@@ -65,24 +65,30 @@ export const useFileStatus = (files: UploadedFile[]) => {
 
 
 
-  // Update extracted data field
-  const updateExtractedData = (fileName: string, itemIndex: number, field: keyof Item, value: string) => {
-    setFilesWithStatus(prevFiles => 
-      prevFiles.map(file => 
+  const updateExtractedData = (fileName: string, itemIndex: number, field: keyof Item, value: string | number) => {
+    let processedValue = value;
+    if ((field === 'price' || field === 'quantity') && typeof value === 'string') {
+      processedValue = value === '' ? 0 : Number(value);
+    }
+    setFilesWithStatus(prevFiles =>
+      prevFiles.map(file =>
         file.name === fileName && file.extractedData
-          ? { 
-              ...file, 
+          ? {
+              ...file,
               extractedData: file.extractedData.map(data => {
-                const updatedItems = data.items.map((item, index) => 
-                  index === itemIndex ? { ...item, [field]: value } : item
-                );
-                return { ...data, items: updatedItems };
-              })
+                return {
+                  ...data,
+                  items: data.items.map((item, index) =>
+                    index === itemIndex ? { ...item, [field]: processedValue } : item
+                  ),
+                };
+              }),
             }
           : file
       ) as FileWithStatus[]
     );
   };
+  
 
   // Update all invoice data values
   const updateInvoiceData = (fileName: string, updatedInvoiceData: Partial<InvoiceData>) => {
