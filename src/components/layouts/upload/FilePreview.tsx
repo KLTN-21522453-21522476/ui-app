@@ -1,8 +1,17 @@
 import React from 'react';
 import { Spinner } from 'react-bootstrap';
 import { FilePreviewProps } from '../../../types/FileList';
+import { Dialog, IconButton, Box } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 const FilePreview: React.FC<FilePreviewProps> = ({ file, width = "120px", height = "120px" }) => {
+  const [openImageModal, setOpenImageModal] = React.useState(false);
+
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpenImageModal(true);
+  };
+
   return (
     <div className="position-relative">
       <img
@@ -13,9 +22,11 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, width = "120px", height
           height: height,
           objectFit: "cover",
           borderRadius: "4px",
-          opacity: file.status === 'loading' ? 0.5 : 1
+          opacity: file.status === 'loading' ? 0.5 : 1,
+          cursor: 'pointer'
         }}
         className="img-fluid"
+        onClick={handleImageClick}
       />
       {file.status === 'loading' && (
         <div 
@@ -45,6 +56,56 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, width = "120px", height
           <span className="text-danger small">Trích xuất thất bại</span>
         </div>
       )}
+
+      {/* Image Modal */}
+      <Dialog 
+        open={openImageModal} 
+        onClose={(e) => {
+          if (e && typeof (e as any).stopPropagation === 'function') {
+            (e as React.MouseEvent).stopPropagation();
+          }
+          setOpenImageModal(false);
+        }}
+        maxWidth="md"
+        fullWidth
+        onClick={(e) => {
+          if (e && typeof (e as any).stopPropagation === 'function') {
+            (e as React.MouseEvent).stopPropagation();
+          }
+        }}
+      >
+        <Box position="relative" bgcolor="#000" display="flex" justifyContent="center" alignItems="center" onClick={(e) => {
+          if (e && typeof (e as any).stopPropagation === 'function') {
+            (e as React.MouseEvent).stopPropagation();
+          }
+        }}>
+          <IconButton
+            onClick={(e) => {
+              if (e && typeof (e as any).stopPropagation === 'function') {
+                (e as React.MouseEvent).stopPropagation();
+              }
+              setOpenImageModal(false);
+            }}
+            sx={{ position: 'absolute', top: 8, right: 8, color: '#fff', zIndex: 2 }}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <img
+            src={file.preview}
+            alt={file.name}
+            style={{ 
+              width: '100%', 
+              maxWidth: 700, 
+              maxHeight: '80vh', 
+              objectFit: 'contain', 
+              display: 'block', 
+              margin: '0 auto', 
+              background: '#000' 
+            }}
+          />
+        </Box>
+      </Dialog>
     </div>
   );
 };
