@@ -15,23 +15,10 @@ import { setSelectedGroupId } from '../redux/slices/groupSlice';
 type TimeRange = '7days' | '30days' | '90days' | 'year';
 
 const Dashboard: React.FC = () => {
-  const { user, isAuthenticated, isInitialized, checkAuth } = useAuth();
+  const { user, isAuthenticated, isInitialized } = useAuth();
   const navigate = useNavigate();
 
-  // Check authentication status when component mounts
-  useEffect(() => {
-    const verifyAuth = async () => {
-      if (!isInitialized) {
-        await checkAuth();
-      }
-      
-      if (!isAuthenticated && isInitialized) {
-        navigate('/');
-      }
-    };
-    
-    verifyAuth();
-  }, [isAuthenticated, isInitialized, checkAuth, navigate]);
+
 
   // Show loading state while checking auth
   if (!isInitialized) {

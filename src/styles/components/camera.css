@@ -1,0 +1,111 @@
+.camera-container {
+  position: relative;
+  width: 100%;
+  max-width: 100vw;
+  height: 100%;
+  min-height: 60vh;
+  background-color: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.camera-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 10px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+}
+
+.camera-control-button {
+  color: white !important;
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease !important;
+}
+
+.camera-control-button:hover {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.1);
+}
+
+.camera-control-button.capture {
+  padding: 16px !important;
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.camera-control-button.capture:hover {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.camera-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 16px;
+}
+
+.camera-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.preview-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 60vh;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.preview-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+}
+
+/* Mobile-specific styles */
+@media (max-width: 600px) {
+  .camera-container {
+    border-radius: 0;
+    min-height: 80vh;
+  }
+
+  .camera-controls {
+    bottom: 40px;
+  }
+
+  .preview-controls {
+    bottom: 40px;
+  }
+} 
