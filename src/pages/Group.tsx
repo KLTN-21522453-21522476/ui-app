@@ -126,27 +126,45 @@ const GroupPage: React.FC = () => {
 
   return (
     <>
-      <Container fluid className="py-4">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="mb-0">Nhóm</h2>
-          <Button variant="primary" onClick={openCreateModal}>
-            + Tạo nhóm mới
-          </Button>
+      <Container fluid className="px-3 px-md-4 py-3 py-md-4">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 gap-md-0 mb-4">
+          <div className="d-flex justify-content-between align-items-center w-100">
+            <h2 className="mb-0 fs-4 fs-md-2">Nhóm</h2>
+            <div className="d-none d-md-block">
+              <Button 
+                variant="primary" 
+                onClick={openCreateModal}
+                style={{ width: '160px' }}
+              >
+                + Tạo nhóm mới
+              </Button>
+            </div>
+          </div>
+          <div className="d-md-none w-100 d-grid">
+            <Button 
+              variant="primary" 
+              onClick={openCreateModal}
+            >
+              + Tạo nhóm mới
+            </Button>
+          </div>
         </div>
 
-        <GroupFilters
-          searchTerm={searchTerm}
-          sortBy={sortBy}
-          onSearchChange={setSearchTerm}
-          onSortChange={setSortBy}
-        />
+        <div className="mb-4">
+          <GroupFilters
+            searchTerm={searchTerm}
+            sortBy={sortBy}
+            onSearchChange={setSearchTerm}
+            onSortChange={setSortBy}
+          />
+        </div>
 
         {processedGroups.length === 0 ? (
-          <div className="text-center py-5">
+          <div className="text-center py-4">
             <p className="text-muted">Không tìm thấy nhóm nào</p>
           </div>
         ) : (
-          <Row xs={1} md={2} lg={3} className="g-4">
+          <Row xs={1} md={2} lg={3} xxl={4} className="g-3 g-md-4">
             {processedGroups.map(group => (
               <Col key={group.id}>
                 <GroupCard 

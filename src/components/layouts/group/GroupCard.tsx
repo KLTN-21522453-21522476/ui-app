@@ -84,14 +84,37 @@ export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete,
       }}
       onClick={handleSelect} // Loại bỏ điều kiện kiểm tra và gọi trực tiếp handleSelect
     >
-      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Stack spacing={2}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Stack>
-              <Typography variant="h6" fontWeight={700} gutterBottom>
+      <CardContent sx={{ 
+        flexGrow: 1, 
+        p: { xs: 2, md: 3 },
+        '&:last-child': { pb: { xs: 2, md: 3 } }
+      }}>
+        <Stack spacing={{ xs: 1.5, md: 2 }}>
+          <Stack 
+            direction={{ xs: 'column', md: 'row' }} 
+            justifyContent="space-between" 
+            alignItems={{ xs: 'flex-start', md: 'center' }}
+            spacing={{ xs: 1, md: 0 }}
+          >
+            <Stack spacing={0.5}>
+              <Typography 
+                variant="h6" 
+                fontWeight={700} 
+                sx={{
+                  fontSize: { xs: '1rem', md: '1.25rem' },
+                  wordBreak: { xs: 'break-word', md: 'normal' }
+                }}
+              >
                 {group.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: { xs: '0.875rem', md: '1rem' },
+                  wordBreak: { xs: 'break-word', md: 'normal' }
+                }}
+              >
                 Mô tả: {group.description}
               </Typography>
             </Stack>
@@ -106,37 +129,71 @@ export const GroupCard: React.FC<GroupCardProps> = ({ group, onRename, onDelete,
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.1)',
                 },
+                alignSelf: { xs: 'flex-end', md: 'center' }
               }}
             >
               <MoreVertIcon sx={{ color: 'text.secondary' }} />
             </IconButton>
           </Stack>
-          <Divider sx={{ my: 1 }} />
-          <Stack spacing={1.5}>
-            <Typography variant="body2" color="text.secondary">
+          <Divider sx={{ my: { xs: 0.5, md: 1 } }} />
+          
+          <Stack spacing={{ xs: 1, md: 1.5 }}>
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
+            >
               <span style={{ fontWeight: 600 }}>ID:</span> {group.id}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
+            >
               <span style={{ fontWeight: 600 }}>Ngày tạo:</span> {group.created_date}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
+            >
               <span style={{ fontWeight: 600 }}>Người tạo:</span> {group.created_by}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
+            >
               <span style={{ fontWeight: 600 }}>Số lượng hóa đơn:</span> {group.invoice_count}
             </Typography>
             {group.description && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
+              >
                 <span style={{ fontWeight: 600 }}>Mô tả:</span> {group.description}
               </Typography>
             )}
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
+            >
               <span style={{ fontWeight: 600 }}>Ngày cập nhật:</span> {group.updated_date}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
+            >
               <span style={{ fontWeight: 600 }}>Người cập nhật:</span> {group.updated_by}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
+            >
               <span style={{ fontWeight: 600 }}>Vai trò:</span> {group.user_roles.join(', ')}
             </Typography>
           </Stack>
