@@ -9,7 +9,7 @@
 .mobile-menu-button {
   display: none;
   position: fixed;
-  z-index: 1100;
+  z-index: 1000;
   background: #222b45;
   color: #f4f6fc;
   border: none;
@@ -22,11 +22,6 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  will-change: transform;
-  -webkit-transform: translate3d(0,0,0);
-  transform: translate3d(0,0,0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
 }
 
 .mobile-menu-button:hover {
@@ -142,15 +137,9 @@
 /* Mobile styles */
 @media (max-width: 768px) {
   .mobile-menu-button {
-    display: flex !important;
+    display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.9;
-    transition: opacity 0.3s ease;
-  }
-
-  .mobile-menu-button:active {
-    opacity: 1;
   }
 
   .sidebar-container-flex {
@@ -160,10 +149,10 @@
     width: 56px;
     height: 100vh;
     background-color: #222b45;
-    z-index: 1050;
+    z-index: 999;
     transition: left 0.3s ease;
     flex-direction: column;
-    padding-top: 60px;
+    padding-top: 60px; /* Add padding for the menu button */
   }
 
   .sidebar-container-flex.mobile-open {
