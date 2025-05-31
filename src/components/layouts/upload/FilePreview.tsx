@@ -2,7 +2,7 @@ import React from 'react';
 import { Spinner } from 'react-bootstrap';
 import { FilePreviewProps } from '../../../types/FileList';
 
-const FilePreview: React.FC<FilePreviewProps> = ({ file, width = "150px", height = "150px" }) => {
+const FilePreview: React.FC<FilePreviewProps> = ({ file, width = "120px", height = "120px" }) => {
   return (
     <div className="position-relative">
       <img
@@ -12,9 +12,10 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, width = "150px", height
           width: width,
           height: height,
           objectFit: "cover",
-          marginRight: "10px",
+          borderRadius: "4px",
           opacity: file.status === 'loading' ? 0.5 : 1
         }}
+        className="img-fluid"
       />
       {file.status === 'loading' && (
         <div 
@@ -26,7 +27,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, width = "150px", height
             bottom: 0
           }}
         >
-          <Spinner animation="border" variant="primary" />
+          <Spinner animation="border" variant="primary" size="sm" />
         </div>
       )}
       {file.status === 'error' && (
@@ -37,10 +38,11 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, width = "150px", height
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(255, 0, 0, 0.2)'
+            backgroundColor: 'rgba(255, 0, 0, 0.2)',
+            borderRadius: "4px"
           }}
         >
-          <span className="text-danger">Trích xuất thất bại</span>
+          <span className="text-danger small">Trích xuất thất bại</span>
         </div>
       )}
     </div>

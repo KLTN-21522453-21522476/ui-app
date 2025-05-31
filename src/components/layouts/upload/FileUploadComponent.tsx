@@ -32,7 +32,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   const uploadComponent = (
     <div
       {...getRootProps()}
-      className="border border-dashed p-4 rounded"
+      className="border border-dashed p-3 p-md-4 rounded"
       style={{
         borderColor: "#ddd",
         backgroundColor: "#f9f9f9",
@@ -40,27 +40,27 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     >
       <input {...getInputProps()} />
       <div className="mb-3">
-        <img src="picture.png" alt="Upload" style={{ width: "50px" }} />
+        <img src="picture.png" alt="Upload" style={{ width: "40px", height: "40px" }} className="mb-2" />
       </div>
-      <p className="text-muted">
+      <p className="text-muted small">
         Kéo thả hoặc tải hình ảnh vào đây
         <br />
-        <small>Hỗ trợ định dạng: JPG, PNG</small>
+        <small className="d-block mt-1">Hỗ trợ định dạng: JPG, PNG</small>
       </p>
-      <Button variant="primary" className="mt-3">
+      <Button variant="primary" size="sm" className="mt-2">
         Tải hình ảnh từ máy bạn
       </Button>
     </div>
   );
 
   return (
-    <Container className="text-center py-5">
+    <Container className="text-center py-4">
       <Row className="justify-content-center">
-        <Col md={10} lg={8}>
-          <h1 className="mb-3">{title}</h1>
-          <p className="text-muted">{description}</p>
+        <Col xs={12} sm={12} md={10} lg={8}>
+          <h1 className="mb-3 fs-2">{title}</h1>
+          <p className="text-muted px-2">{description}</p>
           <Card
-            className="p-4 shadow-sm"
+            className="p-3 p-md-4 shadow-sm mx-2 mx-md-0"
             style={{
               transition: "all 0.3s ease",
               cursor: "pointer",

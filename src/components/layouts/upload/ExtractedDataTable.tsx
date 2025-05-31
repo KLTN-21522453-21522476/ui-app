@@ -209,38 +209,42 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   }
 
   return (
-    <div className="mt-3 border rounded p-3">
+    <div className="mt-3 border rounded p-2 p-md-3">
       <Row className="mb-3">
-        <Col md={6}>
+        <Col xs={12} md={6}>
           <Form.Group className="mb-3">
-            <Form.Label><strong>Tên hoá đơn</strong></Form.Label>
+            <Form.Label className="fw-bold small">Tên hoá đơn</Form.Label>
             <VietnameseInput 
               type="text" 
               value={matchedInvoiceData?.fileName || ''} 
               onChange={(e) => handleFieldChange('fileName', e.target.value)}
+              className="form-control form-control-sm"
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label><strong>Cửa hàng</strong></Form.Label>
+            <Form.Label className="fw-bold small">Cửa hàng</Form.Label>
             <VietnameseInput 
               type="text" 
               value={matchedInvoiceData?.storeName || ''} 
               onChange={(e) => handleFieldChange('storeName', e.target.value)}
+              className="form-control form-control-sm"
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label style={{color: '#000'}}><strong>Số hoá đơn</strong></Form.Label>
-            <InputGroup>
+            <Form.Label className="fw-bold small" style={{color: '#000'}}>Số hoá đơn</Form.Label>
+            <InputGroup size="sm">
               <VietnameseInput
                 type="text"
                 value={localId}
                 onChange={(e) => handleFieldChange('id', e.target.value)}
                 maxLength={25}
+                className="form-control form-control-sm"
               />
               <Button
                 variant="outline-secondary"
+                size="sm"
                 onClick={handleRandomId}
               >
                 Random
@@ -267,122 +271,114 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
           </Form.Group>
         </Col>
 
-        <Col md={6}>
+        <Col xs={12} md={6}>
           <FilePreview file={file} width={300} height={300}/>
         </Col>
       </Row>
 
       <h5 className="mb-3">Chi tiết sản phẩm</h5>
-      <Table bordered hover responsive>
-        <thead className="table-light">
-          <tr>
-            <th>Sản phẩm</th>
-            <th>Giá</th>
-            <th>Số lượng</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {localItems.map((item, index) => (
-            <tr key={index}>
-              <td>
-                <VietnameseInput 
-                  type="text" 
-                  value={item.item || ''} 
-                  onChange={(e) => handleUpdateItem(index, { ...item, item: e.target.value })}
-                />
-              </td>
-              <td>
-                <FormControl 
-                  type="number" 
-                  value={item.price} 
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 0 : Number(e.target.value);
-                    handleUpdateItem(index, { ...item, price: value });
-                  }}
-                />
-              </td>
-              <td>
-                <FormControl
-                  type="number"
-                  value={item.quantity}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 0 : Number(e.target.value);
-                    handleUpdateItem(index, { ...item, quantity: value });
-                  }}
-                />
-              </td>
-              <td>
-                <Button variant="danger" onClick={() => handleRemoveItem(index)}>Xoá</Button>
-              </td>
+      <div className="table-responsive">
+        <Table striped bordered hover responsive size="sm" className="mt-3 mt-md-0 text-center">
+          <thead>
+            <tr>
+              <th className="small text-center">Tên sản phẩm</th>
+              <th className="small text-center" style={{ width: "100px" }}>Số lượng</th>
+              <th className="small text-center" style={{ width: "120px" }}>Đơn giá</th>
+              <th className="small text-center" style={{ width: "50px" }}></th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {localItems.map((item, index) => (
+              <tr key={index}>
+                <td className="align-middle">
+                  <VietnameseInput
+                    type="text"
+                    value={item.item}
+                    onChange={(e) => handleUpdateItem(index, { ...item, item: e.target.value })}
+                    className="form-control form-control-sm text-center"
+                  />
+                </td>
+                <td className="align-middle">
+                  <FormControl
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) => handleUpdateItem(index, { ...item, quantity: Number(e.target.value) })}
+                    className="form-control form-control-sm text-center"
+                  />
+                </td>
+                <td className="align-middle">
+                  <FormControl
+                    type="number"
+                    value={item.price}
+                    onChange={(e) => handleUpdateItem(index, { ...item, price: Number(e.target.value) })}
+                    className="form-control form-control-sm text-center"
+                  />
+                </td>
+                <td className="align-middle">
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleRemoveItem(index)}
+                    className="p-1"
+                  >
+                    ×
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
 
-      <Button variant="primary" onClick={handleAddItem} className="mb-3">
-        + Thêm sản phẩm
-      </Button>
-
-      <Form.Group className="mb-3">
-        <Form.Label><strong>Tổng cộng</strong></Form.Label>
-          <FormControl 
-            type="number" 
-            value={localTotalAmount} 
-            onChange={(e) => {
-              const value = e.target.value === '' ? 0 : Number(e.target.value);
-              handleFieldChange('totalAmount', value);
-            }}
-            className="bg-light"
-          />
-      </Form.Group>
-
-      <div className="d-flex justify-content-end mt-3">
-        <Button 
-          variant="success" 
-          className="me-3" 
-          onClick={handleApprove}
-          disabled={user?.$id == null || isApproving}
+      <div className="d-flex flex-column align-items-center gap-3 mt-3">
+        <Button
+          variant="outline-primary"
+          size="sm"
+          onClick={handleAddItem}
         >
-          {isApproving ? (
-            <>
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-                className="me-2"
-              />
-              Đang xử lý...
-            </>
-          ) : (
-            'Approve hoá đơn'
-          )}
+          + Thêm sản phẩm
         </Button>
+        
+        <div className="d-flex gap-2">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-1" />
+                Đang lưu...
+              </>
+            ) : (
+              'Lưu'
+            )}
+          </Button>
+          <Button
+            variant="success"
+            size="sm"
+            onClick={handleApprove}
+            disabled={isApproving}
+          >
+            {isApproving ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-1" />
+                Đang duyệt...
+              </>
+            ) : (
+              'Duyệt'
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <div className="text-center mt-3">
         <Button 
-          variant="success" 
-          className="me-3" 
-          onClick={handleSubmit}
-          disabled={user?.$id == null || isSubmitting}
+          variant="danger" 
+          size="sm"
+          onClick={() => onRemoveFile(file.name)}
         >
-          {isSubmitting ? (
-            <>
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-                className="me-2"
-              />
-              Đang xử lý...
-            </>
-          ) : (
-            'Submit hoá đơn'
-          )}
-        </Button>
-        <Button variant="danger" onClick={() => onRemoveFile(file.name)}>
           Xoá hoá đơn này
         </Button>
       </div>

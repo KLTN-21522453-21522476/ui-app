@@ -155,16 +155,15 @@ const FileList: React.FC<FileListProps> = ({
           {filesWithStatus.map((file) => (
           <ListGroup.Item
             key={file.name}
-            className="d-flex flex-column"
+            className="d-flex flex-column p-2 p-md-3"
           >
             {file.status !== 'success' && !file.extractedData ? (
-              // Show this section only when status is not success
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="d-flex align-items-center">
-                  <FilePreview file={file} />
-                  <div className="ms-3">
-                    <h5 className="mb-1">{file.name}</h5>
-                    <p className="text-muted mb-0">{file.size}</p>
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+                <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-2 mb-md-0 w-100">
+                  <FilePreview file={file} width="100px" height="100px" />
+                  <div className="ms-0 ms-md-3 mt-2 mt-md-0">
+                    <h5 className="mb-1 fs-6">{file.name}</h5>
+                    <p className="text-muted mb-0 small">{file.size}</p>
                     {file.status === 'error' && (
                       <Alert variant="danger" className="mt-2 mb-0 py-1 px-2">
                         <small>{file.errorMessage || 'Lỗi xử lý tệp'}</small>
@@ -172,9 +171,9 @@ const FileList: React.FC<FileListProps> = ({
                     )}
                   </div>
                 </div>
-                <div>
+                <div className="d-flex gap-2 mt-2 mt-md-0">
                   {file.status === 'loading' ? (
-                    <Button variant="primary" disabled>
+                    <Button variant="primary" disabled size="sm" className="w-100 w-md-auto">
                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                       Đang xử lý...
                     </Button>
@@ -182,13 +181,16 @@ const FileList: React.FC<FileListProps> = ({
                     <>
                       <Button 
                         variant="primary" 
-                        className="me-2"
+                        size="sm"
+                        className="flex-grow-1 flex-md-grow-0"
                         onClick={() => processFile(file.name)}
                       >
                         {file.status === 'error' ? 'Thử lại' : 'Xử lý'}
                       </Button>
                       <Button 
                         variant="outline-danger"
+                        size="sm"
+                        className="flex-grow-1 flex-md-grow-0"
                         onClick={() => onRemoveFile(file.name)}
                       >
                         Xóa
@@ -198,18 +200,16 @@ const FileList: React.FC<FileListProps> = ({
                 </div>
               </div>
             ) : (
-              // Show this section when status is success
               <div>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div className="d-flex align-items-center">
-                    <div className="ms-3">
-                      <h5 className="mb-1">{file.name}</h5>
-                      <p className="text-muted mb-0">{file.size} kB</p>
+                <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+                  <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                    <div className="ms-0 ms-md-3">
+                      <h5 className="mb-1 fs-6">{file.name}</h5>
+                      <p className="text-muted mb-0 small">{file.size} kB</p>
                     </div>
                   </div>
                 </div>
                 
-                {/* Extracted data table */}
                 <ExtractedDataTable 
                   file={file}
                   groupId={selectedGroupId}
@@ -225,20 +225,23 @@ const FileList: React.FC<FileListProps> = ({
         </ListGroup>
         
         {filesWithStatus.length > 0 && (
-          <div className="d-flex justify-content-between mt-3">
-            <div>
+          <div className="d-flex flex-column flex-md-row justify-content-between mt-3 gap-2">
+            <div className="d-flex gap-2 flex-column flex-md-row w-100 w-md-auto">
               <Button 
                 variant="primary" 
-                className="me-2" 
+                className="w-100 w-md-auto" 
                 onClick={processAllFiles}
                 disabled={hasLoadingFiles}
+                size="sm"
               >
                 Xử lý tất cả
               </Button>
               <Button 
                 variant="success" 
+                className="w-100 w-md-auto"
                 disabled={!hasSuccessfulFiles || hasLoadingFiles}
                 onClick={handleSaveAll}
+                size="sm"
               >
                 Lưu tất cả
               </Button>
@@ -247,6 +250,8 @@ const FileList: React.FC<FileListProps> = ({
               variant="outline-danger" 
               onClick={onClearAll}
               disabled={hasLoadingFiles}
+              className="w-100 w-md-auto"
+              size="sm"
             >
               Xóa tất cả
             </Button>

@@ -15,7 +15,7 @@ import { setSelectedGroupId } from '../redux/slices/groupSlice';
 type TimeRange = '7days' | '30days' | '90days' | 'year';
 
 const Dashboard: React.FC = () => {
-  const { user, isAuthenticated, isInitialized } = useAuth();
+  const { user, isInitialized } = useAuth();
   const navigate = useNavigate();
 
   // Show loading state while checking auth
@@ -25,11 +25,6 @@ const Dashboard: React.FC = () => {
         <Spinner animation="border" variant="primary" />
       </Container>
     );
-  }
-
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    return null; // Will be redirected by the useEffect
   }
 
   // Statistic hook
