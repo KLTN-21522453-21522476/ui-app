@@ -9,8 +9,6 @@
 .mobile-menu-button {
   display: none;
   position: fixed;
-  top: 1rem;
-  left: 1rem;
   z-index: 1000;
   background: #222b45;
   color: #f4f6fc;
@@ -20,12 +18,18 @@
   height: 40px;
   font-size: 20px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transition: background-color 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .mobile-menu-button:hover {
   background: #6366f1;
+}
+
+.mobile-menu-button:active {
+  transform: scale(0.95);
 }
 
 /* Sidebar mặc định */
