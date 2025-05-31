@@ -14,9 +14,12 @@ import { setSelectedGroupId } from '../redux/slices/groupSlice';
 type TimeRange = '7days' | '30days' | '90days' | 'year';
 
 const Dashboard: React.FC = () => {
-  const { user, isInitialized } = useAuth();
+  const { user, isAuthenticated, isInitialized } = useAuth();
   const navigate = useNavigate();
 
+
+
+  // Show loading state while checking auth
   if (!isInitialized) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>

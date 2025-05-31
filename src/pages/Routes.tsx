@@ -5,6 +5,7 @@ import UploadInvoicePage from './UploadInvoicePage';
 import Dashboard from './Dashboard';
 import Group  from './Group';
 import ProtectedRoute from '../components/routes/ProtectedRoute';
+import { CameraPage } from './CameraPage';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -25,6 +26,11 @@ const AppRoutes: React.FC = () => {
       <Route path="/dashboard" element={
         <ProtectedRoute requireGroup>
           <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/invoice-capture" element={
+        <ProtectedRoute requireGroup>
+          <CameraPage />
         </ProtectedRoute>
       } />
       {/* Catch-all route: redirect to homepage */}
