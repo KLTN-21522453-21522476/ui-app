@@ -1,15 +1,14 @@
-import React, { useCallback, useState } from 'react';
-import { Box, Container, Snackbar, Alert, Typography, Button } from '@mui/material';
+import React, { useCallback, useState, useEffect } from 'react';
+import { Box, Container, Snackbar, Alert, Typography, Button, CircularProgress, Paper } from '@mui/material';
 import { useCamera } from '../../hooks/useCamera';
 import { cameraApi } from '../../api/cameraApi';
-//import { CapturedImage } from '../../types/camera.types';
-//import { CAMERA_CONSTRAINTS } from '../../constants/camera.constants';
 
 export const CameraPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [cameraInitialized, setCameraInitialized] = useState(false);
+  const [availableDevices, setAvailableDevices] = useState<MediaDeviceInfo[]>([]);
   
   const {
     videoRef,
@@ -17,12 +16,24 @@ export const CameraPage: React.FC = () => {
     error: cameraError,
     permissionStatus,
     startCamera,
-    captureImage
+    captureImage,
+    getDevices,
+    devices
   } = useCamera();
 
-  const handleInitCamera = useCallback(async () => {
+  const handleGetDevices = useCallback(async () => {
+    const deviceList = await getDevices();
+    setAvailableDevices(deviceList);
+  }, [getDevices]);
+
+  useEffect(() => {
+    // Lấy danh sách thiết bị khi component được mount
+    handleGetDevices();
+  }, [handleGetDevices]);
+
+  const handleInitCamera = useCallback(async (deviceId?: string) => {
     try {
-      await startCamera();
+      await startCamera(deviceId);
       setCameraInitialized(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể khởi tạo camera');
@@ -61,14 +72,41 @@ export const CameraPage: React.FC = () => {
           Camera
         </Typography>
         
+        {/* Hiển thị danh sách thiết bị camera có sẵn */}
+        {availableDevices.length > 0 && !cameraInitialized && (
+          <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Chọn thiết bị camera:
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {availableDevices.map((device) => {
+                const isObs = device.label.includes('OBS') || device.label.includes('Virtual Camera');
+                return (
+                  <Button 
+                    key={device.deviceId}
+                    variant={isObs ? "contained" : "outlined"}
+                    color={isObs ? "success" : "primary"}
+                    onClick={() => handleInitCamera(device.deviceId)}
+                    sx={{ mb: 1 }}
+                  >
+                    {device.label || `Camera ${availableDevices.indexOf(device) + 1}`}
+                    {isObs && " (Khuyên dùng)"}
+                  </Button>
+                );
+              })}
+            </Box>
+          </Paper>
+        )}
+        
         <Box sx={{ position: 'relative', mb: 2 }}>
-          {!cameraInitialized && (
+          {!cameraInitialized && availableDevices.length === 0 && (
             <Box sx={{ textAlign: 'center', my: 4 }}>
               <Button 
                 variant="contained" 
                 color="primary" 
-                onClick={handleInitCamera}
+                onClick={() => handleInitCamera()}
                 disabled={isLoading}
+                startIcon={isLoading ? <CircularProgress size={20} /> : null}
               >
                 {isLoading ? 'Đang khởi tạo...' : 'Bật Camera'}
               </Button>
@@ -102,12 +140,29 @@ export const CameraPage: React.FC = () => {
                 color="primary" 
                 onClick={handleCapture}
                 disabled={isUploading}
+                startIcon={isUploading ? <CircularProgress size={20} /> : null}
               >
-                Chụp ảnh
+                {isUploading ? 'Đang xử lý...' : 'Chụp ảnh'}
               </Button>
             </Box>
           )}
         </Box>
+
+        {/* Hiển thị nút chọn lại camera nếu đã khởi tạo */}
+        {cameraInitialized && (
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Button 
+              variant="outlined" 
+              color="secondary" 
+              onClick={() => {
+                setCameraInitialized(false);
+                handleGetDevices();
+              }}
+            >
+              Chọn camera khác
+            </Button>
+          </Box>
+        )}
 
         <Snackbar
           open={isUploading}

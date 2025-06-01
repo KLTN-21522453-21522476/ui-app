@@ -146,38 +146,52 @@ export const useCamera = () => {
         }
       }
 
+      // Lấy danh sách thiết bị
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      // Tìm OBS Virtual Camera trong danh sách thiết bị
+      const obsVirtualCam = videoDevices.find(device => 
+        device.label.includes('OBS') || device.label.includes('OBS-Camera') || device.label.includes('Virtual Camera')
+      );
+      
+      // Nếu tìm thấy OBS Virtual Camera và không có deviceId được chỉ định, ưu tiên sử dụng OBS
+      const targetDeviceId = deviceId || (obsVirtualCam ? obsVirtualCam.deviceId : undefined);
+
+      console.log('Đang thử kết nối với thiết bị:', targetDeviceId ? `ID: ${targetDeviceId}` : 'Mặc định');
+
       const constraintsToTry = [
-        // 1. Try with specified or first available device
+        // 1. Thử với thiết bị được chỉ định hoặc OBS Virtual Camera
         {
-          deviceId: deviceId ? { exact: deviceId } : undefined,
+          deviceId: targetDeviceId ? { exact: targetDeviceId } : undefined,
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 },
           facingMode: { ideal: 'environment' }
         },
-        // 2. Try environment camera without device ID
+        // 2. Thử với camera environment không có device ID
         {
           facingMode: { ideal: 'environment' },
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 }
         },
-        // 3. Try user camera
+        // 3. Thử với camera user
         {
           facingMode: { ideal: 'user' },
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 }
         },
-        // 4. Try with minimal constraints
+        // 4. Thử với ràng buộc tối thiểu
         {
           facingMode: 'environment'
         },
-        // 5. Last resort - any video device
+        // 5. Phương án cuối cùng - bất kỳ thiết bị video nào
         true
       ];
 
       let lastError = null;
       for (const constraints of constraintsToTry) {
         try {
-          console.log('Trying camera with constraints:', JSON.stringify(constraints));
+          console.log('Đang thử camera với ràng buộc:', JSON.stringify(constraints));
           const stream = await navigator.mediaDevices.getUserMedia({
             video: constraints,
             audio: false
@@ -199,7 +213,7 @@ export const useCamera = () => {
             ...prev,
             stream,
             isLoading: false,
-            selectedDevice: deviceId || 'default',
+            selectedDevice: targetDeviceId || 'default',
             error: null
           }));
 
@@ -329,4 +343,4 @@ export const useCamera = () => {
     getDevices,
     requestPermission,
   };
-}; 
+};
