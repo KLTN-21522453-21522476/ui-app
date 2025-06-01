@@ -20,6 +20,23 @@ const barColors = [
 ];
 
 const ProductChart: React.FC<{ group_id: string }> = ({ group_id }) => {
+
+  if (!group_id){
+    console.log("ProductChart: group_id is not set")
+    return (
+      <div className="h-100 d-flex flex-column">
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+          <h5 className="mb-0">Top 5 sản phẩm bán chạy</h5>
+        </div>
+        <div style={{ flex: 1, minHeight: 240 }}>
+          <Alert variant="info" className="text-center my-5">
+            Không có dữ liệu
+          </Alert>
+        </div>
+      </div>
+    )
+  }
+  
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const { topProducts, loading, error, getTopProducts } = useStatistic();
 
@@ -32,7 +49,6 @@ const ProductChart: React.FC<{ group_id: string }> = ({ group_id }) => {
   else if (timeRange === 'year') start_date.setFullYear(now.getFullYear() - 1);
 
   useEffect(() => {
-    // Fetch top products when timeRange changes
     getTopProducts({
       group_id,
       start_date: start_date.toISOString().slice(0, 10),
