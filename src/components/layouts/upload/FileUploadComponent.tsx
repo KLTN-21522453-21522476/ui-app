@@ -1,25 +1,33 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { useDropzone } from "react-dropzone";
-import { FileUploadComponentProps } from "../../../types/UploadeFile";
+import { useDispatch } from 'react-redux';
+import { addFiles } from '../../../redux/slices/fileUploadSlice';
+import type { FilePreview } from '../../../redux/slices/fileUploadSlice';
+
+interface FileUploadComponentProps {
+  title: string;
+  description: string;
+  fileListComponent?: React.ReactNode;
+}
 
 const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   title,
   description,
-  onAddFiles,
   fileListComponent,
 }) => {
   const [hovered, setHovered] = useState(false);
+  const dispatch = useDispatch();
 
   const onDrop = (acceptedFiles: File[]) => {
     const filesWithPreview = acceptedFiles.map((file) => ({
-      file,
       preview: URL.createObjectURL(file),
       name: file.name,
       size: (file.size / 1024).toFixed(2),
-      
+      type: file.type,
+      lastModified: file.lastModified
     }));
-    onAddFiles(filesWithPreview);
+    dispatch(addFiles(filesWithPreview));
   };
 
   const { getRootProps, getInputProps } = useDropzone({

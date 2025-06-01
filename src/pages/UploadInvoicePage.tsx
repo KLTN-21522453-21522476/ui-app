@@ -1,39 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { UploadedFile } from "../types/UploadeFile";
-import fileService from "../hooks/useFileService";
-import FileList from "../components/layouts/upload/FileList";
-import FileUploadComponent from "../components/layouts/upload/FileUploadComponent"; 
+import React from "react";
 import { useSelector } from 'react-redux';
+import FileList from "../components/layouts/upload/FileList";
+import FileUploadComponent from "../components/layouts/upload/FileUploadComponent";
+import { RootState } from "../redux/store";
 
 const InvoiceExtraction: React.FC = () => {
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const selectedGroupId = useSelector((state: any) => state.groups.selectedGroupId);
-
-  useEffect(() => {
-    return () => {
-      fileService.cleanupPreviews(uploadedFiles);
-    };
-  }, [uploadedFiles]);
-
-  const handleAddFiles = (files: UploadedFile[]) => {
-    setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
-  };
-
-  const handleRemoveFile = (fileName: string) => {
-    const fileToRemove = uploadedFiles.find(file => file.name === fileName);
-    if (fileToRemove && fileToRemove.preview) {
-      URL.revokeObjectURL(fileToRemove.preview);
-    }
-    
-    setUploadedFiles((prevFiles) =>
-      prevFiles.filter((file) => file.name !== fileName)
-    );
-  };
-
-  const handleClearAll = () => {
-    fileService.cleanupPreviews(uploadedFiles);
-    setUploadedFiles([]);
-  };
+  const files = useSelector((state: RootState) => state.fileUpload.files);
 
   return (
     <div className="min-vh-100 d-flex align-items-start justify-content-center py-4 px-3 px-sm-4">
@@ -41,16 +13,10 @@ const InvoiceExtraction: React.FC = () => {
         <FileUploadComponent
           title="Trích xuất dữ liệu"
           description="Sử dụng mô hình YOLO tiên tiến và OCR mạnh mẽ để trích xuất dữ liệu từ hoá đơn của bạn một cách nhanh chóng"
-          onAddFiles={handleAddFiles}
           fileListComponent={
-            uploadedFiles.length > 0 ? (
+            files.length > 0 ? (
               <div className="mt-4">
-                <FileList
-                  files={uploadedFiles}
-                  onRemoveFile={handleRemoveFile}
-                  onClearAll={handleClearAll}
-                  groupId={selectedGroupId}
-                />
+                <FileList />
               </div>
             ) : null
           }

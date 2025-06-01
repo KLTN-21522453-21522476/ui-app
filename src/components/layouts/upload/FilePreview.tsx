@@ -1,8 +1,14 @@
 import React from 'react';
 import { Spinner } from 'react-bootstrap';
-import { FilePreviewProps } from '../../../types/FileList';
 import { Dialog, IconButton, Box } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { FilePreview as FilePreviewType } from '../../../redux/slices/fileUploadSlice';
+
+interface FilePreviewProps {
+  file: FilePreviewType;
+  width?: string;
+  height?: string;
+}
 
 const FilePreview: React.FC<FilePreviewProps> = ({ file, width = "120px", height = "120px" }) => {
   const [openImageModal, setOpenImageModal] = React.useState(false);
