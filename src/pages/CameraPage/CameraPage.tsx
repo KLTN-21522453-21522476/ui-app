@@ -18,7 +18,6 @@ export const CameraPage: React.FC = () => {
     startCamera,
     captureImage,
     getDevices,
-    devices
   } = useCamera();
 
   const handleGetDevices = useCallback(async () => {

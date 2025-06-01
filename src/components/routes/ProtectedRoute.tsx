@@ -18,15 +18,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement, requireGroup?: bo
     return <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh'}}>Đang kiểm tra phiên đăng nhập...</div>;
   }
 
-  // if (!isAuthenticated) {
-  //   // Not logged in: redirect to home
-  //   return <Navigate to="/" state={{ from: location }} replace />;
-  // }
+  if (!isAuthenticated) {
+    // Not logged in: redirect to home
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
 
-  // if (requireGroup && !selectedGroupId) {
-  //   // Logged in but no group selected: only allow /groups
-  //   return <Navigate to="/groups" state={{ from: location }} replace />;
-  // }
+  if (requireGroup && !selectedGroupId) {
+    // Logged in but no group selected: only allow /groups
+    return <Navigate to="/groups" state={{ from: location }} replace />;
+  }
 
   return children;
 };

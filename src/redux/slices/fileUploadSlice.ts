@@ -5,10 +5,12 @@ export interface FilePreview {
   name: string;
   size: string;
   type: string;
+  file?: File;
   lastModified?: number;
   status?: 'idle' | 'loading' | 'success' | 'error';
   errorMessage?: string;
   extractedData?: any;
+  url?: string; // URL for remote images
 }
 
 interface FileUploadState {

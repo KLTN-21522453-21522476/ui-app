@@ -3,7 +3,6 @@ import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { useDropzone } from "react-dropzone";
 import { useDispatch } from 'react-redux';
 import { addFiles } from '../../../redux/slices/fileUploadSlice';
-import type { FilePreview } from '../../../redux/slices/fileUploadSlice';
 
 interface FileUploadComponentProps {
   title: string;
@@ -25,6 +24,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       name: file.name,
       size: (file.size / 1024).toFixed(2),
       type: file.type,
+      file: file,
       lastModified: file.lastModified
     }));
     dispatch(addFiles(filesWithPreview));

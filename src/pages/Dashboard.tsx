@@ -14,7 +14,7 @@ import { setSelectedGroupId } from '../redux/slices/groupSlice';
 type TimeRange = '7days' | '30days' | '90days' | 'year';
 
 const Dashboard: React.FC = () => {
-  const { user, isAuthenticated, isInitialized } = useAuth();
+  const { user, isInitialized } = useAuth();
   const navigate = useNavigate();
 
 
