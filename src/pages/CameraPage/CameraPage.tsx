@@ -3,6 +3,7 @@ import { Box, Container, Snackbar, Alert, Typography, Button, CircularProgress, 
 import { useCamera } from '../../hooks/useCamera';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
+import { useCamera as useCameraContext } from '../../contexts/CameraContext';
 
 export const CameraPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +22,8 @@ export const CameraPage: React.FC = () => {
     getDevices,
   } = useCamera();
 
+  const { capturedImages } = useCameraContext();
+
   // Get extraction status from Redux store
   const extractionStatus = useSelector((state: RootState) => state.extraction.loading);
   const extractedDataList = useSelector((state: RootState) => state.extraction.extractedDataList);
@@ -37,7 +40,6 @@ export const CameraPage: React.FC = () => {
 
   // Theo dõi sự thay đổi của trạng thái trích xuất để cập nhật isProcessing
   useEffect(() => {
-    // Chỉ cập nhật isProcessing khi đang xử lý và trạng thái trích xuất thay đổi
     if (isProcessing && !isCurrentlyProcessing) {
       setIsProcessing(false);
     }
@@ -70,14 +72,13 @@ export const CameraPage: React.FC = () => {
 
   const handleCapture = useCallback(async () => {
     try {
-      // Kiểm tra nếu đang xử lý thì không làm gì
       if (isProcessing) return;
       
       setIsProcessing(true);
       setError(null);
 
-      const capturedImage = await captureImage(selectedModel);
-      if (!capturedImage) {
+      const result = await captureImage(selectedModel);
+      if (!result) {
         setError('Không thể chụp ảnh');
         setIsProcessing(false);
       }
@@ -241,9 +242,18 @@ export const CameraPage: React.FC = () => {
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
           <Alert severity="success">
-            Xử lý ảnh thành công! Bạn có thể tiếp tục chụp ảnh hoặc kiểm tra kết quả trong trang Upload
+            Xử lý ảnh thành công! Bạn có thể tiếp tục chụp ảnh hoặc kiểm tra kết quả trong trang kết quả trích xuất
           </Alert>
         </Snackbar>
+
+        {/* Captured images count */}
+        {capturedImages.length > 0 && (
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Typography variant="body1" color="text.secondary">
+              Đã chụp {capturedImages.length} ảnh
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Container>
   );

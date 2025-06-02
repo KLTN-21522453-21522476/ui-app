@@ -5,15 +5,17 @@ import { Box, Typography, Paper, Container, Button } from '@mui/material';
 import ExtractedDataTable from '../components/layouts/upload/ExtractedDataTable';
 import { Link } from 'react-router-dom';
 import { useInvoices } from '../hooks/useInvoices';
+import { useCamera } from '../contexts/CameraContext';
 
 const ExtractedDataPage: React.FC = () => {
   const files = useSelector((state: RootState) => state.fileUpload.files);
   const extractedDataList = useSelector((state: RootState) => state.extraction.extractedDataList);
   const selectedGroupId = useSelector((state: RootState) => state.groups.selectedGroupId);
   const { createInvoice, approveInvoice } = useInvoices(selectedGroupId || '');
+  const { capturedImages } = useCamera();
 
   const filesWithExtractedData = useMemo(() => {
-    return files.map(file => {
+    const uploadedFiles = files.map(file => {
       const extractedData = extractedDataList.find(data => data.fileName === file.name);
       return {
         ...file,
@@ -21,8 +23,23 @@ const ExtractedDataPage: React.FC = () => {
         extractedData: extractedData ? [extractedData] : undefined,
         file: file.file || new File([], file.name)
       };
-    }).filter(file => file.extractedData);
-  }, [files, extractedDataList]);
+    });
+
+    const capturedFiles = capturedImages.map(captured => {
+      const extractedData = extractedDataList.find(data => data.fileName === captured.id);
+      return {
+        name: captured.id,
+        preview: captured.dataUrl,
+        size: (captured.file.size / 1024).toFixed(2),
+        type: 'image/jpeg',
+        status: extractedData ? 'success' as const : 'idle' as const,
+        extractedData: extractedData ? [extractedData] : undefined,
+        file: captured.file
+      };
+    });
+
+    return [...uploadedFiles, ...capturedFiles].filter(file => file.extractedData);
+  }, [files, extractedDataList, capturedImages]);
 
   if (filesWithExtractedData.length === 0) {
     return (
@@ -34,15 +51,26 @@ const ExtractedDataPage: React.FC = () => {
           <Typography variant="body1" color="text.secondary" paragraph>
             Vui lòng tải lên và trích xuất hóa đơn trước khi xem kết quả
           </Typography>
-          <Button
-            component={Link}
-            to="/"
-            variant="contained"
-            color="primary"
-            size="large"
-          >
-            Quay lại trang tải lên
-          </Button>
+          <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Button
+              component={Link}
+              to="/upload-invoice"
+              variant="contained"
+              color="primary"
+              size="large"
+            >
+              Tải lên hóa đơn
+            </Button>
+            <Button
+              component={Link}
+              to="/invoice-capture"
+              variant="outlined"
+              color="primary"
+              size="large"
+            >
+              Chụp hóa đơn
+            </Button>
+          </Box>
         </Paper>
       </Container>
     );
@@ -57,15 +85,24 @@ const ExtractedDataPage: React.FC = () => {
         <Typography variant="body1" color="text.secondary">
           Dưới đây là kết quả trích xuất từ {filesWithExtractedData.length} hóa đơn
         </Typography>
-        <Button
-          component={Link}
-          to="/"
-          variant="outlined"
-          color="primary"
-          sx={{ mt: 2 }}
-        >
-          Quay lại trang tải lên
-        </Button>
+        <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+          <Button
+            component={Link}
+            to="/upload-invoice"
+            variant="outlined"
+            color="primary"
+          >
+            Tải lên hóa đơn
+          </Button>
+          <Button
+            component={Link}
+            to="/invoice-capture"
+            variant="outlined"
+            color="primary"
+          >
+            Chụp hóa đơn
+          </Button>
+        </Box>
       </Box>
 
       {filesWithExtractedData.map((file) => (

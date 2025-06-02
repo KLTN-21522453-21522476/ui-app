@@ -1,17 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { CameraState, CapturedImage } from '../types/camera.types';
+import { CameraState } from '../types/camera.types';
 import { ERROR_MESSAGES } from '../constants/camera.constants';
 import { useAppDispatch } from '../redux/hooks';
 import { extractFile } from '../api/extractionApi';
-import { 
-  updateFileStatus, 
-  updateExtractedData,
-  addFiles
-} from '../redux/slices/fileUploadSlice';
 import { setLoading, setError, addExtractedData } from '../redux/slices/extractionSlice';
+import { useCamera as useCameraContext } from '../contexts/CameraContext';
 
 export const useCamera = () => {
   const dispatch = useAppDispatch();
+  const { addCapturedImage } = useCameraContext();
   const [state, setState] = useState<CameraState>({
     isLoading: false,
     error: null,
@@ -280,111 +277,70 @@ export const useCamera = () => {
     }
   }, [getDevices, startCamera, stopCamera, state.selectedDevice]);
 
-  const captureImage = useCallback(async (selectedModel: string = 'yolo8'): Promise<CapturedImage | null> => {
-    // Kiểm tra nếu đang xử lý hình ảnh thì không làm gì
-    if (isProcessingRef.current) {
-      console.log('Đang xử lý hình ảnh, bỏ qua yêu cầu mới');
+  const captureImage = useCallback(async (selectedModel: string) => {
+    if (!videoRef.current || isProcessingRef.current) {
       return null;
     }
-    
-    // Đánh dấu đang xử lý
-    isProcessingRef.current = true;
-    
+
     try {
-      if (!videoRef.current || !state.stream) {
-        isProcessingRef.current = false;
-        return null;
-      }
+      isProcessingRef.current = true;
+      dispatch(setLoading({ fileName: `camera_${Date.now()}`, isLoading: true }));
 
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
-
-      const context = canvas.getContext('2d');
-      if (!context) {
-        isProcessingRef.current = false;
-        return null;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
       }
 
-      context.drawImage(videoRef.current, 0, 0);
-      const dataUrl = canvas.toDataURL('image/jpeg');
+      // Flip horizontally if using front camera
+      if (state.selectedDevice === 'user') {
+        ctx.scale(-1, 1);
+        ctx.translate(-canvas.width, 0);
+      }
 
+      ctx.drawImage(videoRef.current, 0, 0);
+      
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      
       // Convert data URL to File object
-      const byteString = atob(dataUrl.split(',')[1]);
-      const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-      const timestamp = Date.now();
-      const fileName = `camera_${timestamp}.jpg`;
-      const file = new File([ab], fileName, { type: mimeString });
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
 
-      // Tạo đối tượng để lưu trữ thông tin hình ảnh đã chụp
-      const capturedImage: CapturedImage = {
+      // Add to camera context
+      addCapturedImage(dataUrl, file);
+
+      // Extract data using the API
+      const extractionResponse = await extractFile(file, selectedModel);
+      
+      if (extractionResponse && extractionResponse.data?.[0]) {
+        dispatch(addExtractedData({
+          ...extractionResponse.data[0],
+          fileName: file.name,
+          model: selectedModel
+        }));
+      }
+
+      return {
         dataUrl,
-        timestamp: Date.now(),
-        deviceId: state.selectedDevice || 'unknown',
+        file,
+        extractionResponse
       };
-      
-      // Cập nhật state với hình ảnh đã chụp
-      setState(prev => ({ ...prev, imageData: dataUrl }));
-
-      // Sử dụng batch update để giảm số lần render
-      // Thêm file vào state
-      dispatch(addFiles([{
-        preview: dataUrl,
-        name: fileName,
-        size: (file.size / 1024).toFixed(2),
-        type: file.type,
-        file: file
-      }]));
-
-      // Cập nhật trạng thái file
-      dispatch(updateFileStatus({ fileName, status: 'loading' }));
-      
-      // Đánh dấu đang xử lý trong redux
-      dispatch(setLoading({ fileName, isLoading: true }));
-
-      // Gọi API trích xuất
-      try {
-        const response = await extractFile(file, selectedModel);
-        
-        if (response.status === 200 && response.data) {
-          const formattedData = {
-            ...response.data[0],
-            model: selectedModel,
-            fileName: fileName,
-            status: 'pending',
-            approvedBy: '',
-            submittedBy: '',
-            updateAt: '',
-            items: response.data[0].items || []
-          };
-
-          // Cập nhật dữ liệu trích xuất trong redux
-          dispatch(addExtractedData(formattedData));
-          dispatch(updateFileStatus({ fileName, status: 'success' }));
-          dispatch(updateExtractedData({ fileName, data: [formattedData] }));
-        } else {
-          throw new Error(response.statusText);
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        dispatch(setError({ fileName, error: errorMessage }));
-        dispatch(updateFileStatus({ fileName, status: 'error', errorMessage }));
-      }
-
-      return capturedImage;
     } catch (error) {
       console.error('Error capturing image:', error);
-      return null;
+      dispatch(setError({
+        fileName: `camera_${Date.now()}`,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }));
+      throw error;
     } finally {
-      // Đánh dấu đã xử lý xong
       isProcessingRef.current = false;
+      dispatch(setLoading({ fileName: `camera_${Date.now()}`, isLoading: false }));
     }
-  }, [state.stream, state.selectedDevice, dispatch]);
+  }, [state.selectedDevice, dispatch, addCapturedImage]);
 
   useEffect(() => {
     retryAttemptsRef.current = 0;
@@ -402,14 +358,11 @@ export const useCamera = () => {
   return {
     ...state,
     videoRef,
+    captureImage,
+    getDevices,
     startCamera,
     stopCamera,
     switchCamera,
-    captureImage,
-    getDevices,
-    isLoading: state.isLoading,
-    error: state.error,
-    permissionStatus: state.permissionStatus
   };
 };
 
