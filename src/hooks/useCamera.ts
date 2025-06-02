@@ -284,7 +284,9 @@ export const useCamera = () => {
 
     try {
       isProcessingRef.current = true;
-      dispatch(setLoading({ fileName: `camera_${Date.now()}`, isLoading: true }));
+      const timestamp = Date.now();
+      const fileName = `camera_${timestamp}.jpg`;
+      dispatch(setLoading({ fileName, isLoading: true }));
 
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
@@ -308,7 +310,7 @@ export const useCamera = () => {
       // Convert data URL to File object
       const res = await fetch(dataUrl);
       const blob = await res.blob();
-      const file = new File([blob], `camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      const file = new File([blob], fileName, { type: 'image/jpeg' });
 
       // Add to camera context
       addCapturedImage(dataUrl, file);
@@ -319,7 +321,7 @@ export const useCamera = () => {
       if (extractionResponse && extractionResponse.data?.[0]) {
         dispatch(addExtractedData({
           ...extractionResponse.data[0],
-          fileName: file.name,
+          fileName,
           model: selectedModel
         }));
       }
@@ -331,14 +333,15 @@ export const useCamera = () => {
       };
     } catch (error) {
       console.error('Error capturing image:', error);
+      const errorFileName = `camera_${Date.now()}.jpg`;
       dispatch(setError({
-        fileName: `camera_${Date.now()}`,
+        fileName: errorFileName,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       }));
       throw error;
     } finally {
       isProcessingRef.current = false;
-      dispatch(setLoading({ fileName: `camera_${Date.now()}`, isLoading: false }));
+      dispatch(setLoading({ fileName: `camera_${Date.now()}.jpg`, isLoading: false }));
     }
   }, [state.selectedDevice, dispatch, addCapturedImage]);
 

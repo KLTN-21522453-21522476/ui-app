@@ -15,6 +15,7 @@ const ExtractedDataPage: React.FC = () => {
   const { capturedImages } = useCamera();
 
   const filesWithExtractedData = useMemo(() => {
+    // Handle uploaded files
     const uploadedFiles = files.map(file => {
       const extractedData = extractedDataList.find(data => data.fileName === file.name);
       return {
@@ -23,8 +24,9 @@ const ExtractedDataPage: React.FC = () => {
         extractedData: extractedData ? [extractedData] : undefined,
         file: file.file || new File([], file.name)
       };
-    });
+    }).filter(file => file.extractedData);
 
+    // Handle camera-captured images
     const capturedFiles = capturedImages.map(captured => {
       const extractedData = extractedDataList.find(data => data.fileName === captured.id);
       return {
@@ -36,9 +38,9 @@ const ExtractedDataPage: React.FC = () => {
         extractedData: extractedData ? [extractedData] : undefined,
         file: captured.file
       };
-    });
+    }).filter(file => file.extractedData);
 
-    return [...uploadedFiles, ...capturedFiles].filter(file => file.extractedData);
+    return [...uploadedFiles, ...capturedFiles];
   }, [files, extractedDataList, capturedImages]);
 
   if (filesWithExtractedData.length === 0) {

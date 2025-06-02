@@ -22,7 +22,7 @@ export const CameraProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const addCapturedImage = (dataUrl: string, file: File) => {
     const newImage: CapturedImage = {
-      id: `camera_${Date.now()}`,
+      id: file.name,
       dataUrl,
       file,
       timestamp: Date.now()

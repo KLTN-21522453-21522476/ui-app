@@ -94,6 +94,22 @@
   background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
 }
 
+/* Captured Images List Styles */
+.captured-images-list {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin-top: 16px;
+  padding: 8px;
+}
+
+.captured-image-item {
+  transition: transform 0.2s ease;
+}
+
+.captured-image-item:hover {
+  transform: translateX(4px);
+}
+
 /* Mobile-specific styles */
 @media (max-width: 600px) {
   .camera-container {
@@ -107,5 +123,9 @@
 
   .preview-controls {
     bottom: 40px;
+  }
+
+  .captured-images-list {
+    border-radius: 0;
   }
 } 

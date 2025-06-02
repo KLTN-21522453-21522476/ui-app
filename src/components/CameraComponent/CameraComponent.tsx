@@ -3,6 +3,7 @@ import { Box, Button, CircularProgress, IconButton, Typography } from '@mui/mate
 import { CameraAlt, Cameraswitch, PhotoCamera } from '@mui/icons-material';
 import { useCamera } from '../../hooks/useCamera';
 import { CameraConfig } from '../../types/camera.types';
+import CapturedImagesList from './CapturedImagesList';
 //import { CAMERA_CONSTRAINTS } from '../../constants/camera.constants';
 import '../../styles/components/camera.css';
 
@@ -19,6 +20,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
 }) => {
   const [isCaptureMode, setIsCaptureMode] = useState(false);
   const [cameraInitialized, setCameraInitialized] = useState(false);
+  const [selectedModel] = useState('yolo8');
   const {
     videoRef,
     isLoading,
@@ -31,12 +33,12 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
   } = useCamera();
 
   const handleCapture = useCallback(async () => {
-    const captured = await captureImage();
+    const captured = await captureImage(selectedModel);
     if (captured && onCapture) {
       onCapture(captured.dataUrl);
     }
     setIsCaptureMode(false);
-  }, [captureImage, onCapture]);
+  }, [captureImage, onCapture, selectedModel]);
 
   const handleRetake = useCallback(() => {
     setIsCaptureMode(true);
@@ -120,46 +122,49 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
   }
 
   return (
-    <Box className="camera-container">
-      {!isCaptureMode && imageData ? (
-        <Box className="preview-container">
-          <img src={imageData} alt="Captured" className="preview-image" />
-          <Box className="preview-controls">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleRetake}
-              startIcon={<CameraAlt />}
-            >
-              Chụp lại
-            </Button>
+    <Box sx={{ width: '100%' }}>
+      <Box className="camera-container">
+        {!isCaptureMode && imageData ? (
+          <Box className="preview-container">
+            <img src={imageData} alt="Captured" className="preview-image" />
+            <Box className="preview-controls">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleRetake}
+                startIcon={<CameraAlt />}
+              >
+                Chụp lại
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      ) : (
-        <>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="camera-preview"
-          />
-          <Box className="camera-controls">
-            <IconButton
-              onClick={switchCamera}
-              className="camera-control-button"
-            >
-              <Cameraswitch />
-            </IconButton>
-            <IconButton
-              onClick={handleCapture}
-              className="camera-control-button capture"
-            >
-              <PhotoCamera />
-            </IconButton>
-          </Box>
-        </>
-      )}
+        ) : (
+          <>
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="camera-preview"
+            />
+            <Box className="camera-controls">
+              <IconButton
+                onClick={switchCamera}
+                className="camera-control-button"
+              >
+                <Cameraswitch />
+              </IconButton>
+              <IconButton
+                onClick={handleCapture}
+                className="camera-control-button capture"
+              >
+                <PhotoCamera />
+              </IconButton>
+            </Box>
+          </>
+        )}
+      </Box>
+      <CapturedImagesList maxHeight={300} />
     </Box>
   );
 };
