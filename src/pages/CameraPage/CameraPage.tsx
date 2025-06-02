@@ -1,14 +1,15 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { Box, Container, Snackbar, Alert, Typography, Button, CircularProgress, Paper } from '@mui/material';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import { Box, Container, Snackbar, Alert, Typography, Button, CircularProgress, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useCamera } from '../../hooks/useCamera';
-import { cameraApi } from '../../api/cameraApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 
 export const CameraPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [cameraInitialized, setCameraInitialized] = useState(false);
   const [availableDevices, setAvailableDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedModel, setSelectedModel] = useState('yolo8');
   
   const {
     videoRef,
@@ -20,13 +21,41 @@ export const CameraPage: React.FC = () => {
     getDevices,
   } = useCamera();
 
+  // Get extraction status from Redux store
+  const extractionStatus = useSelector((state: RootState) => state.extraction.loading);
+  const extractedDataList = useSelector((state: RootState) => state.extraction.extractedDataList);
+
+  // Kiểm tra xem có đang xử lý hay không
+  const isCurrentlyProcessing = useMemo(() => {
+    return Object.values(extractionStatus).some(status => status);
+  }, [extractionStatus]);
+
+  // Kiểm tra xem có trích xuất thành công hay không
+  const hasSuccessfulExtraction = useMemo(() => {
+    return extractedDataList.length > 0 && !isCurrentlyProcessing;
+  }, [extractedDataList, isCurrentlyProcessing]);
+
+  // Theo dõi sự thay đổi của trạng thái trích xuất để cập nhật isProcessing
+  useEffect(() => {
+    // Chỉ cập nhật isProcessing khi đang xử lý và trạng thái trích xuất thay đổi
+    if (isProcessing && !isCurrentlyProcessing) {
+      setIsProcessing(false);
+    }
+  }, [isCurrentlyProcessing, isProcessing]);
+
+  const availableModels = useMemo(() => [
+    { value: "yolo8", label: "YOLO 8", description: "Phiên bản cơ bản, phù hợp với hầu hết các hóa đơn" },
+    { value: "yolo8v6", label: "YOLO 8v6", description: "Phiên bản cải tiến của YOLO 8" },
+    { value: "yolo10", label: "YOLO 10", description: "Phiên bản mới, độ chính xác cao hơn" },
+    { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất, tối ưu nhất" }
+  ], []);
+
   const handleGetDevices = useCallback(async () => {
     const deviceList = await getDevices();
     setAvailableDevices(deviceList);
   }, [getDevices]);
 
   useEffect(() => {
-    // Lấy danh sách thiết bị khi component được mount
     handleGetDevices();
   }, [handleGetDevices]);
 
@@ -41,28 +70,70 @@ export const CameraPage: React.FC = () => {
 
   const handleCapture = useCallback(async () => {
     try {
-      setIsUploading(true);
+      // Kiểm tra nếu đang xử lý thì không làm gì
+      if (isProcessing) return;
+      
+      setIsProcessing(true);
       setError(null);
 
-      const capturedImage = await captureImage();
+      const capturedImage = await captureImage(selectedModel);
       if (!capturedImage) {
         setError('Không thể chụp ảnh');
-        return;
-      }
-
-      const response = await cameraApi.uploadImage(capturedImage);
-      
-      if (response.success) {
-        setUploadSuccess(true);
-      } else {
-        setError('Không thể tải lên ảnh');
+        setIsProcessing(false);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi không mong muốn');
-    } finally {
-      setIsUploading(false);
+      setIsProcessing(false);
     }
-  }, [captureImage]);
+  }, [captureImage, selectedModel, isProcessing]);
+
+  // Tạo các component UI với useMemo để tránh render lại không cần thiết
+  const deviceSelectionUI = useMemo(() => {
+    if (availableDevices.length === 0 || cameraInitialized) return null;
+    
+    return (
+      <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Chọn thiết bị camera:
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          {availableDevices.map((device) => {
+            const isObs = device.label.includes('OBS') || device.label.includes('Virtual Camera');
+            return (
+              <Button 
+                key={device.deviceId}
+                variant={isObs ? "contained" : "outlined"}
+                color={isObs ? "success" : "primary"}
+                onClick={() => handleInitCamera(device.deviceId)}
+                sx={{ mb: 1 }}
+              >
+                {device.label || `Camera ${availableDevices.indexOf(device) + 1}`}
+                {isObs && " (Khuyên dùng)"}
+              </Button>
+            );
+          })}
+        </Box>
+      </Paper>
+    );
+  }, [availableDevices, cameraInitialized, handleInitCamera]);
+
+  const cameraInitUI = useMemo(() => {
+    if (cameraInitialized || availableDevices.length > 0) return null;
+    
+    return (
+      <Box sx={{ textAlign: 'center', my: 4 }}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={() => handleInitCamera()}
+          disabled={isLoading}
+          startIcon={isLoading ? <CircularProgress size={20} /> : null}
+        >
+          {isLoading ? 'Đang khởi tạo...' : 'Bật Camera'}
+        </Button>
+      </Box>
+    );
+  }, [cameraInitialized, availableDevices.length, handleInitCamera, isLoading]);
 
   return (
     <Container maxWidth="sm">
@@ -71,46 +142,27 @@ export const CameraPage: React.FC = () => {
           Camera
         </Typography>
         
-        {/* Hiển thị danh sách thiết bị camera có sẵn */}
-        {availableDevices.length > 0 && !cameraInitialized && (
-          <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Chọn thiết bị camera:
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {availableDevices.map((device) => {
-                const isObs = device.label.includes('OBS') || device.label.includes('Virtual Camera');
-                return (
-                  <Button 
-                    key={device.deviceId}
-                    variant={isObs ? "contained" : "outlined"}
-                    color={isObs ? "success" : "primary"}
-                    onClick={() => handleInitCamera(device.deviceId)}
-                    sx={{ mb: 1 }}
-                  >
-                    {device.label || `Camera ${availableDevices.indexOf(device) + 1}`}
-                    {isObs && " (Khuyên dùng)"}
-                  </Button>
-                );
-              })}
-            </Box>
-          </Paper>
-        )}
+        {/* Model selection */}
+        <FormControl fullWidth sx={{ mb: 3 }}>
+          <InputLabel>Chọn mô hình xử lý</InputLabel>
+          <Select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            label="Chọn mô hình xử lý"
+          >
+            {availableModels.map(model => (
+              <MenuItem key={model.value} value={model.value}>
+                {model.label} - {model.description}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Camera device selection */}
+        {deviceSelectionUI}
         
         <Box sx={{ position: 'relative', mb: 2 }}>
-          {!cameraInitialized && availableDevices.length === 0 && (
-            <Box sx={{ textAlign: 'center', my: 4 }}>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={() => handleInitCamera()}
-                disabled={isLoading}
-                startIcon={isLoading ? <CircularProgress size={20} /> : null}
-              >
-                {isLoading ? 'Đang khởi tạo...' : 'Bật Camera'}
-              </Button>
-            </Box>
-          )}
+          {cameraInitUI}
           
           {permissionStatus === 'denied' && (
             <Box sx={{ mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
@@ -138,16 +190,16 @@ export const CameraPage: React.FC = () => {
                 variant="contained" 
                 color="primary" 
                 onClick={handleCapture}
-                disabled={isUploading}
-                startIcon={isUploading ? <CircularProgress size={20} /> : null}
+                disabled={isProcessing}
+                startIcon={isProcessing ? <CircularProgress size={20} /> : null}
               >
-                {isUploading ? 'Đang xử lý...' : 'Chụp ảnh'}
+                {isProcessing ? 'Đang xử lý...' : 'Chụp và xử lý'}
               </Button>
             </Box>
           )}
         </Box>
 
-        {/* Hiển thị nút chọn lại camera nếu đã khởi tạo */}
+        {/* Camera reselection button */}
         {cameraInitialized && (
           <Box sx={{ mt: 2, textAlign: 'center' }}>
             <Button 
@@ -163,12 +215,14 @@ export const CameraPage: React.FC = () => {
           </Box>
         )}
 
+        {/* Processing status */}
         <Snackbar
-          open={isUploading}
-          message="Đang tải lên ảnh..."
+          open={isProcessing}
+          message="Đang xử lý ảnh..."
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         />
 
+        {/* Error messages */}
         <Snackbar
           open={!!error || !!cameraError}
           autoHideDuration={6000}
@@ -180,17 +234,19 @@ export const CameraPage: React.FC = () => {
           </Alert>
         </Snackbar>
 
+        {/* Success message */}
         <Snackbar
-          open={uploadSuccess}
+          open={hasSuccessfulExtraction && !isProcessing}
           autoHideDuration={3000}
-          onClose={() => setUploadSuccess(false)}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-          <Alert severity="success" onClose={() => setUploadSuccess(false)}>
-            Tải lên ảnh thành công!
+          <Alert severity="success">
+            Xử lý ảnh thành công! Bạn có thể tiếp tục chụp ảnh hoặc kiểm tra kết quả trong trang Upload
           </Alert>
         </Snackbar>
       </Box>
     </Container>
   );
 };
+
+export default React.memo(CameraPage);

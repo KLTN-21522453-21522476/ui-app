@@ -1,9 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { CameraState, CapturedImage } from '../types/camera.types';
-//import { CameraFacing } from '../enum/camera.enum';
 import { ERROR_MESSAGES } from '../constants/camera.constants';
+import { useAppDispatch } from '../redux/hooks';
+import { extractFile } from '../api/extractionApi';
+import { 
+  updateFileStatus, 
+  updateExtractedData,
+  addFiles
+} from '../redux/slices/fileUploadSlice';
+import { setLoading, setError, addExtractedData } from '../redux/slices/extractionSlice';
 
 export const useCamera = () => {
+  const dispatch = useAppDispatch();
   const [state, setState] = useState<CameraState>({
     isLoading: false,
     error: null,
@@ -11,22 +19,23 @@ export const useCamera = () => {
     imageData: null,
     devices: [],
     selectedDevice: null,
-    permissionStatus: 'prompt' as PermissionState, // 'granted' | 'denied' | 'prompt'
+    permissionStatus: 'prompt' as PermissionState,
   });
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const retryAttemptsRef = useRef(0);
   const MAX_RETRY_ATTEMPTS = 3;
+  
+  // Ref để theo dõi xem có đang xử lý hình ảnh hay không
+  const isProcessingRef = useRef(false);
 
   const checkPermissions = useCallback(async () => {
     try {
-      // Check if the browser supports the Permissions API
       if (navigator.permissions && navigator.permissions.query) {
         const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
         setState(prev => ({ ...prev, permissionStatus: result.state }));
         
-        // Listen for permission changes
         result.addEventListener('change', () => {
           setState(prev => ({ ...prev, permissionStatus: result.state }));
         });
@@ -50,16 +59,12 @@ export const useCamera = () => {
 
       console.log('Đang yêu cầu quyền camera...');
       
-      // Yêu cầu quyền camera với ràng buộc tối thiểu
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: false
       });
 
-      // Dừng stream ngay vì chúng ta chỉ cần nó để xin quyền
       stream.getTracks().forEach(track => track.stop());
-
-      // Cập nhật trạng thái quyền
       await checkPermissions();
       
       console.log('Quyền camera đã được cấp');
@@ -86,22 +91,18 @@ export const useCamera = () => {
     }
   }, [checkPermissions]);
 
-
   const getDevices = useCallback(async () => {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
         throw new Error(ERROR_MESSAGES.NOT_SUPPORTED);
       }
 
-      // Check current permission status
       const permissionState = await checkPermissions();
       
-      // If permission is denied, don't proceed
       if (permissionState === 'denied') {
         throw new Error(ERROR_MESSAGES.PERMISSION_DENIED);
       }
 
-      // If permission not granted, request it
       if (permissionState !== 'granted') {
         const granted = await requestPermission();
         if (!granted) {
@@ -135,10 +136,8 @@ export const useCamera = () => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      // Check permissions first
       const permissionState = await checkPermissions();
       
-      // If permission is denied, request it
       if (permissionState !== 'granted') {
         const granted = await requestPermission();
         if (!granted) {
@@ -146,45 +145,37 @@ export const useCamera = () => {
         }
       }
 
-      // Lấy danh sách thiết bị
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
       
-      // Tìm OBS Virtual Camera trong danh sách thiết bị
       const obsVirtualCam = videoDevices.find(device => 
         device.label.includes('OBS') || device.label.includes('OBS-Camera') || device.label.includes('Virtual Camera')
       );
       
-      // Nếu tìm thấy OBS Virtual Camera và không có deviceId được chỉ định, ưu tiên sử dụng OBS
       const targetDeviceId = deviceId || (obsVirtualCam ? obsVirtualCam.deviceId : undefined);
 
       console.log('Đang thử kết nối với thiết bị:', targetDeviceId ? `ID: ${targetDeviceId}` : 'Mặc định');
 
       const constraintsToTry = [
-        // 1. Thử với thiết bị được chỉ định hoặc OBS Virtual Camera
         {
           deviceId: targetDeviceId ? { exact: targetDeviceId } : undefined,
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 },
           facingMode: { ideal: 'environment' }
         },
-        // 2. Thử với camera environment không có device ID
         {
           facingMode: { ideal: 'environment' },
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 }
         },
-        // 3. Thử với camera user
         {
           facingMode: { ideal: 'user' },
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 }
         },
-        // 4. Thử với ràng buộc tối thiểu
         {
           facingMode: 'environment'
         },
-        // 5. Phương án cuối cùng - bất kỳ thiết bị video nào
         true
       ];
 
@@ -289,11 +280,20 @@ export const useCamera = () => {
     }
   }, [getDevices, startCamera, stopCamera, state.selectedDevice]);
 
-  const captureImage = useCallback((): Promise<CapturedImage | null> => {
-    return new Promise((resolve) => {
+  const captureImage = useCallback(async (selectedModel: string = 'yolo8'): Promise<CapturedImage | null> => {
+    // Kiểm tra nếu đang xử lý hình ảnh thì không làm gì
+    if (isProcessingRef.current) {
+      console.log('Đang xử lý hình ảnh, bỏ qua yêu cầu mới');
+      return null;
+    }
+    
+    // Đánh dấu đang xử lý
+    isProcessingRef.current = true;
+    
+    try {
       if (!videoRef.current || !state.stream) {
-        resolve(null);
-        return;
+        isProcessingRef.current = false;
+        return null;
       }
 
       const canvas = document.createElement('canvas');
@@ -302,23 +302,89 @@ export const useCamera = () => {
 
       const context = canvas.getContext('2d');
       if (!context) {
-        resolve(null);
-        return;
+        isProcessingRef.current = false;
+        return null;
       }
 
       context.drawImage(videoRef.current, 0, 0);
       const dataUrl = canvas.toDataURL('image/jpeg');
 
+      // Convert data URL to File object
+      const byteString = atob(dataUrl.split(',')[1]);
+      const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const timestamp = Date.now();
+      const fileName = `camera_${timestamp}.jpg`;
+      const file = new File([ab], fileName, { type: mimeString });
+
+      // Tạo đối tượng để lưu trữ thông tin hình ảnh đã chụp
       const capturedImage: CapturedImage = {
         dataUrl,
         timestamp: Date.now(),
         deviceId: state.selectedDevice || 'unknown',
       };
-
+      
+      // Cập nhật state với hình ảnh đã chụp
       setState(prev => ({ ...prev, imageData: dataUrl }));
-      resolve(capturedImage);
-    });
-  }, [state.stream, state.selectedDevice]);
+
+      // Sử dụng batch update để giảm số lần render
+      // Thêm file vào state
+      dispatch(addFiles([{
+        preview: dataUrl,
+        name: fileName,
+        size: (file.size / 1024).toFixed(2),
+        type: file.type,
+        file: file
+      }]));
+
+      // Cập nhật trạng thái file
+      dispatch(updateFileStatus({ fileName, status: 'loading' }));
+      
+      // Đánh dấu đang xử lý trong redux
+      dispatch(setLoading({ fileName, isLoading: true }));
+
+      // Gọi API trích xuất
+      try {
+        const response = await extractFile(file, selectedModel);
+        
+        if (response.status === 200 && response.data) {
+          const formattedData = {
+            ...response.data[0],
+            model: selectedModel,
+            fileName: fileName,
+            status: 'pending',
+            approvedBy: '',
+            submittedBy: '',
+            updateAt: '',
+            items: response.data[0].items || []
+          };
+
+          // Cập nhật dữ liệu trích xuất trong redux
+          dispatch(addExtractedData(formattedData));
+          dispatch(updateFileStatus({ fileName, status: 'success' }));
+          dispatch(updateExtractedData({ fileName, data: [formattedData] }));
+        } else {
+          throw new Error(response.statusText);
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        dispatch(setError({ fileName, error: errorMessage }));
+        dispatch(updateFileStatus({ fileName, status: 'error', errorMessage }));
+      }
+
+      return capturedImage;
+    } catch (error) {
+      console.error('Error capturing image:', error);
+      return null;
+    } finally {
+      // Đánh dấu đã xử lý xong
+      isProcessingRef.current = false;
+    }
+  }, [state.stream, state.selectedDevice, dispatch]);
 
   useEffect(() => {
     retryAttemptsRef.current = 0;
@@ -341,6 +407,9 @@ export const useCamera = () => {
     switchCamera,
     captureImage,
     getDevices,
-    requestPermission,
+    isLoading: state.isLoading,
+    error: state.error,
+    permissionStatus: state.permissionStatus
   };
 };
+

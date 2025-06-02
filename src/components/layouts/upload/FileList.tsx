@@ -18,9 +18,12 @@ import { useInvoices } from '../../../hooks/useInvoices';
 import { AppDispatch } from '../../../redux/store';
 import { useFileExtraction } from '../../../hooks/useFileExtraction';
 
-const FileList: React.FC = () => {
+interface FileListProps {
+  files: FilePreview[];
+}
+
+const FileList: React.FC<FileListProps> = ({ files }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const files = useSelector((state: RootState) => state.fileUpload.files);
   const selectedModel = useSelector((state: RootState) => state.fileUpload.selectedModel);
   const selectedGroupId = useSelector((state: RootState) => state.groups.selectedGroupId);
   const { createInvoice, approveInvoice } = useInvoices(selectedGroupId || '');
@@ -168,15 +171,17 @@ const FileList: React.FC = () => {
                   </small>
                 </div>
                 <div>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="me-2"
-                    onClick={() => handleExtractFile(file.name)}
-                    disabled={file.status === 'loading'}
-                  >
-                    {file.status === 'loading' ? 'Extracting...' : 'Extract'}
-                  </Button>
+                  {!file.extractedData && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => handleExtractFile(file.name)}
+                      disabled={file.status === 'loading'}
+                    >
+                      {file.status === 'loading' ? 'Extracting...' : 'Extract'}
+                    </Button>
+                  )}
                   <Button
                     variant="outline-danger"
                     size="sm"
