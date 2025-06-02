@@ -1,7 +1,7 @@
 // SidebarMenu.tsx
 import React from 'react';
 import { Button } from 'react-bootstrap';
-import { FaChartLine, FaUpload, FaCamera } from "react-icons/fa6";
+import { FaChartLine, FaUpload, FaCamera, FaDatabase } from "react-icons/fa6";
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import './SidebarCommon.css';
 
@@ -27,6 +27,10 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ expanded, onExpand, onCollaps
         <div className="sidebar-menu-item" onClick={() => onNavigate('/invoice-capture')}>
           <FaCamera className="sidebar-icon" />
           <span className="sidebar-label">Chụp Hóa đơn</span>
+        </div>
+        <div className="sidebar-menu-item" onClick={() => onNavigate('/extracted-data')}>
+          <FaDatabase className="sidebar-icon" />
+          <span className="sidebar-label">Dữ liệu trích xuất</span>
         </div>
       </div>
 
