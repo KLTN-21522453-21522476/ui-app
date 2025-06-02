@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './HomePage';
 import UploadInvoicePage from './UploadInvoicePage';
+import ExtractedDataPage from './ExtractedDataPage';
 import Dashboard from './Dashboard';
 import Group  from './Group';
 import ProtectedRoute from '../components/routes/ProtectedRoute';
@@ -21,6 +22,11 @@ const AppRoutes: React.FC = () => {
       <Route path="/upload-invoice" element={
         <ProtectedRoute requireGroup>
           <UploadInvoicePage />
+        </ProtectedRoute>
+      } />
+      <Route path="/extracted-data" element={
+        <ProtectedRoute requireGroup>
+          <ExtractedDataPage />
         </ProtectedRoute>
       } />
       <Route path="/dashboard" element={

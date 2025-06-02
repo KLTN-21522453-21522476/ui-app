@@ -3,13 +3,13 @@ import { useSelector } from 'react-redux';
 import FileList from "../components/layouts/upload/FileList";
 import FileUploadComponent from "../components/layouts/upload/FileUploadComponent";
 import { RootState } from "../redux/store";
-import { Alert, Typography, Box } from '@mui/material';
+import { Alert, Typography, Box, Button } from '@mui/material';
+import { Link } from 'react-router-dom';
 
-const InvoiceExtraction: React.FC = () => {
+const UploadInvoicePage: React.FC = () => {
   const files = useSelector((state: RootState) => state.fileUpload.files);
   const extractedDataList = useSelector((state: RootState) => state.extraction.extractedDataList);
   
-  // Sử dụng useMemo để tránh tính toán lại mỗi khi render
   const cameraFiles = useMemo(() => {
     return extractedDataList
       .filter(data => data.fileName.startsWith('camera_'))
@@ -21,13 +21,11 @@ const InvoiceExtraction: React.FC = () => {
           size: uploadedFile?.size || '0',
           type: 'image/jpeg',
           status: 'success' as const,
-          extractedData: [data],
           file: uploadedFile?.file
         };
       });
   }, [extractedDataList, files]);
 
-  // Sử dụng useMemo để tránh tạo mảng mới mỗi khi render
   const allFiles = useMemo(() => {
     return [
       ...files.filter(f => !cameraFiles.some(cf => cf.name === f.name)),
@@ -35,15 +33,16 @@ const InvoiceExtraction: React.FC = () => {
     ];
   }, [files, cameraFiles]);
 
-  // Tạo fileListComponent với useMemo để tránh render lại không cần thiết
   const fileListComponent = useMemo(() => {
     if (allFiles.length === 0) return null;
     return (
       <div id="file-list" className="mt-4">
-        <FileList files={allFiles} />
+        <FileList files={allFiles} showExtractedData={false} />
       </div>
     );
   }, [allFiles]);
+
+  const hasExtractedData = extractedDataList.length > 0;
 
   return (
     <div className="min-vh-100 d-flex align-items-start justify-content-center py-4 px-3 px-sm-4">
@@ -60,13 +59,27 @@ const InvoiceExtraction: React.FC = () => {
         )}
 
         <FileUploadComponent
-          title="Trích xuất dữ liệu"
-          description="Sử dụng mô hình YOLO tiên tiến và OCR mạnh mẽ để trích xuất dữ liệu từ hoá đơn của bạn một cách nhanh chóng"
+          title="Tải lên hóa đơn"
+          description="Tải lên hóa đơn của bạn để trích xuất dữ liệu"
           fileListComponent={fileListComponent}
         />
+
+        {hasExtractedData && (
+          <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Button
+              component={Link}
+              to="/extracted-data"
+              variant="contained"
+              color="primary"
+              size="large"
+            >
+              Xem kết quả trích xuất
+            </Button>
+          </Box>
+        )}
       </div>
     </div>
   );
 };
 
-export default React.memo(InvoiceExtraction);
+export default React.memo(UploadInvoicePage);

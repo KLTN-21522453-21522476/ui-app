@@ -20,9 +20,10 @@ import { useFileExtraction } from '../../../hooks/useFileExtraction';
 
 interface FileListProps {
   files: FilePreview[];
+  showExtractedData?: boolean;
 }
 
-const FileList: React.FC<FileListProps> = ({ files }) => {
+const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) => {
   const dispatch = useDispatch<AppDispatch>();
   const selectedModel = useSelector((state: RootState) => state.fileUpload.selectedModel);
   const selectedGroupId = useSelector((state: RootState) => state.groups.selectedGroupId);
@@ -192,7 +193,7 @@ const FileList: React.FC<FileListProps> = ({ files }) => {
                 </div>
               </div>
               
-              {file.status === 'success' && file.extractedData && (
+              {file.status === 'success' && file.extractedData && showExtractedData && (
                 <ExtractedDataTable
                   file={convertToFileWithStatus(file)}
                   extractResponse={file.extractedData}
