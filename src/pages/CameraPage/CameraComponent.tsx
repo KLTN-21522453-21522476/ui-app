@@ -1,9 +1,48 @@
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { Box, Typography, Button, CircularProgress, Paper, FormControl, InputLabel, Select, MenuItem, Snackbar, Alert } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  CircularProgress, 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  MenuItem, 
+  Snackbar, 
+  Alert, 
+  useTheme, 
+  useMediaQuery,
+  Fade
+} from '@mui/material';
+import {
+  CameraAlt as CameraIcon,
+  //FlipCameraIos as FlipCameraIcon,
+  ScreenRotation as RotateIcon,
+  FlashOn as FlashOnIcon,
+  FlashOff as FlashOffIcon,
+  FlashAuto as FlashAutoIcon,
+  CameraFront as FrontCameraIcon,
+  CameraRear as RearCameraIcon
+} from '@mui/icons-material';
 import { useCamera } from '../../hooks/useCamera';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
-import { useCamera as useCameraContext } from '../../contexts/CameraContext';
+//import { useCamera as useCameraContext } from '../../contexts/CameraContext';
+import { CameraSettings, FlashMode, CameraFacing, 
+  //Orientation, 
+  ExtendedMediaTrackConstraintSet } from './types';
+import {
+  CameraContainer,
+  VideoContainer,
+  VideoPreview,
+  ControlsContainer,
+  ControlButton,
+  CaptureButton,
+  DeviceSelectionContainer,
+  ModelSelectionContainer,
+  LoadingOverlay,
+  StatusIndicator,
+} from './CameraComponent.styles';
 
 interface CameraComponentProps {
   selectedModel: string;
@@ -11,11 +50,21 @@ interface CameraComponentProps {
 }
 
 export const CameraComponent: React.FC<CameraComponentProps> = ({ selectedModel, onModelChange }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  // Camera state
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [cameraInitialized, setCameraInitialized] = useState(false);
   const [availableDevices, setAvailableDevices] = useState<MediaDeviceInfo[]>([]);
-  
+  const [showModelSelection, setShowModelSelection] = useState(!isMobile);
+  const [settings, setSettings] = useState<CameraSettings>({
+    flashMode: 'off',
+    facing: 'environment',
+    orientation: 'portrait'
+  });
+
   const {
     videoRef,
     isLoading,
@@ -24,9 +73,10 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({ selectedModel,
     startCamera,
     captureImage,
     getDevices,
+    stream
   } = useCamera();
 
-  const { capturedImages } = useCameraContext();
+  //const { capturedImages } = useCameraContext();
 
   // Get extraction status from Redux store
   const extractionStatus = useSelector((state: RootState) => state.extraction.loading);
@@ -49,16 +99,44 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({ selectedModel,
     }
   }, [isCurrentlyProcessing, isProcessing]);
 
+  // Handle device orientation changes
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      const isLandscape = window.orientation === 90 || window.orientation === -90;
+      setSettings(prev => ({
+        ...prev,
+        orientation: isLandscape ? 'landscape' : 'portrait'
+      }));
+    };
+
+    window.addEventListener('orientationchange', handleOrientationChange);
+    return () => window.removeEventListener('orientationchange', handleOrientationChange);
+  }, []);
+
+  // Auto-hide model selection on mobile after 3 seconds
+  useEffect(() => {
+    if (isMobile && showModelSelection) {
+      const timer = setTimeout(() => {
+        setShowModelSelection(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile, showModelSelection]);
+
   const availableModels = useMemo(() => [
-    { value: "yolo8", label: "YOLO 8", description: "Phiên bản cơ bản, phù hợp với hầu hết các hóa đơn" },
-    { value: "yolo8v6", label: "YOLO 8v6", description: "Phiên bản cải tiến của YOLO 8" },
-    { value: "yolo10", label: "YOLO 10", description: "Phiên bản mới, độ chính xác cao hơn" },
-    { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất, tối ưu nhất" }
+    { value: "yolo8", label: "YOLO 8", description: "Phiên bản cơ bản" },
+    { value: "yolo8v6", label: "YOLO 8v6", description: "Phiên bản cải tiến" },
+    { value: "yolo10", label: "YOLO 10", description: "Độ chính xác cao" },
+    { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất" }
   ], []);
 
   const handleGetDevices = useCallback(async () => {
-    const deviceList = await getDevices();
-    setAvailableDevices(deviceList);
+    try {
+      const deviceList = await getDevices();
+      setAvailableDevices(deviceList);
+    } catch (err) {
+      setError('Không thể lấy danh sách thiết bị camera');
+    }
   }, [getDevices]);
 
   useEffect(() => {
@@ -67,16 +145,36 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({ selectedModel,
 
   const handleInitCamera = useCallback(async (deviceId?: string) => {
     try {
-      await startCamera(deviceId);
+      const constraints: MediaStreamConstraints = {
+        video: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          facingMode: { exact: settings.facing },
+          width: { ideal: isMobile ? 1920 : 1280 },
+          height: { ideal: isMobile ? 1080 : 720 }
+        }
+      };
+      await startCamera();
       setCameraInitialized(true);
+
+      if (stream) {
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          await videoTrack.applyConstraints(constraints.video as MediaTrackConstraints);
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể khởi tạo camera');
     }
-  }, [startCamera]);
+  }, [startCamera, settings.facing, stream, isMobile]);
 
   const handleCapture = useCallback(async () => {
     try {
       if (isProcessing) return;
+      
+      // Add haptic feedback if supported
+      if (navigator.vibrate) {
+        navigator.vibrate(100);
+      }
       
       setIsProcessing(true);
       setError(null);
@@ -92,141 +190,220 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({ selectedModel,
     }
   }, [captureImage, selectedModel, isProcessing]);
 
-  const deviceSelectionUI = useMemo(() => {
-    if (availableDevices.length === 0 || cameraInitialized) return null;
+  const toggleFlash = useCallback(() => {
+    const modes: FlashMode[] = ['off', 'on', 'auto'];
+    const currentIndex = modes.indexOf(settings.flashMode);
+    const nextMode = modes[(currentIndex + 1) % modes.length];
     
-    return (
-      <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Chọn thiết bị camera:
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {availableDevices.map((device) => {
-            const isObs = device.label.includes('OBS') || device.label.includes('Virtual Camera');
-            return (
-              <Button 
-                key={device.deviceId}
-                variant={isObs ? "contained" : "outlined"}
-                color={isObs ? "success" : "primary"}
-                onClick={() => handleInitCamera(device.deviceId)}
-                sx={{ mb: 1 }}
-              >
-                {device.label || `Camera ${availableDevices.indexOf(device) + 1}`}
-                {isObs && " (Khuyên dùng)"}
-              </Button>
-            );
-          })}
-        </Box>
-      </Paper>
-    );
-  }, [availableDevices, cameraInitialized, handleInitCamera]);
+    setSettings(prev => ({ ...prev, flashMode: nextMode }));
+    
+    if (stream) {
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack?.getCapabilities?.()?.torch) {
+        videoTrack.applyConstraints({
+          advanced: [{ torch: nextMode === 'on' } as ExtendedMediaTrackConstraintSet]
+        });
+      }
+    }
+  }, [settings.flashMode, stream]);
 
-  const cameraInitUI = useMemo(() => {
-    if (cameraInitialized || availableDevices.length > 0) return null;
+  const toggleCamera = useCallback(async () => {
+    const newFacing: CameraFacing = settings.facing === 'user' ? 'environment' : 'user';
+    setSettings(prev => ({ ...prev, facing: newFacing }));
     
-    return (
-      <Box sx={{ textAlign: 'center', my: 4 }}>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={() => handleInitCamera()}
-          disabled={isLoading}
-          startIcon={isLoading ? <CircularProgress size={20} /> : null}
-        >
-          {isLoading ? 'Đang khởi tạo...' : 'Bật Camera'}
-        </Button>
-      </Box>
-    );
-  }, [cameraInitialized, availableDevices.length, handleInitCamera, isLoading]);
+    if (cameraInitialized) {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      await handleInitCamera();
+    }
+  }, [settings.facing, cameraInitialized, handleInitCamera, stream]);
+
+  const toggleOrientation = useCallback(() => {
+    setSettings(prev => ({
+      ...prev,
+      orientation: prev.orientation === 'portrait' ? 'landscape' : 'portrait'
+    }));
+  }, []);
+
+  const getFlashIcon = useCallback(() => {
+    switch (settings.flashMode) {
+      case 'on': return <FlashOnIcon />;
+      case 'auto': return <FlashAutoIcon />;
+      default: return <FlashOffIcon />;
+    }
+  }, [settings.flashMode]);
 
   return (
-    <>
-      {/* Model selection */}
-      <FormControl fullWidth sx={{ mb: 3 }}>
-        <InputLabel>Chọn mô hình xử lý</InputLabel>
-        <Select
-          value={selectedModel}
-          onChange={(e) => onModelChange(e.target.value)}
-          label="Chọn mô hình xử lý"
-        >
-          {availableModels.map(model => (
-            <MenuItem key={model.value} value={model.value}>
-              {model.label} - {model.description}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+    <CameraContainer>
+      {/* Model selection overlay */}
+      <Fade in={showModelSelection}>
+        <ModelSelectionContainer>
+          <FormControl 
+            fullWidth 
+            size={isMobile ? "small" : "medium"}
+            sx={{ 
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+              }
+            }}
+          >
+            <InputLabel sx={{ color: 'white' }}>Chọn mô hình</InputLabel>
+            <Select
+              value={selectedModel}
+              onChange={(e) => onModelChange(e.target.value)}
+              label="Chọn mô hình"
+              onClose={() => isMobile && setShowModelSelection(false)}
+            >
+              {availableModels.map(model => (
+                <MenuItem key={model.value} value={model.value}>
+                  <Box>
+                    <Typography variant="body2" fontWeight="bold">
+                      {model.label}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {model.description}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </ModelSelectionContainer>
+      </Fade>
 
-      {/* Camera device selection */}
-      {deviceSelectionUI}
-      
-      <Box sx={{ position: 'relative', mb: 2 }}>
-        {cameraInitUI}
-        
+      {/* Device selection */}
+      {availableDevices.length > 0 && !cameraInitialized && (
+        <DeviceSelectionContainer elevation={3}>
+          <Typography variant={isMobile ? "body1" : "h6"} gutterBottom>
+            Chọn camera:
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {availableDevices.map((device) => {
+              const isObs = device.label.includes('OBS') || device.label.includes('Virtual Camera');
+              return (
+                <Button 
+                  key={device.deviceId}
+                  variant={isObs ? "contained" : "outlined"}
+                  color={isObs ? "success" : "primary"}
+                  onClick={() => handleInitCamera(device.deviceId)}
+                  size={isMobile ? "small" : "medium"}
+                  fullWidth
+                >
+                  {device.label || `Camera ${availableDevices.indexOf(device) + 1}`}
+                  {isObs && " (Khuyên dùng)"}
+                </Button>
+              );
+            })}
+          </Box>
+        </DeviceSelectionContainer>
+      )}
+
+      {/* Main camera view */}
+      <VideoContainer>
         {permissionStatus === 'denied' && (
-          <Box sx={{ mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
-            <Typography variant="body2">
-              Quyền truy cập camera đã bị từ chối. Vui lòng đặt lại quyền trong cài đặt trình duyệt của bạn,
-              sau đó làm mới trang này và thử lại.
+          <Box sx={{ 
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center',
+            color: 'white',
+            p: 2,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            borderRadius: 2,
+            maxWidth: '80%'
+          }}>
+            <Typography variant={isMobile ? "body2" : "body1"}>
+              Quyền truy cập camera đã bị từ chối. Vui lòng đặt lại quyền trong cài đặt trình duyệt.
             </Typography>
           </Box>
         )}
         
-        <video 
-          ref={videoRef} 
-          autoPlay 
-          playsInline 
-          style={{ 
-            display: cameraInitialized ? 'block' : 'none',
-            width: '100%',
-            borderRadius: '8px'
-          }} 
+        <VideoPreview
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className={settings.orientation}
+          style={{
+            display: cameraInitialized ? 'block' : 'none'
+          }}
         />
-        
-        {cameraInitialized && (
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={handleCapture}
-              disabled={isProcessing}
-              startIcon={isProcessing ? <CircularProgress size={20} /> : null}
-            >
-              {isProcessing ? 'Đang xử lý...' : 'Chụp và xử lý'}
-            </Button>
-          </Box>
+
+        {/* Loading overlay */}
+        {(isLoading || isProcessing) && (
+          <LoadingOverlay>
+            <CircularProgress size={60} />
+          </LoadingOverlay>
         )}
-      </Box>
 
-      {/* Camera reselection button */}
+        {/* Status indicator */}
+        {cameraInitialized && (
+          <StatusIndicator>
+            {settings.facing === 'user' ? 'Camera trước' : 'Camera sau'} • 
+            {settings.flashMode === 'off' ? ' Flash tắt' : settings.flashMode === 'on' ? ' Flash bật' : ' Flash tự động'}
+          </StatusIndicator>
+        )}
+      </VideoContainer>
+
+      {/* Camera controls */}
       {cameraInitialized && (
-        <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Button 
-            variant="outlined" 
-            color="secondary" 
-            onClick={() => {
-              setCameraInitialized(false);
-              handleGetDevices();
-            }}
+        <ControlsContainer>
+          <ControlButton
+            onClick={toggleFlash}
+            className={settings.flashMode !== 'off' ? 'active' : ''}
+            aria-label="Toggle flash"
           >
-            Chọn camera khác
-          </Button>
-        </Box>
-      )}
+            {getFlashIcon()}
+          </ControlButton>
 
-      {/* Processing status */}
-      <Snackbar
-        open={isProcessing}
-        message="Đang xử lý ảnh..."
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      />
+          <ControlButton
+            onClick={toggleCamera}
+            aria-label="Switch camera"
+            className={settings.facing === 'user' ? 'active' : ''}
+          >
+            {settings.facing === 'user' ? <FrontCameraIcon /> : <RearCameraIcon />}
+          </ControlButton>
+
+          <CaptureButton
+            onClick={handleCapture}
+            disabled={isProcessing}
+            aria-label="Capture photo"
+          >
+            {isProcessing ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              <CameraIcon />
+            )}
+          </CaptureButton>
+
+          <ControlButton
+            onClick={toggleOrientation}
+            className={settings.orientation === 'landscape' ? 'active' : ''}
+            aria-label="Rotate camera"
+          >
+            <RotateIcon />
+          </ControlButton>
+
+          <ControlButton
+            onClick={() => setShowModelSelection(!showModelSelection)}
+            aria-label="Model selection"
+          >
+            <Typography variant="caption" sx={{ fontSize: '0.6rem' }}>
+              AI
+            </Typography>
+          </ControlButton>
+        </ControlsContainer>
+      )}
 
       {/* Error messages */}
       <Snackbar
         open={!!error || !!cameraError}
         autoHideDuration={6000}
         onClose={() => setError(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert severity="error" onClose={() => setError(null)}>
           {error || cameraError}
@@ -237,19 +414,12 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({ selectedModel,
       <Snackbar
         open={hasSuccessfulExtraction && !isProcessing}
         autoHideDuration={3000}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert severity="success">
-          Xử lý ảnh thành công! Bạn có thể tiếp tục chụp ảnh hoặc kiểm tra kết quả trong trang kết quả trích xuất
+          Xử lý ảnh thành công!
         </Alert>
       </Snackbar>
-
-      {/* Captured images count */}
-      {capturedImages.length > 0 && (
-        <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
-          Số ảnh đã chụp: {capturedImages.length}
-        </Typography>
-      )}
-    </>
+    </CameraContainer>
   );
-}; 
+};
