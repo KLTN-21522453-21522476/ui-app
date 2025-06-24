@@ -1,276 +1,230 @@
 // src/components/FileList.tsx
 
 import React, { useState } from 'react';
-import { Card, ListGroup, Button, Alert, Toast, Form, Row, Col, Badge } from 'react-bootstrap';
-import { FileListProps } from '../../../types/FileList';
-import { useFileStatus } from '../../../hooks/useFileStatus';
-import { useFileExtraction } from '../../../hooks/useFileExtraction';
-import { useInvoices } from '../../../hooks/useInvoices';
-import FilePreview from './FilePreview';
+import { Card, ListGroup, Button, Alert, Toast, Form} from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
+import { 
+  removeFile, 
+  clearFiles, 
+  setSelectedModel,
+  FilePreview,
+  updateFileStatus,
+  updateExtractedData
+} from '../../../redux/slices/fileUploadSlice';
+import { FileWithStatus } from '../../../types/FileList';
 import ExtractedDataTable from './ExtractedDataTable';
-import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { useInvoices } from '../../../hooks/useInvoices';
+import { AppDispatch } from '../../../redux/store';
+import { useFileExtraction } from '../../../hooks/useFileExtraction';
 
-const FileList: React.FC<FileListProps> = ({
-  files,
-  onRemoveFile,
-  onClearAll,
-}) => {
+interface FileListProps {
+  files: FilePreview[];
+  showExtractedData?: boolean;
+}
+
+const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const selectedModel = useSelector((state: RootState) => state.fileUpload.selectedModel);
+  const selectedGroupId = useSelector((state: RootState) => state.groups.selectedGroupId);
+  const { createInvoice, approveInvoice } = useInvoices(selectedGroupId || '');
   const [toast, setToast] = useState<{show: boolean, message: string, type: 'success' | 'danger'}>({
     show: false,
     message: '',
     type: 'success'
   });
 
-  const [selectedModel, setSelectedModel] = useState<string>("yolo8");
-  const availableModels = [
-    { value: "yolo8", label: "YOLO 8", description: "Phiên bản cơ bản, phù hợp với hầu hết các hóa đơn" },
-    { value: "yolo8v6", label: "YOLO 8v6", description: "Phiên bản cải tiến của YOLO 8" },
-    { value: "yolo10", label: "YOLO 10", description: "Phiên bản mới, độ chính xác cao hơn" },
-    { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất, tối ưu nhất" }
-  ];
-  const selectedGroupId = useAppSelector((state: any) => state.groups.selectedGroupId);
-  const { createInvoice, approveInvoice } = useInvoices(selectedGroupId || '');
-
-  // Initialize file status management
-  const { 
-    filesWithStatus, 
-    updateFileStatus, 
-    updateExtractedData, 
-    updateInvoiceData,
-  } = useFileStatus(files);
-
-  // Initialize file extraction with the updated hooks
-  const {
-    extractedDataList,
-    extractData,
-  } = useFileExtraction(
-    filesWithStatus,
-    updateFileStatus,
-    updateExtractedData,
-    updateInvoiceData,
+  const { extractData } = useFileExtraction(
+    files.map(f => ({ 
+      ...f, 
+      status: f.status || 'idle',
+      file: f.file || new File([], f.name) // Ensure file is always defined
+    })),
+    (fileName, status, extractedData, errorMessage) => {
+      // Update file status in UI
+      dispatch(updateFileStatus({ fileName, status, errorMessage }));
+      if (status === 'success' && extractedData) {
+        dispatch(updateExtractedData({ fileName, data: extractedData }));
+      }
+    },
+    () => {}, // We don't need these callbacks as they're handled in the slice
+    () => {}
   );
 
-  // Process a single file
-  const processFile = async (fileName: string) => {
-    await extractData(fileName, selectedModel);
+  const availableModels = [
+    { value: "yolo8", label: "YOLO 8", description: "Phiên bản ổn định" },
+    { value: "yolo8v2", label: "YOLO 8v2", description: "Phiên bản cải tiến của YOLO 8" },
+    { value: "yolo8v6", label: "YOLO 8v6", description: "Phiên bản tối ưu của YOLO 8" },
+    { value: "yolo9", label: "YOLO 9", description: "Phiên bản thử nghiệm" },
+    { value: "yolo10", label: "YOLO 10", description: "Phiên bản mới" },
+    { value: "yolo10_full_text", label: "YOLO 10 Full Text", description: "Phiên bản nhận dạng văn bản đầy đủ" },
+    { value: "yolo10v2", label: "YOLO 10v2", description: "Phiên bản cải tiến của YOLO 10" },
+    { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất" },
+    { value: "yolo11v2", label: "YOLO 11v2", description: "Phiên bản cải tiến của YOLO 11" },
+    { value: "YOLOv8_last_NV", label: "YOLO v8 Last NV", description: "Phiên bản YOLO 8 mới nhất" },
+    { value: "YOLOv10_last_NV", label: "YOLO v10 Last NV", description: "Phiên bản YOLO 10 mới nhất" },
+    { value: "YOLOv11_last_NV", label: "YOLO v11 Last NV", description: "Phiên bản YOLO 11 mới nhất" },
+    { value: "last_yolo8", label: "Last YOLO 8", description: "Phiên bản cuối cùng của YOLO 8" },
+    { value: "last_yolo10", label: "Last YOLO 10", description: "Phiên bản cuối cùng của YOLO 10" },
+    { value: "last_yolo11", label: "Last YOLO 11", description: "Phiên bản cuối cùng của YOLO 11" }
+  ];
+
+  const handleRemoveFile = (fileName: string) => {
+    dispatch(removeFile(fileName));
   };
 
-  // Process all files
-  const processAllFiles = async () => {
-    for (const file of filesWithStatus) {
-      if (file.status === 'idle' || file.status === 'error') {
-        await extractData(file.name, selectedModel);
-      }
-    }
+  const handleClearAll = () => {
+    dispatch(clearFiles());
   };
 
-  // Save all processed data
-  const saveAllData = async () => {
+  const handleModelChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    dispatch(setSelectedModel(event.target.value));
+  };
+
+  const handleExtractFile = async (fileName: string) => {
     try {
-      // Here you would implement the logic to save all data to your backend
-      // For now, we'll just simulate a successful save
-      
-      // Check if there are any files that have been successfully processed
-      const successFiles = filesWithStatus.filter(file => file.status === 'success');
-      
-      if (successFiles.length === 0) {
-        return {
-          success: false,
-          message: 'Không có dữ liệu nào để lưu. Vui lòng xử lý ít nhất một tệp.'
-        };
-      }
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return {
-        success: true,
-        message: `Đã lưu thành công ${successFiles.length} tệp.`
-      };
+      await extractData(fileName, selectedModel);
+      setToast({
+        show: true,
+        message: 'Trích xuất file thành công',
+        type: 'success'
+      });
     } catch (error) {
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Đã xảy ra lỗi khi lưu dữ liệu.'
-      };
+      setToast({
+        show: true,
+        message: error instanceof Error ? error.message : 'Trích xuất file thất bại',
+        type: 'danger'
+      });
     }
   };
 
-  const handleSaveAll = async () => {
-    const result = await saveAllData();
-    setToast({
-      show: true,
-      message: result.message,
-      type: result.success ? 'success' : 'danger'
-    });
-    
-    // Auto hide toast after 3 seconds
-    setTimeout(() => setToast(prev => ({...prev, show: false})), 3000);
+  const handleExtractAll = async () => {
+    try {
+      const extractPromises = files.map(file => extractData(file.name, selectedModel));
+      await Promise.all(extractPromises);
+      setToast({
+        show: true,
+        message: 'Trích xuất tất cả file thành công',
+        type: 'success'
+      });
+    } catch (error) {
+      setToast({
+        show: true,
+        message: error instanceof Error ? error.message : 'Trích xuất tất cả file thất bại',
+        type: 'danger'
+      });
+    }
   };
 
-  const hasSuccessfulFiles = filesWithStatus.some(file => file.status === 'success');
-  const hasLoadingFiles = filesWithStatus.some(file => file.status === 'loading');
+  const convertToFileWithStatus = (file: FilePreview): FileWithStatus => ({
+    ...file,
+    file: file.file || new File([], file.name),
+    status: file.status || 'idle'
+  });
 
   return (
-    <>
-      <Card className="mt-4 p-3 shadow-sm">
-        
-        <Card.Header className="bg-primary text-white">
-          <h5 className="mb-0">Cấu hình trích xuất</h5>
-        </Card.Header>
-        
-        <Card.Body>
-          <Row>
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label><strong>Chọn model trích xuất</strong></Form.Label>
-                <Form.Select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="mb-2"
-                >
-                  {availableModels.map((model) => (
-                    <option key={model.value} value={model.value}>
-                      {model.label}
-                    </option>
-                  ))}
-                </Form.Select>
-                <div className="d-flex align-items-center mt-2">
-                  <Badge bg="info" className="me-2">Đang sử dụng</Badge>
-                  <span className="fw-bold">{availableModels.find(m => m.value === selectedModel)?.label}</span>
-                </div>
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <div className="p-3 bg-light rounded">
-                <h6>Thông tin model</h6>
-                <p className="mb-0 small">
-                  {availableModels.find(m => m.value === selectedModel)?.description}
-                </p>
-              </div>
-            </Col>
-          </Row>
-        </Card.Body>
+    <div className="mt-4">
+      {toast.show && (
+        <Toast 
+          onClose={() => setToast(prev => ({ ...prev, show: false }))}
+          show={toast.show}
+          delay={3000}
+          autohide
+          className={`bg-${toast.type} text-white`}
+        >
+          <Toast.Body>{toast.message}</Toast.Body>
+        </Toast>
+      )}
 
-        <ListGroup variant="flush">
-          {filesWithStatus.map((file) => (
-          <ListGroup.Item
-            key={file.name}
-            className="d-flex flex-column"
-          >
-            {file.status !== 'success' && !file.extractedData ? (
-              // Show this section only when status is not success
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="d-flex align-items-center">
-                  <FilePreview file={file} />
-                  <div className="ms-3">
-                    <h5 className="mb-1">{file.name}</h5>
-                    <p className="text-muted mb-0">{file.size}</p>
-                    {file.status === 'error' && (
-                      <Alert variant="danger" className="mt-2 mb-0 py-1 px-2">
-                        <small>{file.errorMessage || 'Lỗi xử lý tệp'}</small>
-                      </Alert>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  {file.status === 'loading' ? (
-                    <Button variant="primary" disabled>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Đang xử lý...
-                    </Button>
-                  ) : (
-                    <>
-                      <Button 
-                        variant="primary" 
-                        className="me-2"
-                        onClick={() => processFile(file.name)}
-                      >
-                        {file.status === 'error' ? 'Thử lại' : 'Xử lý'}
-                      </Button>
-                      <Button 
-                        variant="outline-danger"
-                        onClick={() => onRemoveFile(file.name)}
-                      >
-                        Xóa
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ) : (
-              // Show this section when status is success
-              <div>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div className="d-flex align-items-center">
-                    <div className="ms-3">
-                      <h5 className="mb-1">{file.name}</h5>
-                      <p className="text-muted mb-0">{file.size} kB</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Extracted data table */}
-                <ExtractedDataTable 
-                  file={file}
-                  groupId={selectedGroupId}
-                  extractResponse={extractedDataList || []}
-                  onRemoveFile={onRemoveFile}
-                  onSubmitFile={createInvoice}
-                  onApproveFile={approveInvoice}
-                />
-              </div>
-            )}
-          </ListGroup.Item>
-          ))}
-        </ListGroup>
-        
-        {filesWithStatus.length > 0 && (
-          <div className="d-flex justify-content-between mt-3">
-            <div>
+      <Card>
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <div className="d-flex align-items-center">
+            <Form.Select
+              value={selectedModel}
+              onChange={handleModelChange}
+              className="me-3"
+              style={{ width: 'auto' }}
+            >
+              {availableModels.map(model => (
+                <option key={model.value} value={model.value}>
+                  {model.label}
+                </option>
+              ))}
+            </Form.Select>
+            {files.length > 0 && (
               <Button 
                 variant="primary" 
-                className="me-2" 
-                onClick={processAllFiles}
-                disabled={hasLoadingFiles}
+                size="sm"
+                onClick={handleExtractAll}
               >
-                Xử lý tất cả
+                Trích xuất tất cả
               </Button>
-              <Button 
-                variant="success" 
-                disabled={!hasSuccessfulFiles || hasLoadingFiles}
-                onClick={handleSaveAll}
-              >
-                Lưu tất cả
-              </Button>
-            </div>
+            )}
+          </div>
+          {files.length > 0 && (
             <Button 
               variant="outline-danger" 
-              onClick={onClearAll}
-              disabled={hasLoadingFiles}
+              size="sm"
+              onClick={handleClearAll}
             >
               Xóa tất cả
             </Button>
-          </div>
-        )}
-      </Card>
+          )}
+        </Card.Header>
 
-      {/* Toast notification */}
-      <Toast 
-        show={toast.show} 
-        onClose={() => setToast(prev => ({...prev, show: false}))}
-        style={{ position: 'fixed', bottom: '20px', right: '20px' }}
-        bg={toast.type}
-        delay={3000}
-        autohide
-      >
-        <Toast.Header>
-          <strong className="me-auto">Thông báo</strong>
-        </Toast.Header>
-        <Toast.Body className={toast.type === 'success' ? 'text-white' : ''}>
-          {toast.message}
-        </Toast.Body>
-      </Toast>
-    </>
+        <ListGroup variant="flush">
+          {files.map((file) => (
+            <ListGroup.Item key={file.name}>
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <p className="mb-0">{file.name}</p>
+                  <small className="text-muted">
+                    Dung lượng: {file.size} KB | Trạng thái: {file.status === 'idle' ? 'Chờ xử lý' : file.status === 'loading' ? 'Đang trích xuất...' : file.status === 'success' ? 'Thành công' : file.status === 'error' ? 'Lỗi' : file.status}
+                  </small>
+                </div>
+                <div>
+                  {!file.extractedData && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => handleExtractFile(file.name)}
+                      disabled={file.status === 'loading'}
+                    >
+                      {file.status === 'loading' ? 'Đang trích xuất...' : 'Trích xuất'}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleRemoveFile(file.name)}
+                  >
+                    Xóa
+                  </Button>
+                </div>
+              </div>
+              
+              {file.status === 'success' && file.extractedData && showExtractedData && (
+                <ExtractedDataTable
+                  file={convertToFileWithStatus(file)}
+                  extractResponse={file.extractedData}
+                  groupId={selectedGroupId || undefined}
+                  onRemoveFile={handleRemoveFile}
+                  onSubmitFile={createInvoice}
+                  onApproveFile={approveInvoice}
+                />
+              )}
+
+              {file.status === 'error' && (
+                <Alert variant="danger" className="mt-2 mb-0">
+                  {file.errorMessage || 'Có lỗi xảy ra khi trích xuất dữ liệu'}
+                </Alert>
+              )}
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      </Card>
+    </div>
   );
 };
 

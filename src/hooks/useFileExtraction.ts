@@ -1,8 +1,15 @@
-import { useState } from 'react';
 import { FileWithStatus } from '../types/FileList';
 import { ExtractionData, Item } from '../types/ExtractionData';
 import { extractFile } from '../api/extractionApi';
 import { ExtractResponse } from '../types/FileList';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import {
+  setLoading,
+  setError,
+  addExtractedData,
+  updateExtractedItem,
+  updateInvoiceData as updateInvoiceDataAction
+} from '../redux/slices/extractionSlice';
 
 export const useFileExtraction = (
   filesWithStatus: FileWithStatus[],
@@ -10,7 +17,8 @@ export const useFileExtraction = (
   updateExtractedData: (fileName: string, itemIndex: number, field: keyof Item, value: string) => void,
   updateInvoiceData: (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => void,
 ) => {
-  const [extractedDataList, setExtractedDataList] = useState<ExtractionData[] | null>(null);
+  const dispatch = useAppDispatch();
+  const extractedDataList = useAppSelector(state => state.extraction.extractedDataList);
 
   // Extract data from a file
   const extractData = async (fileName: string, selectedModel: string): Promise<void> => {
@@ -21,6 +29,7 @@ export const useFileExtraction = (
     }
 
     try {
+      dispatch(setLoading({ fileName, isLoading: true }));
       updateFileStatus(fileName, 'loading');
       const response = await extractFile(fileToExtract.file, selectedModel);
       
@@ -52,31 +61,30 @@ export const useFileExtraction = (
         if (data.updateAt) formattedData.updateAt = data.updateAt;
       }
 
+      dispatch(addExtractedData(formattedData));
       updateFileStatus(fileName, 'success', [formattedData]);
-      setExtractedDataList(prev => {
-        const newList = prev ? [...prev, formattedData] : [formattedData];
-        console.log('[extractData] extractedDataList after update:', newList);
-        return newList;
-      });
       console.log('[extractData] Formatted extraction data:', formattedData);
     } catch (error) {
       console.error('[extractData] Extraction error:', error);
-      updateFileStatus(fileName, 'error', undefined, error instanceof Error ? error.message : 'Unknown error occurred');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      dispatch(setError({ fileName, error: errorMessage }));
+      updateFileStatus(fileName, 'error', undefined, errorMessage);
     }
   };
 
-  
   return {
-    extractedDataList: extractedDataList || [],
+    extractedDataList,
     extractData,
     handleDataChange: (fileName: string, itemIndex: number, field: keyof Item, value: string) => {
       const file = filesWithStatus.find(f => f.name === fileName);
       if (!file) return;
+      dispatch(updateExtractedItem({ fileName, itemIndex, field, value }));
       updateExtractedData(fileName, itemIndex, field, value);
     },
     handleInvoiceDataUpdate: (fileName: string, updatedInvoiceData: Partial<ExtractionData>) => {
       const file = filesWithStatus.find(f => f.name === fileName);
       if (!file) return;
+      dispatch(updateInvoiceDataAction({ fileName, updatedData: updatedInvoiceData }));
       updateInvoiceData(fileName, updatedInvoiceData);
     }
   };

@@ -11,27 +11,13 @@ import { useStatistic } from '../hooks/useStatistic';
 import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedGroupId } from '../redux/slices/groupSlice';
 
-// TimeRange type for tracking selected time periods across components
 type TimeRange = '7days' | '30days' | '90days' | 'year';
 
 const Dashboard: React.FC = () => {
-  const { user, isAuthenticated, isInitialized, checkAuth } = useAuth();
+  const { user, isInitialized } = useAuth();
   const navigate = useNavigate();
 
-  // Check authentication status when component mounts
-  useEffect(() => {
-    const verifyAuth = async () => {
-      if (!isInitialized) {
-        await checkAuth();
-      }
-      
-      if (!isAuthenticated && isInitialized) {
-        navigate('/');
-      }
-    };
-    
-    verifyAuth();
-  }, [isAuthenticated, isInitialized, checkAuth, navigate]);
+
 
   // Show loading state while checking auth
   if (!isInitialized) {
@@ -42,11 +28,6 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    return null; // Will be redirected by the useEffect
-  }
-
   // Statistic hook
   const { invoiceStats, loading: statsLoading, error: statsError, getInvoiceStatistics } = useStatistic();
 
@@ -55,7 +36,6 @@ const Dashboard: React.FC = () => {
   const selectedGroupId = useSelector((state: any) => state.groups.selectedGroupId);
   const groupDetails = useSelector((state: any) => state.groups.groupDetails);
   const groupList = useSelector((state: any) => state.groups.groupList);
-  const isLoadingGroups = useSelector((state: any) => state.groups.isLoading);
   const selectedGroup = selectedGroupId ? groupDetails[selectedGroupId] : null;
 
   // Dashboard state
@@ -180,18 +160,14 @@ const Dashboard: React.FC = () => {
         <Col lg={8} className="h-200">
           <Card className="shadow-sm h-100">
             <Card.Body>
-              {selectedGroupId && (
-  <ProductChart group_id={selectedGroupId} />
-) }
+              <ProductChart group_id={selectedGroupId} />
             </Card.Body>
           </Card>
         </Col>
         <Col lg={4} className="h-200">
           <Card className="shadow-sm h-100">
             <Card.Body>
-              {selectedGroupId && (
-  <StoreChart group_id={selectedGroupId} />
-) }
+              <StoreChart group_id={selectedGroupId} />
             </Card.Body>
           </Card>
         </Col>
@@ -208,7 +184,11 @@ const Dashboard: React.FC = () => {
             height: '100%',
             minHeight: '700px'
         }}>
-            {isLoadingGroups ? (
+          <MembersSection 
+                groupId={selectedGroupId} 
+                isAdmin={isAdmin()} 
+          />
+            {/* {isLoadingGroups ? (
               <div className="d-flex justify-content-center py-5">
                 <Spinner animation="border" variant="primary" />
               </div>
@@ -221,7 +201,7 @@ const Dashboard: React.FC = () => {
               <div className="text-center py-5">
                 <p className="text-muted mb-0">Failed to load group data</p>
               </div>
-            )}
+            )} */}
           </Card>
         </Col>
 

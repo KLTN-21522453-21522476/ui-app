@@ -51,10 +51,6 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
     member.user_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Rest of your component remains the same
-  // ...
-
-
   // Calculate pagination
   const pageCount = Math.ceil(filteredMembers.length / rowsPerPage);
   const paginatedMembers = filteredMembers.slice(
@@ -129,13 +125,13 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
           borderBottom: '1px solid #e0e0e0',
         }}
       >
-        <Typography variant="h6">Team Members</Typography>
+        <Typography variant="h6">Thành viên nhóm</Typography>
         <Box display="flex" alignItems="center" gap={2}>
           <Box sx={{ position: 'relative' }}>
             <FaSearch style={{ position: 'absolute', top: '50%', left: 12, transform: 'translateY(-50%)', color: '#888' }} />
             <input
               type="text"
-              placeholder="Search members..."
+              placeholder="Tìm kiếm thành viên..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
@@ -207,7 +203,7 @@ const MembersSection: React.FC<MembersSectionProps> = ({ groupId, isAdmin }) => 
           ))
         ) : (
           <div className="text-center py-5">
-            <p className="text-muted mb-0">No members found</p>
+            <p className="text-muted mb-0">Không tìm thấy thành viên nào</p>
           </div>
         )}
         </Box>

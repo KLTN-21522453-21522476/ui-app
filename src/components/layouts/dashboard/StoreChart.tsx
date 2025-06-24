@@ -11,7 +11,21 @@ interface StoreChartProps {
 }
 
 const StoreChart: React.FC<StoreChartProps> = ({ group_id }) => {
-  // Use Redux hook to fetch and select market share
+  if (!group_id){
+    console.log("StoreChart: group_id is not set")
+    return (
+      <div className="h-100 d-flex flex-column">
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+          <h5 className="mb-0">Biểu đồ các cửa hàng</h5>
+        </div>
+        <div style={{ flex: 1, minHeight: 240 }}>
+          <Alert variant="info" className="text-center my-5">
+            Không có dữ liệu
+          </Alert>
+        </div>
+      </div>
+    )
+  }
   const { marketShare, loading, error, getMarketShare } = useStatistic();
 
   useEffect(() => {

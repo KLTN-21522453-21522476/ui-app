@@ -1,0 +1,6 @@
+/* Import component styles */
+@import './components/camera.css';
+
+/* Import other existing styles */
+@import './styles.css';
+@import './GroupDashboard.css'; 

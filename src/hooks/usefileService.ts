@@ -3,10 +3,11 @@ import { UploadedFile } from "../types/UploadeFile";
 class FileService {
   processFiles(files: File[]): UploadedFile[] {
     return files.map((file) => ({
-      file: file,
+      file,
       preview: URL.createObjectURL(file),
       name: file.name,
       size: file.size.toString(),
+      type: file.type || 'application/octet-stream'
     }));
   }
 

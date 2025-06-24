@@ -58,6 +58,19 @@ const statusColor = (status: string) => {
   }
 };
 
+// Thêm hàm chuyển đổi trạng thái sang tiếng Việt
+const statusLabelVi = (status: string) => {
+  switch (status) {
+    case 'approved':
+      return 'Đã duyệt';
+    case 'pending':
+      return 'Chờ duyệt';
+    case 'rejected':
+      return 'Từ chối';
+    default:
+      return status;
+  }
+};
 
 const getActionButtons = (
   status: string,
@@ -262,7 +275,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
           </Typography>
         </Box>
         <Box flex={1} minWidth={100} display="flex" justifyContent="center">
-          <Chip label={invoice.status} color={statusColor(invoice.status)} size="small" />
+          <Chip label={statusLabelVi(invoice.status)} color={statusColor(invoice.status)} size="small" />
         </Box>
       </Box>
       
@@ -358,7 +371,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
                   <strong>Ngày tạo:</strong> {formatDateForDisplay(invoiceDetail.created_date_formatted)}
                 </Typography>
                 <Typography variant="body2" gutterBottom>
-                  <strong>Trạng thái:</strong> {invoiceDetail.status}
+                  <strong>Trạng thái:</strong> {statusLabelVi(invoiceDetail.status)}
                 </Typography>
                 <Typography variant="body2" gutterBottom>
                   <strong>Tổng cộng:</strong> {Number(invoiceDetail.total_amount).toLocaleString('vi-VN', { minimumFractionDigits: 0 })} VNĐ

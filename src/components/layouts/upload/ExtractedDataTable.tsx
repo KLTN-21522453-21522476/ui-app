@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import { Form, Table, Button, Row, Col, InputGroup, FormControl, Modal, Spinner } from 'react-bootstrap';
+import { Form, Table, Button, Row, Col, InputGroup, Modal, Spinner } from 'react-bootstrap';
 import { ExtractedDataTableProps } from '../../../types/FileList';
 import FilePreview from './FilePreview';
 import { ExtractionData } from '../../../types/ExtractionData';
-import VietnameseInput from '../../commons/VietnameseInput '
 import { Item } from '../../../types/Invoice';
+import { FilePreview as FilePreviewType } from '../../../redux/slices/fileUploadSlice';
+
+interface FormEvent extends React.ChangeEvent<HTMLInputElement> {
+  target: HTMLInputElement;
+}
+
+interface FormItem {
+  item: string;
+  price: number;
+  quantity: number;
+}
 
 const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   file,
@@ -15,14 +25,25 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   onSubmitFile,
   onApproveFile,
 }) => {
+  // Convert file to FilePreviewType
+  const filePreview: FilePreviewType = {
+    preview: file.preview,
+    name: file.name,
+    size: file.size, // Already a string from FileWithStatus
+    type: 'image/jpeg', // Default to image/jpeg
+    status: file.status,
+    errorMessage: file.errorMessage,
+    extractedData: file.extractedData
+  };
+
   const convertExtractionDataToInvoiceData = (
     extraction: ExtractionData,
     options?: { submittedBy?: string; approvedBy?: string }
   ): import('../../../types/Invoice').InvoiceData => {
-    const localInvoiceItems = localItems.map(item => ({
+    const localInvoiceItems: Item[] = localItems.map(item => ({
       item: item.item,
-      price: Number(item.price),
-      quantity: Number(item.quantity),
+      price: item.price,
+      quantity: item.quantity,
     }));
     
     return {
@@ -45,7 +66,6 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   };
 
   const {user} = useAuth();
-  // Always use latest invoice data from extractResponse
   const matchedInvoiceData = extractResponse?.find(data => data.fileName === file.name) || null;
   const [localAddress, setLocalAddress] = useState<string>("");
   const [localId, setLocalId] = useState<string>("");
@@ -53,13 +73,10 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   const [localStoreName, setLocalStoreName] = useState<string>("");
   const [localCreatedDate, setLocalCreatedDate] = useState<string>("");
   const [localTotalAmount, setLocalTotalAmount] = useState<number>(0);
-  const [localItems, setLocalItems] = useState<Item[]>([]);
+  const [localItems, setLocalItems] = useState<FormItem[]>([]);
   
-  // Modal states
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
   const [showApproveModal, setShowApproveModal] = useState<boolean>(false);
-  
-  // Loading states
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isApproving, setIsApproving] = useState<boolean>(false);
 
@@ -81,7 +98,11 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
         setLocalStoreName(matchedData.storeName || "");
         setLocalCreatedDate(matchedData.createdDate || "");
         setLocalTotalAmount(matchedData.totalAmount || 0);
-        setLocalItems(matchedData.items || []);
+        setLocalItems(matchedData.items.map(item => ({
+          item: item.item,
+          price: item.price,
+          quantity: item.quantity
+        })));
       }
     }
   }, [file.name, extractResponse]);
@@ -133,17 +154,21 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
     }
   };
 
+  const handleInputChange = (e: FormEvent, field: string) => {
+    handleFieldChange(field, e.target.value);
+  };
+
   const handleSubmit = async () => {
     const latestMatched = extractResponse?.find(data => data.fileName === file.name);
     if (latestMatched && user?.$id) {
       setIsSubmitting(true); 
       const invoiceToSubmit = convertExtractionDataToInvoiceData(latestMatched, { submittedBy: user.$id });
-      try{
+      try {
         await onSubmitFile(invoiceToSubmit, file.file);
         setShowSubmitModal(true); 
         return invoiceToSubmit;
       }
-      catch (error){
+      catch (error) {
         alert('Có lỗi xảy ra: ' + error);
         return null;
       } finally {
@@ -181,7 +206,6 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
       alert('Vui lòng đăng nhập để approve hoá đơn');
     }
   };
-  
 
   const handleAddItem = () => {
     const newItems = [...localItems, { item: '', price: 0, quantity: 0 }];
@@ -193,9 +217,14 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
     setLocalItems(newItems);
   };
 
-  const handleUpdateItem = (index: number, updatedItem: Item) => {
+  const handleUpdateItem = (index: number, field: keyof FormItem, value: string) => {
     const newItems = [...localItems];
-    newItems[index] = updatedItem;
+    if (field === 'item') {
+      newItems[index] = { ...newItems[index], [field]: value };
+    } else {
+      const numValue = value === '' ? 0 : Number(value);
+      newItems[index] = { ...newItems[index], [field]: numValue };
+    }
     setLocalItems(newItems);
   };
 
@@ -209,38 +238,42 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
   }
 
   return (
-    <div className="mt-3 border rounded p-3">
+    <div className="mt-3 border rounded p-2 p-md-3">
       <Row className="mb-3">
-        <Col md={6}>
+        <Col xs={12} md={6}>
           <Form.Group className="mb-3">
-            <Form.Label><strong>Tên hoá đơn</strong></Form.Label>
-            <VietnameseInput 
+            <Form.Label className="fw-bold small">Tên hoá đơn</Form.Label>
+            <Form.Control 
               type="text" 
               value={matchedInvoiceData?.fileName || ''} 
-              onChange={(e) => handleFieldChange('fileName', e.target.value)}
+              onChange={(e: FormEvent) => handleInputChange(e, 'fileName')}
+              className="form-control-sm"
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label><strong>Cửa hàng</strong></Form.Label>
-            <VietnameseInput 
+            <Form.Label className="fw-bold small">Cửa hàng</Form.Label>
+            <Form.Control 
               type="text" 
               value={matchedInvoiceData?.storeName || ''} 
-              onChange={(e) => handleFieldChange('storeName', e.target.value)}
+              onChange={(e: FormEvent) => handleInputChange(e, 'storeName')}
+              className="form-control-sm"
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label style={{color: '#000'}}><strong>Số hoá đơn</strong></Form.Label>
-            <InputGroup>
-              <VietnameseInput
+            <Form.Label className="fw-bold small" style={{color: '#000'}}>Số hoá đơn</Form.Label>
+            <InputGroup size="sm">
+              <Form.Control
                 type="text"
                 value={localId}
-                onChange={(e) => handleFieldChange('id', e.target.value)}
+                onChange={(e: FormEvent) => handleInputChange(e, 'id')}
                 maxLength={25}
+                className="form-control-sm"
               />
               <Button
                 variant="outline-secondary"
+                size="sm"
                 onClick={handleRandomId}
               >
                 Random
@@ -250,144 +283,137 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
 
           <Form.Group className="mb-3">
             <Form.Label><strong>Địa chỉ</strong></Form.Label>
-            <VietnameseInput 
+            <Form.Control 
               type="text" 
               value={matchedInvoiceData?.address || ''}
-              onChange={(e) => handleFieldChange('address', e.target.value)}
+              onChange={(e: FormEvent) => handleInputChange(e, 'address')}
+              className="form-control-sm"
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label><strong>Ngày tạo</strong></Form.Label>
-            <VietnameseInput 
+            <Form.Control 
               type="text" 
               value={formatDateForInput(matchedInvoiceData?.createdDate) ?? ''}
-              onChange={(e) => handleFieldChange('createdDate', e.target.value)}
+              onChange={(e: FormEvent) => handleInputChange(e, 'createdDate')}
+              className="form-control-sm"
             />
           </Form.Group>
         </Col>
 
-        <Col md={6}>
-          <FilePreview file={file} width={300} height={300}/>
+        <Col xs={12} md={6}>
+          <FilePreview file={filePreview} width="300px" height="300px"/>
         </Col>
       </Row>
 
       <h5 className="mb-3">Chi tiết sản phẩm</h5>
-      <Table bordered hover responsive>
-        <thead className="table-light">
-          <tr>
-            <th>Sản phẩm</th>
-            <th>Giá</th>
-            <th>Số lượng</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {localItems.map((item, index) => (
-            <tr key={index}>
-              <td>
-                <VietnameseInput 
-                  type="text" 
-                  value={item.item || ''} 
-                  onChange={(e) => handleUpdateItem(index, { ...item, item: e.target.value })}
-                />
-              </td>
-              <td>
-                <FormControl 
-                  type="number" 
-                  value={item.price} 
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 0 : Number(e.target.value);
-                    handleUpdateItem(index, { ...item, price: value });
-                  }}
-                />
-              </td>
-              <td>
-                <FormControl
-                  type="number"
-                  value={item.quantity}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? 0 : Number(e.target.value);
-                    handleUpdateItem(index, { ...item, quantity: value });
-                  }}
-                />
-              </td>
-              <td>
-                <Button variant="danger" onClick={() => handleRemoveItem(index)}>Xoá</Button>
-              </td>
+      <div className="table-responsive">
+        <Table striped bordered hover responsive size="sm" className="mt-3 mt-md-0 text-center">
+          <thead>
+            <tr>
+              <th className="small text-center">Tên sản phẩm</th>
+              <th className="small text-center" style={{ width: "100px" }}>Số lượng</th>
+              <th className="small text-center" style={{ width: "120px" }}>Đơn giá</th>
+              <th className="small text-center" style={{ width: "50px" }}></th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {localItems.map((item, index) => (
+              <tr key={index}>
+                <td className="align-middle">
+                  <Form.Control
+                    type="text"
+                    value={item.item}
+                    onChange={(e: FormEvent) => handleUpdateItem(index, 'item', e.target.value)}
+                    className="form-control-sm text-center"
+                  />
+                </td>
+                <td className="align-middle">
+                  <Form.Control
+                    type="number"
+                    value={item.quantity.toString()}
+                    onChange={(e: FormEvent) => handleUpdateItem(index, 'quantity', e.target.value)}
+                    className="form-control-sm text-center"
+                  />
+                </td>
+                <td className="align-middle">
+                  <Form.Control
+                    type="number"
+                    value={item.price.toString()}
+                    onChange={(e: FormEvent) => handleUpdateItem(index, 'price', e.target.value)}
+                    className="form-control-sm text-center"
+                  />
+                </td>
+                <td className="align-middle">
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleRemoveItem(index)}
+                    className="p-1"
+                  >
+                    ×
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
 
-      <Button variant="primary" onClick={handleAddItem} className="mb-3">
-        + Thêm sản phẩm
-      </Button>
-
-      <Form.Group className="mb-3">
-        <Form.Label><strong>Tổng cộng</strong></Form.Label>
-          <FormControl 
-            type="number" 
-            value={localTotalAmount} 
-            onChange={(e) => {
-              const value = e.target.value === '' ? 0 : Number(e.target.value);
-              handleFieldChange('totalAmount', value);
-            }}
-            className="bg-light"
-          />
-      </Form.Group>
-
-      <div className="d-flex justify-content-end mt-3">
-        <Button 
-          variant="success" 
-          className="me-3" 
-          onClick={handleApprove}
-          disabled={user?.$id == null || isApproving}
+      <div className="d-flex flex-column align-items-center gap-3 mt-3">
+        <Button
+          variant="outline-primary"
+          size="sm"
+          onClick={handleAddItem}
         >
-          {isApproving ? (
-            <>
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-                className="me-2"
-              />
-              Đang xử lý...
-            </>
-          ) : (
-            'Approve hoá đơn'
-          )}
+          + Thêm sản phẩm
         </Button>
+        
+        <div className="d-flex gap-2">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-1" />
+                Đang lưu...
+              </>
+            ) : (
+              'Lưu'
+            )}
+          </Button>
+          <Button
+            variant="success"
+            size="sm"
+            onClick={handleApprove}
+            disabled={isApproving}
+          >
+            {isApproving ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-1" />
+                Đang duyệt...
+              </>
+            ) : (
+              'Duyệt'
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <div className="text-center mt-3">
         <Button 
-          variant="success" 
-          className="me-3" 
-          onClick={handleSubmit}
-          disabled={user?.$id == null || isSubmitting}
+          variant="danger" 
+          size="sm"
+          onClick={() => onRemoveFile(file.name)}
         >
-          {isSubmitting ? (
-            <>
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-                className="me-2"
-              />
-              Đang xử lý...
-            </>
-          ) : (
-            'Submit hoá đơn'
-          )}
-        </Button>
-        <Button variant="danger" onClick={() => onRemoveFile(file.name)}>
           Xoá hoá đơn này
         </Button>
       </div>
 
-      {/* Modal thông báo submit thành công */}
       <Modal 
         show={showSubmitModal} 
         onHide={() => setShowSubmitModal(false)}
@@ -409,7 +435,6 @@ const ExtractedDataTable: React.FC<ExtractedDataTableProps> = ({
         </Modal.Footer>
       </Modal>
 
-      {/* Modal thông báo approve thành công */}
       <Modal 
         show={showApproveModal} 
         onHide={() => setShowApproveModal(false)}

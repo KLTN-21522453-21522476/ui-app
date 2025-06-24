@@ -6,6 +6,7 @@ import authReducer from './slices/authSlice';
 import fileUploadReducer from './slices/fileUploadSlice';
 import statisticsReducer from './slices/statisticsSlice';
 import memberReducer from './slices/memberSlice';
+import extractionReducer from './slices/extractionSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,7 +15,8 @@ export const store = configureStore({
     auth: authReducer,
     fileUpload: fileUploadReducer,
     statistics: statisticsReducer,
-    member: memberReducer
+    member: memberReducer,
+    extraction: extractionReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
