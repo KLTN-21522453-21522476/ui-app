@@ -48,7 +48,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     >
       <input {...getInputProps()} />
       <div className="mb-3">
-        <img src="picture.png" alt="Upload" style={{ width: "40px", height: "40px" }} className="mb-2" />
+        <img src="picture.png" alt="Tải lên" style={{ width: "40px", height: "40px" }} className="mb-2" />
       </div>
       <p className="text-muted small">
         Kéo thả hoặc tải hình ảnh vào đây
@@ -56,7 +56,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
         <small className="d-block mt-1">Hỗ trợ định dạng: JPG, PNG</small>
       </p>
       <Button variant="primary" size="sm" className="mt-2">
-        Tải hình ảnh từ máy bạn
+        Tải hình ảnh từ máy của bạn
       </Button>
     </div>
   );

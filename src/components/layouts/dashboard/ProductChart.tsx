@@ -1,19 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Button, ButtonGroup, Spinner, Alert } from 'react-bootstrap';
+import React, {  useEffect } from 'react';
+import { Spinner, Alert } from 'react-bootstrap';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend, ChartOptions } from 'chart.js';
 import { useStatistic } from '../../../hooks/useStatistic';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
-
-type TimeRange = '7days' | '30days' | '90days' | 'year';
-
-const timeRangeOptions: { label: string; value: TimeRange }[] = [
-  { label: '7 ngày', value: '7days' },
-  { label: '30 ngày', value: '30days' },
-  { label: '90 ngày', value: '90days' },
-  { label: '1 năm', value: 'year' },
-];
 
 const barColors = [
   '#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab'
@@ -37,16 +28,12 @@ const ProductChart: React.FC<{ group_id: string }> = ({ group_id }) => {
     )
   }
   
-  const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const { topProducts, loading, error, getTopProducts } = useStatistic();
 
   const now = new Date();
   let start_date = new Date(now);
   let end_date = new Date(now);
-  if (timeRange === '7days') start_date.setDate(now.getDate() - 7);
-  else if (timeRange === '30days') start_date.setDate(now.getDate() - 30);
-  else if (timeRange === '90days') start_date.setDate(now.getDate() - 90);
-  else if (timeRange === 'year') start_date.setFullYear(now.getFullYear() - 1);
+  start_date.setDate(now.getDate() - 30);
 
   useEffect(() => {
     getTopProducts({
@@ -55,7 +42,7 @@ const ProductChart: React.FC<{ group_id: string }> = ({ group_id }) => {
       end_date: end_date.toISOString().slice(0, 10),
       limit: 5,
     });
-  }, [timeRange, getTopProducts]);
+  }, [group_id]);
 
   // Prepare chart data from Redux
   const chartData = (topProducts 
@@ -124,18 +111,6 @@ const ProductChart: React.FC<{ group_id: string }> = ({ group_id }) => {
     <div className="h-100 d-flex flex-column">
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
         <h5 className="mb-0">Top 5 sản phẩm bán chạy</h5>
-        <ButtonGroup>
-          {timeRangeOptions.map(option => (
-            <Button
-              key={option.value}
-              variant={timeRange === option.value ? 'primary' : 'outline-primary'}
-              size="sm"
-              onClick={() => setTimeRange(option.value)}
-            >
-              {option.label}
-            </Button>
-          ))}
-        </ButtonGroup>
       </div>
       <div className="mb-2 text-muted small">
         Date range: {topProducts?.timeRange?.start_date ?? '-'} – {topProducts?.timeRange?.end_date ?? '-'}

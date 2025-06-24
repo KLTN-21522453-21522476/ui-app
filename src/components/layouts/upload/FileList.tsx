@@ -52,10 +52,21 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
   );
 
   const availableModels = [
-    { value: "yolo8", label: "YOLO 8", description: "Phiên bản cơ bản, phù hợp với hầu hết các hóa đơn" },
-    { value: "yolo8v6", label: "YOLO 8v6", description: "Phiên bản cải tiến của YOLO 8" },
-    { value: "yolo10", label: "YOLO 10", description: "Phiên bản mới, độ chính xác cao hơn" },
-    { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất, tối ưu nhất" }
+    { value: "yolo8", label: "YOLO 8", description: "Phiên bản ổn định" },
+    { value: "yolo8v2", label: "YOLO 8v2", description: "Phiên bản cải tiến của YOLO 8" },
+    { value: "yolo8v6", label: "YOLO 8v6", description: "Phiên bản tối ưu của YOLO 8" },
+    { value: "yolo9", label: "YOLO 9", description: "Phiên bản thử nghiệm" },
+    { value: "yolo10", label: "YOLO 10", description: "Phiên bản mới" },
+    { value: "yolo10_full_text", label: "YOLO 10 Full Text", description: "Phiên bản nhận dạng văn bản đầy đủ" },
+    { value: "yolo10v2", label: "YOLO 10v2", description: "Phiên bản cải tiến của YOLO 10" },
+    { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất" },
+    { value: "yolo11v2", label: "YOLO 11v2", description: "Phiên bản cải tiến của YOLO 11" },
+    { value: "YOLOv8_last_NV", label: "YOLO v8 Last NV", description: "Phiên bản YOLO 8 mới nhất" },
+    { value: "YOLOv10_last_NV", label: "YOLO v10 Last NV", description: "Phiên bản YOLO 10 mới nhất" },
+    { value: "YOLOv11_last_NV", label: "YOLO v11 Last NV", description: "Phiên bản YOLO 11 mới nhất" },
+    { value: "last_yolo8", label: "Last YOLO 8", description: "Phiên bản cuối cùng của YOLO 8" },
+    { value: "last_yolo10", label: "Last YOLO 10", description: "Phiên bản cuối cùng của YOLO 10" },
+    { value: "last_yolo11", label: "Last YOLO 11", description: "Phiên bản cuối cùng của YOLO 11" }
   ];
 
   const handleRemoveFile = (fileName: string) => {
@@ -75,13 +86,13 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
       await extractData(fileName, selectedModel);
       setToast({
         show: true,
-        message: 'File extracted successfully',
+        message: 'Trích xuất file thành công',
         type: 'success'
       });
     } catch (error) {
       setToast({
         show: true,
-        message: error instanceof Error ? error.message : 'Failed to extract file',
+        message: error instanceof Error ? error.message : 'Trích xuất file thất bại',
         type: 'danger'
       });
     }
@@ -93,13 +104,13 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
       await Promise.all(extractPromises);
       setToast({
         show: true,
-        message: 'All files extracted successfully',
+        message: 'Trích xuất tất cả file thành công',
         type: 'success'
       });
     } catch (error) {
       setToast({
         show: true,
-        message: error instanceof Error ? error.message : 'Failed to extract files',
+        message: error instanceof Error ? error.message : 'Trích xuất tất cả file thất bại',
         type: 'danger'
       });
     }
@@ -146,7 +157,7 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
                 size="sm"
                 onClick={handleExtractAll}
               >
-                Extract All Files
+                Trích xuất tất cả
               </Button>
             )}
           </div>
@@ -156,7 +167,7 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
               size="sm"
               onClick={handleClearAll}
             >
-              Clear All
+              Xóa tất cả
             </Button>
           )}
         </Card.Header>
@@ -168,7 +179,7 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
                 <div>
                   <p className="mb-0">{file.name}</p>
                   <small className="text-muted">
-                    Size: {file.size} KB | Status: {file.status || 'idle'}
+                    Dung lượng: {file.size} KB | Trạng thái: {file.status === 'idle' ? 'Chờ xử lý' : file.status === 'loading' ? 'Đang trích xuất...' : file.status === 'success' ? 'Thành công' : file.status === 'error' ? 'Lỗi' : file.status}
                   </small>
                 </div>
                 <div>
@@ -180,7 +191,7 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
                       onClick={() => handleExtractFile(file.name)}
                       disabled={file.status === 'loading'}
                     >
-                      {file.status === 'loading' ? 'Extracting...' : 'Extract'}
+                      {file.status === 'loading' ? 'Đang trích xuất...' : 'Trích xuất'}
                     </Button>
                   )}
                   <Button
@@ -188,7 +199,7 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
                     size="sm"
                     onClick={() => handleRemoveFile(file.name)}
                   >
-                    Remove
+                    Xóa
                   </Button>
                 </div>
               </div>
@@ -206,7 +217,7 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
 
               {file.status === 'error' && (
                 <Alert variant="danger" className="mt-2 mb-0">
-                  {file.errorMessage || 'An error occurred during extraction'}
+                  {file.errorMessage || 'Có lỗi xảy ra khi trích xuất dữ liệu'}
                 </Alert>
               )}
             </ListGroup.Item>

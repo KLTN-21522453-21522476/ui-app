@@ -21,7 +21,7 @@ interface FileUploadState {
 
 const initialState: FileUploadState = {
   files: [],
-  selectedModel: 'yolo8',
+  selectedModel: 'yolo11',
   isProcessing: false
 };
 

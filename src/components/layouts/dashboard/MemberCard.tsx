@@ -23,7 +23,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
   
   // Function to get user display name
   const getDisplayName = (): string => {
-    return member.name || member.email?.split('@')[0] || `User ${member.user_id.slice(0, 4)}`;
+    return member.name || member.email?.split('@')[0] || `Người dùng ${member.user_id.slice(0, 4)}`;
   };
 
   // Function to get initials from name or email
@@ -46,9 +46,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
 
   // Format date for display
   const formatDate = (dateString: string): string => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return 'Không có';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -66,9 +66,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
   
   // Role display names and colors
   const roleInfo = {
-    admin: { name: 'Admin', color: 'primary', icon: <FaUserShield className="me-1" /> },
-    editor: { name: 'Editor', color: 'info', icon: <FaUserEdit className="me-1" /> },
-    viewer: { name: 'Viewer', color: 'secondary', icon: <FaUser className="me-1" /> }
+    admin: { name: 'Quản trị viên', color: 'primary', icon: <FaUserShield className="me-1" /> },
+    editor: { name: 'Chỉnh sửa', color: 'info', icon: <FaUserEdit className="me-1" /> },
+    viewer: { name: 'Xem', color: 'secondary', icon: <FaUser className="me-1" /> }
   };
   
 
@@ -106,11 +106,11 @@ const MemberCard: React.FC<MemberCardProps> = ({
             </div>
             <div>
               <h6 className="mb-0 fw-semibold">{displayName}</h6>
-              <small className="text-muted">{member.email || 'No email'}</small>
+              <small className="text-muted">{member.email || 'Không có email'}</small>
               
               {/* Added date info */}
               <div className="text-muted mt-1" style={{ fontSize: '0.75rem' }}>
-                Added: {addedDate}
+                Tham gia: {addedDate}
               </div>
             </div>
           </div>
@@ -148,9 +148,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
                   }}
                 >
                   {isUserAdmin ? (
-                    <><FaUser className="me-2" /> Make Regular User</>
+                    <><FaUser className="me-2" /> Chuyển thành người dùng thường</>
                   ) : (
-                    <><FaCog className="me-2" /> Make Admin</>
+                    <><FaCog className="me-2" /> Chuyển thành quản trị viên</>
                   )}
                 </MenuItem>
                 <MenuItem
@@ -164,7 +164,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
                     }
                   }}
                 >
-                  <FaTrash className="me-2" /> Xoá khỏi nhóm
+                  <FaTrash className="me-2" /> Xóa khỏi nhóm
                 </MenuItem>
               </Menu>
             </>
@@ -181,7 +181,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
                 style={{ fontSize: '0.75rem' }}
               >
                 {roleInfo[role as keyof typeof roleInfo]?.icon}
-                {role.charAt(0).toUpperCase() + role.slice(1)}
+                {roleInfo[role as keyof typeof roleInfo]?.name}
               </Badge>
             ))}
           </div>

@@ -129,7 +129,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ groupId, searchTerm, setSearc
           backgroundColor: 'white',
         }}
       >
-        <Typography variant="h6">Hoá đơn gần đây</Typography>
+        <Typography variant="h6">Hóa đơn gần đây</Typography>
         <Box display="flex" alignItems="center" gap={2}>
           <TextField
             select
@@ -146,7 +146,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ groupId, searchTerm, setSearc
             <MenuItem value="status">Trạng thái</MenuItem>
           </TextField>
           <TextField
-            placeholder="Search invoices..."
+            placeholder="Tìm kiếm hóa đơn..."
             size="small"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
@@ -229,7 +229,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ groupId, searchTerm, setSearc
             ))
           ) : (
             <Typography variant="body2" color="text.secondary" align="center" mt={4}>
-              Không tìm thấy hoá đơn nào.
+              Không tìm thấy hóa đơn nào.
             </Typography>
           )}
         </Box>
