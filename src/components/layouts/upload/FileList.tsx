@@ -53,20 +53,9 @@ const FileList: React.FC<FileListProps> = ({ files, showExtractedData = true }) 
 
   const availableModels = [
     { value: "yolo8", label: "YOLO 8", description: "Phiên bản ổn định" },
-    { value: "yolo8v2", label: "YOLO 8v2", description: "Phiên bản cải tiến của YOLO 8" },
     { value: "yolo8v6", label: "YOLO 8v6", description: "Phiên bản tối ưu của YOLO 8" },
-    { value: "yolo9", label: "YOLO 9", description: "Phiên bản thử nghiệm" },
     { value: "yolo10", label: "YOLO 10", description: "Phiên bản mới" },
-    { value: "yolo10_full_text", label: "YOLO 10 Full Text", description: "Phiên bản nhận dạng văn bản đầy đủ" },
-    { value: "yolo10v2", label: "YOLO 10v2", description: "Phiên bản cải tiến của YOLO 10" },
-    { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất" },
-    { value: "yolo11v2", label: "YOLO 11v2", description: "Phiên bản cải tiến của YOLO 11" },
-    { value: "YOLOv8_last_NV", label: "YOLO v8 Last NV", description: "Phiên bản YOLO 8 mới nhất" },
-    { value: "YOLOv10_last_NV", label: "YOLO v10 Last NV", description: "Phiên bản YOLO 10 mới nhất" },
-    { value: "YOLOv11_last_NV", label: "YOLO v11 Last NV", description: "Phiên bản YOLO 11 mới nhất" },
-    { value: "last_yolo8", label: "Last YOLO 8", description: "Phiên bản cuối cùng của YOLO 8" },
-    { value: "last_yolo10", label: "Last YOLO 10", description: "Phiên bản cuối cùng của YOLO 10" },
-    { value: "last_yolo11", label: "Last YOLO 11", description: "Phiên bản cuối cùng của YOLO 11" }
+    { value: "yolo11", label: "YOLO 11", description: "Phiên bản mới nhất" }
   ];
 
   const handleRemoveFile = (fileName: string) => {
